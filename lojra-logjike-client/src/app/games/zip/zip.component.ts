@@ -53,7 +53,6 @@ export class ZipComponent implements OnInit, OnDestroy {
   // Completion state
   completedTime = signal(0);
   isCompleted = signal(false);
-  isPractice = signal(false);
   completedPraise = signal('Bravo!');
 
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
@@ -163,7 +162,6 @@ export class ZipComponent implements OnInit, OnDestroy {
   private saveProgress(): void {
     const dayIndex = this.selectedDay();
     if (dayIndex < 0) return;
-    if (this.isCompleted() || this.isPractice()) return;
     const snapshot = this.game.getProgressSnapshot();
     if (!snapshot) return;
     const progress: SavedProgress = {
@@ -179,10 +177,10 @@ export class ZipComponent implements OnInit, OnDestroy {
   }
 
   private loadPuzzle(dayIndex: number): void {
+    this.saveProgress(); // save current day progress before switching
     this.selectedDay.set(dayIndex);
     this.showModal = false;
     this.showPause = false;
-    this.isPractice.set(false);
     this.game.destroy();
 
     const saved = this.getSavedResult(dayIndex);
@@ -192,25 +190,22 @@ export class ZipComponent implements OnInit, OnDestroy {
       this.game.initPuzzle(puzzle);
 
       if (saved) {
-        // Already completed — show the winning path with glow
+        this.clearProgress(dayIndex);
         this.isCompleted.set(true);
         this.completedTime.set(saved.time);
         this.completedPraise.set(this.pickPraise());
-        this.game.destroy(); // stop the timer that initPuzzle started
+        this.game.destroy();
         this.game.timerSeconds.set(saved.time);
-
         if (saved.path && saved.path.length > 0) {
-          // Restore the winning path so the board shows the glowing tube
           this.game.restoreCompleted(saved.path);
         }
       } else {
-        // Check for saved in-progress state
         const progress = this.getSavedProgress(dayIndex);
         if (progress && progress.path.length > 1) {
           this.game.restorePaused(progress.path, progress.timerSeconds);
           this.isCompleted.set(false);
           this.completedTime.set(0);
-          this.showPause = true; // show pause modal on load
+          this.showPause = true;
         } else {
           this.isCompleted.set(false);
           this.completedTime.set(0);
@@ -231,19 +226,13 @@ export class ZipComponent implements OnInit, OnDestroy {
 
   onWin(): void {
     const dayIndex = this.selectedDay();
-
-    if (!this.isPractice()) {
-      // First-time win — save result including the winning path
-      const time = this.game.timerSeconds();
-      const winningPath = [...this.game.path()];
-      this.saveResult(dayIndex, time, winningPath);
-      this.isCompleted.set(true);
-      this.completedTime.set(time);
-      this.completedPraise.set(this.pickPraise());
-      this.clearProgress(dayIndex);
-    }
-
-    this.showModal = true;
+    const time = this.game.timerSeconds();
+    const winningPath = [...this.game.path()];
+    this.saveResult(dayIndex, time, winningPath);
+    this.isCompleted.set(true);
+    this.completedTime.set(time);
+    this.completedPraise.set(this.pickPraise());
+    this.clearProgress(dayIndex);
   }
 
   @HostListener('document:visibilitychange')
@@ -259,7 +248,7 @@ export class ZipComponent implements OnInit, OnDestroy {
   }
 
   pauseGame(): void {
-    if (this.game.gameWon() || this.isCompleted() || this.isPractice()) return;
+    if (this.game.gameWon()) return;
     this.game.pauseTimer();
     this.saveProgress();
     this.showPause = true;
@@ -267,7 +256,6 @@ export class ZipComponent implements OnInit, OnDestroy {
 
   resumeGame(): void {
     this.showPause = false;
-    this.clearProgress(this.selectedDay());
     this.game.resumeTimer();
   }
 
@@ -289,18 +277,11 @@ export class ZipComponent implements OnInit, OnDestroy {
   onHint(): void { this.game.hint(); }
 
   onClear(): void {
+    if (this.isCompleted()) return;
     const dayIndex = this.selectedDay();
-    const saved = this.getSavedResult(dayIndex);
     this.clearProgress(dayIndex);
     this.showModal = false;
-    if (saved) {
-      this.isPractice.set(true);
-      this.isCompleted.set(false);
-      this.game.resetPractice();
-    } else {
-      this.isPractice.set(false);
-      this.game.reset();
-    }
+    this.game.reset();
   }
 
   private updateDayBar(): void {

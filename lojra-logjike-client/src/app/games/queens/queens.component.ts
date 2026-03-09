@@ -53,7 +53,6 @@ export class QueensComponent implements OnInit, OnDestroy {
   // Completion state
   completedTime = signal(0);
   isCompleted = signal(false);
-  isPractice = signal(false);
   completedPraise = signal('Bravo!');
 
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
@@ -167,7 +166,6 @@ export class QueensComponent implements OnInit, OnDestroy {
   private saveProgress(): void {
     const dayIndex = this.selectedDay();
     if (dayIndex < 0) return;
-    if (this.isCompleted() || this.isPractice()) return;
     const snapshot = this.game.getProgressSnapshot();
     if (!snapshot) return;
     const progress: SavedProgress = {
@@ -183,10 +181,10 @@ export class QueensComponent implements OnInit, OnDestroy {
   }
 
   private loadPuzzle(dayIndex: number): void {
+    this.saveProgress(); // save current day progress before switching
     this.selectedDay.set(dayIndex);
     this.showModal = false;
     this.showPause = false;
-    this.isPractice.set(false);
     this.game.destroy();
 
     const saved = this.getSavedResult(dayIndex);
@@ -196,23 +194,22 @@ export class QueensComponent implements OnInit, OnDestroy {
       this.game.initPuzzle(puzzle);
 
       if (saved) {
+        this.clearProgress(dayIndex);
         this.isCompleted.set(true);
         this.completedTime.set(saved.time);
         this.completedPraise.set(this.pickPraise());
         this.game.destroy();
         this.game.timerSeconds.set(saved.time);
-
         if (saved.board && saved.board.length > 0) {
           this.game.restoreCompleted(saved.board);
         }
       } else {
-        // Check for saved in-progress state
         const progress = this.getSavedProgress(dayIndex);
         if (progress && progress.board.length > 0) {
           this.game.restorePaused(progress.board, progress.timerSeconds);
           this.isCompleted.set(false);
           this.completedTime.set(0);
-          this.showPause = true; // show pause modal on load
+          this.showPause = true;
         } else {
           this.isCompleted.set(false);
           this.completedTime.set(0);
@@ -233,18 +230,13 @@ export class QueensComponent implements OnInit, OnDestroy {
 
   onWin(): void {
     const dayIndex = this.selectedDay();
-
-    if (!this.isPractice()) {
-      const time = this.game.timerSeconds();
-      const winningBoard = this.game.board().map(row => [...row]);
-      this.saveResult(dayIndex, time, winningBoard);
-      this.isCompleted.set(true);
-      this.completedTime.set(time);
-      this.completedPraise.set(this.pickPraise());
-      this.clearProgress(dayIndex);
-    }
-
-    this.showModal = true;
+    const time = this.game.timerSeconds();
+    const winningBoard = this.game.board().map(row => [...row]);
+    this.saveResult(dayIndex, time, winningBoard);
+    this.isCompleted.set(true);
+    this.completedTime.set(time);
+    this.completedPraise.set(this.pickPraise());
+    this.clearProgress(dayIndex);
   }
 
   onUndo(): void {
@@ -268,7 +260,7 @@ export class QueensComponent implements OnInit, OnDestroy {
   }
 
   pauseGame(): void {
-    if (this.game.gameWon() || this.isCompleted() || this.isPractice()) return;
+    if (this.game.gameWon()) return;
     this.game.pauseTimer();
     this.saveProgress();
     this.showPause = true;
@@ -276,7 +268,6 @@ export class QueensComponent implements OnInit, OnDestroy {
 
   resumeGame(): void {
     this.showPause = false;
-    this.clearProgress(this.selectedDay());
     this.game.resumeTimer();
   }
 
@@ -308,18 +299,11 @@ export class QueensComponent implements OnInit, OnDestroy {
   closeInfo(): void { this.showInfo = false; }
 
   onClear(): void {
+    if (this.isCompleted()) return;
     const dayIndex = this.selectedDay();
-    const saved = this.getSavedResult(dayIndex);
     this.clearProgress(dayIndex);
     this.showModal = false;
-    if (saved) {
-      this.isPractice.set(true);
-      this.isCompleted.set(false);
-      this.game.resetPractice();
-    } else {
-      this.isPractice.set(false);
-      this.game.reset();
-    }
+    this.game.reset();
   }
 
   private updateDayBar(): void {

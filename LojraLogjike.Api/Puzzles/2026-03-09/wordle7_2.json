@@ -1,0 +1,155 @@
+{
+  "gridSize": 8,
+  "solution": [
+    [
+      "X",
+      "B",
+      "X",
+      "X",
+      "X",
+      "D",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "U",
+      "X",
+      "X",
+      "T",
+      "R",
+      "U",
+      "P"
+    ],
+    [
+      "X",
+      "Z",
+      "O",
+      "G",
+      "X",
+      "I",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "J",
+      "X",
+      "T",
+      "I",
+      "J"
+    ],
+    [
+      "X",
+      "P",
+      "L",
+      "A",
+      "K",
+      "\u00CB",
+      "X",
+      "A"
+    ],
+    [
+      "X",
+      "I",
+      "X",
+      "K",
+      "X",
+      "X",
+      "X",
+      "V"
+    ],
+    [
+      "X",
+      "K",
+      "X",
+      "X",
+      "J",
+      "E",
+      "T",
+      "\u00CB"
+    ],
+    [
+      "H",
+      "\u00CB",
+      "N",
+      "\u00CB",
+      "X",
+      "X",
+      "X",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "DRIT\u00CB",
+      "row": 0,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "GJAK",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRUP",
+      "row": 1,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "TIJ",
+      "row": 3,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "JAV\u00CB",
+      "row": 3,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "JET\u00CB",
+      "row": 6,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ZOG",
+      "row": 2,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PLAK\u00CB",
+      "row": 4,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PIK\u00CB",
+      "row": 4,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "H\u00CBN\u00CB",
+      "row": 7,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BUZ",
+      "row": 0,
+      "col": 1,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 2,
+  "dayName": "E M\u00EBrkur\u00EB"
+}

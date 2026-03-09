@@ -45,5 +45,13 @@ export const routes: Routes = [
     path: 'games/tango/:day',
     loadComponent: () => import('./games/tango/tango.component').then(m => m.TangoComponent)
   },
+  {
+    path: 'games/snake',
+    loadComponent: () => import('./games/snake/snake.component').then(m => m.SnakeComponent)
+  },
+  {
+    path: 'games/snake/:day',
+    loadComponent: () => import('./games/snake/snake.component').then(m => m.SnakeComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

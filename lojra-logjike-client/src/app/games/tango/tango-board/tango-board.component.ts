@@ -22,9 +22,9 @@ export class TangoBoardComponent {
   private previousWonState = false;
   private winEmitted = false;
 
-  readonly cellSize = 56;
+  readonly cellSize = 76;
   readonly size = 6;
-  readonly symbolRadius = 14;
+  readonly symbolRadius = 18;
 
   constructor() {
     effect(() => {
@@ -109,6 +109,13 @@ export class TangoBoardComponent {
     const R = this.symbolRadius;
     const innerR = R * 1.5;
     return `M ${cx},${cy - R} A ${R},${R} 0 0,0 ${cx},${cy + R} A ${innerR},${innerR} 0 0,1 ${cx},${cy - R}`;
+  }
+
+  winAnimDelay(i: number): number {
+    const row = this.cellRow(i);
+    const col = this.cellCol(i);
+    // Diagonal wave: top-left starts first
+    return (row + col) * 60;
   }
 
   // Constraint display positions — placed on the border between two cells

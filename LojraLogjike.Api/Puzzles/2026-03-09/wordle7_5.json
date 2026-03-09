@@ -1,0 +1,198 @@
+{
+  "gridSize": 9,
+  "solution": [
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "H"
+    ],
+    [
+      "X",
+      "M",
+      "X",
+      "X",
+      "X",
+      "B",
+      "A",
+      "R",
+      "\u00CB"
+    ],
+    [
+      "X",
+      "E",
+      "N",
+      "D",
+      "X",
+      "X",
+      "R",
+      "X",
+      "N"
+    ],
+    [
+      "X",
+      "S",
+      "X",
+      "A",
+      "X",
+      "D",
+      "I",
+      "M",
+      "\u00CB"
+    ],
+    [
+      "X",
+      "X",
+      "A",
+      "R",
+      "T",
+      "H",
+      "X",
+      "U",
+      "X"
+    ],
+    [
+      "X",
+      "N",
+      "X",
+      "K",
+      "X",
+      "E",
+      "R",
+      "A",
+      "X"
+    ],
+    [
+      "L",
+      "U",
+      "M",
+      "\u00CB",
+      "T",
+      "X",
+      "\u00CB",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "K",
+      "X",
+      "X",
+      "X",
+      "X",
+      "R",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "M",
+      "O",
+      "T",
+      "\u00CB",
+      "R",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "ARTH",
+      "row": 4,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DHE",
+      "row": 3,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "NUK",
+      "row": 5,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "MUA",
+      "row": 3,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "ARI",
+      "row": 1,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "BAR\u00CB",
+      "row": 1,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ERA",
+      "row": 5,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DARK\u00CB",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "LUM\u00CBT",
+      "row": 6,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DIM\u00CB",
+      "row": 3,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "END",
+      "row": 2,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MES",
+      "row": 1,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "H\u00CBN\u00CB",
+      "row": 0,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "R\u00CBR\u00CB",
+      "row": 5,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "MOT\u00CBR",
+      "row": 8,
+      "col": 3,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 5,
+  "dayName": "E Shtun\u00EB"
+}

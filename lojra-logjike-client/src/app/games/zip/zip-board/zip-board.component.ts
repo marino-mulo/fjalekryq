@@ -36,13 +36,16 @@ export class ZipBoardComponent implements OnDestroy {
   /** Tube width as fraction of cell size */
   readonly tubeRatio = 0.62;
 
-  /** Cell size adapts to grid: smaller cells for bigger grids */
+  /** Cell size adapts to grid: smaller cells for bigger grids, minimum board width ~420px */
   get cellSize(): number {
     const c = this.game.getCols();
-    if (c >= 9) return 44;
-    if (c >= 8) return 48;
-    if (c >= 7) return 52;
-    return 56;
+    let base: number;
+    if (c >= 9) base = 54;
+    else if (c >= 8) base = 60;
+    else if (c >= 7) base = 64;
+    else base = 70;
+    // Ensure board width is at least ~420px
+    return Math.max(base, Math.ceil(420 / c));
   }
 
   /** Tube stroke width in px */

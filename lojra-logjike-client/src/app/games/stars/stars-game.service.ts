@@ -184,65 +184,183 @@ export class StarsGameService {
 
     const n = this.size;
     const b = this.board();
+    const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 
+    // Step 1: Correct mistakes (wrong star or blocked solution cell)
     const corrections = this.correctMistakes(n, b);
     if (corrections) {
       this.history.push(b.map(r => [...r]));
       this.historyLength.set(this.history.length);
       this.board.set(corrections.board);
       this.updateConflicts();
-      this.hintCells.set(corrections.cells);
       this.hintMessage.set(corrections.message);
       this.scheduleHintClear();
       this.startHintCooldown();
       return;
     }
 
-    const solvedZones = new Set<number>();
-    const solvedRows = new Set<number>();
-    const solvedCols = new Set<number>();
-    for (let r = 0; r < n; r++) {
-      let rowStars = 0;
-      for (let c = 0; c < n; c++) {
-        if (b[r][c] === STAR) {
-          rowStars++;
-          solvedZones.add(this.zones[r][c]);
-          solvedCols.add(c);
-        }
-      }
-      if (rowStars >= 2) solvedRows.add(r);
-    }
-
-    const isAvailable = (r: number, c: number): boolean =>
-      b[r][c] === EMPTY
-      && !solvedRows.has(r)
-      && !solvedCols.has(c)
-      && this.countStarsInZone(b, this.zones[r][c]) < 2;
-
-    let result = this.ruleZoneConfinedToRows(n, b, solvedZones, isAvailable);
-    if (!result) result = this.ruleZoneConfinedToCols(n, b, solvedZones, isAvailable);
-    if (!result) result = this.ruleRowHasOneZone(n, b, solvedZones, solvedRows, isAvailable);
-    if (!result) result = this.ruleColHasOneZone(n, b, solvedZones, solvedCols, isAvailable);
-    if (!result) result = this.ruleZoneTwoCells(n, b, solvedZones, isAvailable);
-
-    if (!result || result.cells.length === 0) {
-      this.hintMessage.set('Nuk gjeta ndihmë — provo të analizosh zonat me pak hapësirë.');
-      this.hintTimeout = setTimeout(() => this.hintMessage.set(''), 4000);
+    // Step 2: Auto-X obvious cells (adjacent to stars, full rows/cols/zones)
+    const autoX = this.findAutoX(n, b, dirs);
+    if (autoX) {
+      this.history.push(b.map(r => [...r]));
+      this.historyLength.set(this.history.length);
+      this.board.set(autoX.board);
+      this.hintMessage.set(autoX.message);
+      this.scheduleHintClear();
       this.startHintCooldown();
       return;
     }
 
-    this.history.push(this.board().map(r => [...r]));
-    this.historyLength.set(this.history.length);
-    const newBoard = b.map(r => [...r]);
-    for (const cell of result.cells) {
-      if (newBoard[cell.row][cell.col] === EMPTY) newBoard[cell.row][cell.col] = AUTO_X;
+    // Step 3: Forced placement — zone/row/col has exactly `needed` available cells
+    const forced = this.findForcedElimination(n, b, dirs);
+    if (forced) {
+      this.history.push(b.map(r => [...r]));
+      this.historyLength.set(this.history.length);
+      this.board.set(forced.board);
+      this.hintMessage.set(forced.message);
+      this.scheduleHintClear();
+      this.startHintCooldown();
+      return;
     }
-    this.board.set(newBoard);
-    this.hintCells.set(result.cells);
-    this.hintMessage.set(result.message);
-    this.scheduleHintClear();
+
+    // No hint found
+    this.hintMessage.set('Nuk gjeta ndihmë — provo të analizosh zonat me pak hapësirë.');
+    this.hintTimeout = setTimeout(() => this.hintMessage.set(''), 4000);
     this.startHintCooldown();
+  }
+
+  /** Auto-X cells adjacent to stars + cells in full rows/cols/zones */
+  private findAutoX(n: number, b: number[][], dirs: number[][]): { board: number[][]; message: string } | null {
+    const nb = b.map(r => [...r]);
+    let count = 0;
+
+    // X all 8 neighbors of every star
+    for (let r = 0; r < n; r++) {
+      for (let c = 0; c < n; c++) {
+        if (b[r][c] !== STAR) continue;
+        for (const [dr, dc] of dirs) {
+          const nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < n && nc >= 0 && nc < n && nb[nr][nc] === EMPTY) {
+            nb[nr][nc] = AUTO_X; count++;
+          }
+        }
+      }
+    }
+
+    // X remaining cells in rows with 2 stars
+    for (let r = 0; r < n; r++) {
+      if (this.countStarsInRow(nb, r) >= 2) {
+        for (let c = 0; c < n; c++) {
+          if (nb[r][c] === EMPTY) { nb[r][c] = AUTO_X; count++; }
+        }
+      }
+    }
+
+    // X remaining cells in cols with 2 stars
+    for (let c = 0; c < n; c++) {
+      if (this.countStarsInCol(nb, c) >= 2) {
+        for (let r = 0; r < n; r++) {
+          if (nb[r][c] === EMPTY) { nb[r][c] = AUTO_X; count++; }
+        }
+      }
+    }
+
+    // X remaining cells in zones with 2 stars
+    for (let z = 0; z < n; z++) {
+      if (this.countStarsInZone(nb, z) >= 2) {
+        for (let r = 0; r < n; r++) {
+          for (let c = 0; c < n; c++) {
+            if (this.zones[r][c] === z && nb[r][c] === EMPTY) { nb[r][c] = AUTO_X; count++; }
+          }
+        }
+      }
+    }
+
+    return count > 0 ? { board: nb, message: `${count} qeliza u shënuan me X.` } : null;
+  }
+
+  /** Find forced placements: zone/row/col with exactly `needed` available cells → X neighbors */
+  private findForcedElimination(n: number, b: number[][], dirs: number[][]): { board: number[][]; message: string } | null {
+    const isAvailable = (r: number, c: number): boolean => {
+      if (b[r][c] !== EMPTY) return false;
+      if (this.countStarsInRow(b, r) >= 2) return false;
+      if (this.countStarsInCol(b, c) >= 2) return false;
+      if (this.countStarsInZone(b, this.zones[r][c]) >= 2) return false;
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < n && nc >= 0 && nc < n && b[nr][nc] === STAR) return false;
+      }
+      return true;
+    };
+
+    const xNeighbors = (available: { row: number; col: number }[]): { board: number[][]; count: number } => {
+      const nb = b.map(r => [...r]);
+      let count = 0;
+      for (const { row: qr, col: qc } of available) {
+        for (const [dr, dc] of dirs) {
+          const nr = qr + dr, nc = qc + dc;
+          if (nr >= 0 && nr < n && nc >= 0 && nc < n && nb[nr][nc] === EMPTY
+            && !available.some(a => a.row === nr && a.col === nc)) {
+            nb[nr][nc] = AUTO_X; count++;
+          }
+        }
+      }
+      return { board: nb, count };
+    };
+
+    // Check zones
+    for (let z = 0; z < n; z++) {
+      const zStars = this.countStarsInZone(b, z);
+      if (zStars >= 2) continue;
+      const needed = 2 - zStars;
+      const available: { row: number; col: number }[] = [];
+      for (let r = 0; r < n; r++)
+        for (let c = 0; c < n; c++)
+          if (this.zones[r][c] === z && isAvailable(r, c)) available.push({ row: r, col: c });
+      if (available.length === needed && needed > 0) {
+        const { board, count } = xNeighbors(available);
+        if (count > 0) return {
+          board,
+          message: `Zona ${this.zoneName(z)} ka vetëm ${needed === 1 ? '1 vend' : needed + ' vende'} — X rreth tyre.`
+        };
+      }
+    }
+
+    // Check rows
+    for (let r = 0; r < n; r++) {
+      const rStars = this.countStarsInRow(b, r);
+      if (rStars >= 2) continue;
+      const needed = 2 - rStars;
+      const available: { row: number; col: number }[] = [];
+      for (let c = 0; c < n; c++)
+        if (isAvailable(r, c)) available.push({ row: r, col: c });
+      if (available.length === needed && needed > 0) {
+        const { board, count } = xNeighbors(available);
+        if (count > 0) return {
+          board,
+          message: `Rreshti ${r + 1} ka vetëm ${needed === 1 ? '1 vend' : needed + ' vende'} — X rreth tyre.`
+        };
+      }
+    }
+
+    // Check cols
+    for (let c = 0; c < n; c++) {
+      const cStars = this.countStarsInCol(b, c);
+      if (cStars >= 2) continue;
+      const needed = 2 - cStars;
+      const available: { row: number; col: number }[] = [];
+      for (let r = 0; r < n; r++)
+        if (isAvailable(r, c)) available.push({ row: r, col: c });
+      if (available.length === needed && needed > 0) {
+        const { board, count } = xNeighbors(available);
+        if (count > 0) return {
+          board,
+          message: `Kolona ${c + 1} ka vetëm ${needed === 1 ? '1 vend' : needed + ' vende'} — X rreth tyre.`
+        };
+      }
+    }
+
+    return null;
   }
 
   private scheduleHintClear(): void {
@@ -281,149 +399,6 @@ export class StarsGameService {
 
   private zoneName(z: number): string {
     return this.zoneNames[z % this.zoneNames.length];
-  }
-
-  /** Rule: Zone's available cells all in ≤2 rows → X other zones' cells in those rows. */
-  private ruleZoneConfinedToRows(
-    n: number, b: number[][], solvedZones: Set<number>,
-    isAvailable: (r: number, c: number) => boolean
-  ): { cells: { row: number; col: number }[]; message: string } | null {
-    for (let z = 0; z < n; z++) {
-      if (this.countStarsInZone(b, z) >= 2) continue;
-      const needed = 2 - this.countStarsInZone(b, z);
-      const rows = new Set<number>();
-      for (let r = 0; r < n; r++)
-        for (let c = 0; c < n; c++)
-          if (this.zones[r][c] === z && isAvailable(r, c)) rows.add(r);
-      if (rows.size <= needed) {
-        const cells: { row: number; col: number }[] = [];
-        for (const row of rows) {
-          for (let c = 0; c < n; c++) {
-            if (this.zones[row][c] !== z && b[row][c] === EMPTY) cells.push({ row, col: c });
-          }
-        }
-        if (cells.length > 0) return {
-          cells,
-          message: `Zona ${this.zoneName(z)} ka vend vetëm në ${needed === 2 ? 'ato rreshta' : 'atë rresht'} — X qelizat e tjera.`
-        };
-      }
-    }
-    return null;
-  }
-
-  /** Rule: Zone's available cells all in ≤2 cols → X other zones' cells in those cols. */
-  private ruleZoneConfinedToCols(
-    n: number, b: number[][], solvedZones: Set<number>,
-    isAvailable: (r: number, c: number) => boolean
-  ): { cells: { row: number; col: number }[]; message: string } | null {
-    for (let z = 0; z < n; z++) {
-      if (this.countStarsInZone(b, z) >= 2) continue;
-      const needed = 2 - this.countStarsInZone(b, z);
-      const cols = new Set<number>();
-      for (let r = 0; r < n; r++)
-        for (let c = 0; c < n; c++)
-          if (this.zones[r][c] === z && isAvailable(r, c)) cols.add(c);
-      if (cols.size <= needed) {
-        const cells: { row: number; col: number }[] = [];
-        for (const col of cols) {
-          for (let r = 0; r < n; r++) {
-            if (this.zones[r][col] !== z && b[r][col] === EMPTY) cells.push({ row: r, col });
-          }
-        }
-        if (cells.length > 0) return {
-          cells,
-          message: `Zona ${this.zoneName(z)} ka vend vetëm në ato kolona — X qelizat e tjera.`
-        };
-      }
-    }
-    return null;
-  }
-
-  /** Rule: Row has only N unsolved zones → X those zones' cells in other rows. */
-  private ruleRowHasOneZone(
-    n: number, b: number[][], solvedZones: Set<number>, solvedRows: Set<number>,
-    isAvailable: (r: number, c: number) => boolean
-  ): { cells: { row: number; col: number }[]; message: string } | null {
-    for (let r = 0; r < n; r++) {
-      if (solvedRows.has(r)) continue;
-      const zonesInRow = new Set<number>();
-      for (let c = 0; c < n; c++) if (isAvailable(r, c)) zonesInRow.add(this.zones[r][c]);
-      if (zonesInRow.size === 1) {
-        const zone = zonesInRow.values().next().value!;
-        const cells: { row: number; col: number }[] = [];
-        for (let r2 = 0; r2 < n; r2++) {
-          if (r2 === r) continue;
-          for (let c = 0; c < n; c++) {
-            if (this.zones[r2][c] === zone && b[r2][c] === EMPTY) cells.push({ row: r2, col: c });
-          }
-        }
-        if (cells.length > 0) return {
-          cells,
-          message: `Rreshti ${r + 1} ka vetëm zonën ${this.zoneName(zone)} — X pjesën tjetër.`
-        };
-      }
-    }
-    return null;
-  }
-
-  /** Rule: Col has only N unsolved zones → X those zones' cells in other cols. */
-  private ruleColHasOneZone(
-    n: number, b: number[][], solvedZones: Set<number>, solvedCols: Set<number>,
-    isAvailable: (r: number, c: number) => boolean
-  ): { cells: { row: number; col: number }[]; message: string } | null {
-    for (let c = 0; c < n; c++) {
-      if (solvedCols.has(c)) continue;
-      const zonesInCol = new Set<number>();
-      for (let r = 0; r < n; r++) if (isAvailable(r, c)) zonesInCol.add(this.zones[r][c]);
-      if (zonesInCol.size === 1) {
-        const zone = zonesInCol.values().next().value!;
-        const cells: { row: number; col: number }[] = [];
-        for (let c2 = 0; c2 < n; c2++) {
-          if (c2 === c) continue;
-          for (let r = 0; r < n; r++) {
-            if (this.zones[r][c2] === zone && b[r][c2] === EMPTY) cells.push({ row: r, col: c2 });
-          }
-        }
-        if (cells.length > 0) return {
-          cells,
-          message: `Kolona ${c + 1} ka vetëm zonën ${this.zoneName(zone)} — X pjesën tjetër.`
-        };
-      }
-    }
-    return null;
-  }
-
-  /** Rule: Zone has only 2 available cells → mark conflicting cells. */
-  private ruleZoneTwoCells(
-    n: number, b: number[][], solvedZones: Set<number>,
-    isAvailable: (r: number, c: number) => boolean
-  ): { cells: { row: number; col: number }[]; message: string } | null {
-    for (let z = 0; z < n; z++) {
-      if (this.countStarsInZone(b, z) >= 2) continue;
-      const needed = 2 - this.countStarsInZone(b, z);
-      const available: { row: number; col: number }[] = [];
-      for (let r = 0; r < n; r++)
-        for (let c = 0; c < n; c++)
-          if (this.zones[r][c] === z && isAvailable(r, c)) available.push({ row: r, col: c });
-
-      if (available.length === needed && needed > 0) {
-        const cells: { row: number; col: number }[] = [];
-        for (const { row: qr, col: qc } of available) {
-          for (const [dr, dc] of [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]]) {
-            const nr = qr + dr, nc = qc + dc;
-            if (nr >= 0 && nr < n && nc >= 0 && nc < n && b[nr][nc] === EMPTY
-              && !available.some(a => a.row === nr && a.col === nc)) {
-              cells.push({ row: nr, col: nc });
-            }
-          }
-        }
-        if (cells.length > 0) return {
-          cells,
-          message: `Zona ${this.zoneName(z)} ka vetëm ${needed === 1 ? '1 qelizë' : '2 qeliza'} — X rreth tyre.`
-        };
-      }
-    }
-    return null;
   }
 
   private detectConflicts(b: number[][]): { row: number; col: number }[] {
@@ -537,22 +512,9 @@ export class StarsGameService {
     this.historyLength.set(0);
     this.clearHint();
     this.conflictCells.set([]);
-    this.startTimer();
-  }
-
-  resetPractice(): void {
-    const b: number[][] = [];
-    for (let r = 0; r < this.size; r++) b.push(new Array(this.size).fill(EMPTY));
-    this.board.set(b);
-    this.gameWon.set(false);
-    this.timerDisabled.set(true);
-    this.isRestored.set(false);
-    this.history = [];
-    this.historyLength.set(0);
-    this.clearHint();
-    this.conflictCells.set([]);
+    // Keep timer running without resetting seconds
     this.stopTimer();
-    this.timerSeconds.set(0);
+    this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
   }
 
   restoreCompleted(savedBoard: number[][]): void {

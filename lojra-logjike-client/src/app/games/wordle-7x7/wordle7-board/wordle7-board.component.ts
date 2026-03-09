@@ -2,8 +2,8 @@ import { Component, Input, Output, EventEmitter, effect } from '@angular/core';
 import { Wordle7GameService, CellColor } from '../wordle7-game.service';
 
 // Cell size lookup to keep total board around ~388px wide
-const CELL_SIZE_MAP: Record<number, number> = { 7: 52, 8: 45, 9: 39, 10: 35 };
-const FONT_SIZE_MAP: Record<number, number> = { 7: 22, 8: 20, 9: 17, 10: 15 };
+const CELL_SIZE_MAP: Record<number, number> = { 7: 68, 8: 60, 9: 52, 10: 46 };
+const FONT_SIZE_MAP: Record<number, number> = { 7: 28, 8: 25, 9: 22, 10: 19 };
 
 @Component({
   selector: 'app-wordle7-board',

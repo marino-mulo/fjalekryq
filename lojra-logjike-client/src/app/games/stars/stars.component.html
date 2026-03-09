@@ -1,31 +1,29 @@
-<!-- ── Top Strip: Timer + Name + Clear ── -->
-<div class="top-strip">
-  @if (isPractice()) {
-    <div class="game-timer solved">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 6 9 17l-5-5"/>
-      </svg>
-      <span>Zgjidhur</span>
-    </div>
-  } @else {
-    <div class="game-timer">
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-      </svg>
-      <span>{{ game.formatTime(game.timerSeconds()) }}</span>
-    </div>
-  }
-  <span class="game-name">Stars</span>
-  <button class="clear-btn" (click)="onClear()" title="Pastro tabelën">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-      <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-    </svg>
-    Pastro
-  </button>
-</div>
-
 <!-- ── Game Content (board-width container) ── -->
 <div class="game-content">
+  <!-- ── Top Strip: Timer + Name + Clear ── -->
+  <div class="top-strip">
+    @if (!isCompleted()) {
+      <div class="game-timer" (click)="pauseGame()" title="Pauzë">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+          <rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>
+        </svg>
+        <span>{{ game.formatTime(game.timerSeconds()) }}</span>
+      </div>
+    } @else {
+      <div></div>
+    }
+    <span class="game-name">Stars</span>
+    @if (!isCompleted()) {
+      <button class="clear-btn" (click)="onClear()" title="Pastro tabelën">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+        </svg>
+        Pastro
+      </button>
+    } @else {
+      <div></div>
+    }
+  </div>
   <div class="board-area">
     <app-stars-board [game]="game" (win)="onWin()" />
   </div>
@@ -33,7 +31,15 @@
   @if (isCompleted()) {
     <div class="completed-card">
       <span class="completed-card-label">{{ completedPraise() }}</span>
-      <span class="completed-card-time">{{ game.formatTime(completedTime()) }}</span>
+      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}</span>
+      @if (hasPreviousDay()) {
+        <button class="btn btn--primary" (click)="playPreviousDay()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+          Luaj ditën e kaluar
+        </button>
+      }
     </div>
   } @else {
     @if (game.conflictCells().length > 0) {
@@ -80,7 +86,7 @@
         </svg>
         Kthe
       </button>
-      <button class="control-btn check-btn" (click)="onCheck()" [disabled]="game.starsCount() === 0">
+      <button class="control-btn check-btn" (click)="onCheck()" [disabled]="game.starsCount() === 0 || game.gameWon()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
@@ -101,49 +107,16 @@
   }
 </div>
 
-<!-- ── Win Modal ── -->
-@if (showModal) {
-  <div class="modal-overlay active" (click)="closeModal()">
-    <div class="modal win-modal" (click)="$event.stopPropagation()">
-      <button class="modal-close" (click)="closeModal()">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-        </svg>
-      </button>
-      <div class="win-badge">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10" fill="#FFFBEB" stroke="#F59E0B" stroke-width="1.5"/>
-          <polyline points="8 12 11 15 16 9" stroke="#F59E0B" stroke-width="2.5"/>
-        </svg>
-      </div>
-      <h2>Urime!</h2>
-      @if (isPractice()) {
-        <p>E përfundove përsëri!</p>
-      } @else {
-        <p>E zgjidhe Stars!</p>
-      }
-      @if (hasPreviousDay()) {
-        <button class="btn btn--primary" (click)="playPreviousDay()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="15 18 9 12 15 6"/>
-          </svg>
-          Luaj ditën e kaluar
-        </button>
-      }
-    </div>
-  </div>
-}
-
 <!-- ── Pause Modal ── -->
 @if (showPause) {
   <div class="modal-overlay active">
     <div class="modal pause-modal" (click)="$event.stopPropagation()">
       <p class="pause-date">{{ getTodayDateLabel() }}</p>
       <h2 class="pause-title">Loja në pauzë</h2>
-      <p class="pause-time">Ke kaluar {{ game.formatTime(game.timerSeconds()) }}.</p>
+      <p class="pause-time">Ke kaluar {{ game.formatTime(game.timerSeconds()) }}</p>
       <button class="btn btn--primary pause-resume-btn" (click)="resumeGame()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="5 3 19 12 5 21 5 3"/>
+          <polygon points="6 3 20 12 6 21 6 3"/>
         </svg>
         Vazhdo
       </button>
@@ -178,3 +151,4 @@
     </div>
   </div>
 }
+

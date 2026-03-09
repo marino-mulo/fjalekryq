@@ -184,7 +184,9 @@ export class ZipGameService {
     this.timerDisabled.set(false);
     this.isRestored.set(false);
     this.clearHintState();
-    this.startTimer();
+    // Keep timer running without resetting seconds
+    this.stopTimer();
+    this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
   }
 
   /** Restore a completed game state — shows the winning path with glow */
@@ -214,17 +216,6 @@ export class ZipGameService {
     this.timerDisabled.set(false);
     this.isRestored.set(false);
     this.stopTimer(); // stay paused
-  }
-
-  resetPractice(): void {
-    if (this.checkpoints.length === 0) return;
-    this.path.set([this.checkpoints[0].index]);
-    this.gameWon.set(false);
-    this.timerDisabled.set(true);
-    this.isRestored.set(false);
-    this.clearHintState();
-    this.stopTimer();
-    this.timerSeconds.set(0);
   }
 
   private checkWin(): void {

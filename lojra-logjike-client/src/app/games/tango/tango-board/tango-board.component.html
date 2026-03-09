@@ -70,6 +70,9 @@
         [attr.r]="symbolRadius"
         fill="#F59E0B"
         [attr.opacity]="isPrefilled(i) ? 0.65 : 1"
+        [class.symbol-win]="game.gameWon()"
+        [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
+        [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)"
       />
     }
   }
@@ -81,6 +84,25 @@
         [attr.d]="moonPath(cellCenterX(i), cellCenterY(i))"
         fill="#6366F1"
         [attr.opacity]="isPrefilled(i) ? 0.65 : 1"
+        [class.symbol-win]="game.gameWon()"
+        [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
+        [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)"
+      />
+    }
+  }
+
+  <!-- Win flash overlay — separate transparent rects that animate green then fade -->
+  @if (game.gameWon()) {
+    @for (i of cells; track i) {
+      <rect
+        [attr.x]="cellX(i)"
+        [attr.y]="cellY(i)"
+        [attr.width]="cellSize"
+        [attr.height]="cellSize"
+        fill="#ECFDF5"
+        fill-opacity="0"
+        class="cell-win-overlay"
+        [style.animation-delay]="winAnimDelay(i) + 'ms'"
       />
     }
   }

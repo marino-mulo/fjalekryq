@@ -66,9 +66,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   // Pause state
   showPause = false;
 
-  // Replay mode: no timer tracking — just casual play
-  isReplay = signal(false);
-
   weekDays: WeekDay[] = [
     { index: 0, name: 'E Hënë', letter: 'H', slug: 'monday' },
     { index: 1, name: 'E Martë', letter: 'M', slug: 'tuesday' },
@@ -167,7 +164,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private saveProgress(): void {
     const dayIndex = this.selectedDay();
     if (dayIndex < 0) return;
-    if (this.isCompleted()) return;
     const snapshot = this.game.getProgressSnapshot();
     if (!snapshot) return;
     const progress: SavedProgress = {
@@ -184,10 +180,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   private loadPuzzle(dayIndex: number): void {
+    this.saveProgress(); // save current day progress before switching
     this.selectedDay.set(dayIndex);
     this.showModal = false;
     this.showPause = false;
-    this.isReplay.set(false);
     this.game.destroy();
 
     // Update day bar immediately so header reflects the new day
@@ -200,6 +196,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.game.initPuzzle(puzzle);
 
       if (saved) {
+        this.clearProgress(dayIndex);
         this.isCompleted.set(true);
         this.completedTime.set(saved.time);
         this.completedSwaps.set(saved.swaps ?? 0);
@@ -216,10 +213,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
           this.game.restorePaused(progress.grid, progress.timerSeconds, progress.swapCount);
           this.isCompleted.set(false);
           this.completedTime.set(0);
+          this.completedSwaps.set(0);
           this.showPause = true;
         } else {
           this.isCompleted.set(false);
           this.completedTime.set(0);
+          this.completedSwaps.set(0);
         }
       }
 
@@ -236,12 +235,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   onWin(): void {
-    if (this.isReplay()) {
-      // Replay win — don't save, don't show modal, just mark completed
-      this.isCompleted.set(true);
-      return;
-    }
-
     const dayIndex = this.selectedDay();
     const time = this.game.timerSeconds();
     const swaps = this.game.swapCount();
@@ -252,7 +245,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.completedSwaps.set(swaps);
     this.completedPraise.set(this.pickPraise());
     this.clearProgress(dayIndex);
-    this.showModal = true;
   }
 
   @HostListener('document:visibilitychange')
@@ -268,7 +260,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   pauseGame(): void {
-    if (this.game.gameWon() || this.isCompleted() || this.isReplay()) return;
+    if (this.game.gameWon()) return;
     this.game.pauseTimer();
     this.saveProgress();
     this.showPause = true;
@@ -276,7 +268,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
   resumeGame(): void {
     this.showPause = false;
-    this.clearProgress(this.selectedDay());
     this.game.resumeTimer();
   }
 
@@ -287,17 +278,11 @@ export class Wordle7Component implements OnInit, OnDestroy {
     return `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
   }
 
-  /** Reset puzzle: re-scramble. If already solved once → replay (no timer). Otherwise → fresh start with timer. */
   onReset(): void {
+    if (this.isCompleted()) return;
     const dayIndex = this.selectedDay();
-    const wasSolved = this.getSavedResult(dayIndex) !== null;
     this.clearProgress(dayIndex);
-    this.isCompleted.set(false);
-    this.completedTime.set(0);
-    this.completedSwaps.set(0);
-    this.isReplay.set(wasSolved);
     this.showModal = false;
-    this.showPause = false;
     this.game.resetPuzzle();
   }
 

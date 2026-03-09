@@ -1,0 +1,173 @@
+{
+  "gridSize": 8,
+  "solution": [
+    [
+      "S",
+      "X",
+      "P",
+      "X",
+      "X",
+      "E",
+      "N",
+      "D"
+    ],
+    [
+      "A",
+      "J",
+      "O",
+      "X",
+      "G",
+      "X",
+      "J",
+      "X"
+    ],
+    [
+      "J",
+      "X",
+      "R",
+      "R",
+      "U",
+      "G",
+      "\u00CB",
+      "X"
+    ],
+    [
+      "X",
+      "F",
+      "X",
+      "X",
+      "R",
+      "X",
+      "X",
+      "D"
+    ],
+    [
+      "X",
+      "L",
+      "U",
+      "M",
+      "\u00CB",
+      "T",
+      "X",
+      "J"
+    ],
+    [
+      "X",
+      "E",
+      "X",
+      "A",
+      "X",
+      "O",
+      "R",
+      "A"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "M",
+      "X",
+      "K",
+      "X",
+      "T"
+    ],
+    [
+      "X",
+      "T",
+      "H",
+      "I",
+      "K",
+      "\u00CB",
+      "X",
+      "\u00CB"
+    ]
+  ],
+  "words": [
+    {
+      "word": "LUM\u00CBT",
+      "row": 4,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GUR\u00CB",
+      "row": 1,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "FLE",
+      "row": 3,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "RRUG\u00CB",
+      "row": 2,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MAMI",
+      "row": 4,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "THIK\u00CB",
+      "row": 7,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "POR",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "NJ\u00CB",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "END",
+      "row": 0,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "AJO",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "TOK\u00CB",
+      "row": 4,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "SAJ",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "ORA",
+      "row": 5,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DJAT\u00CB",
+      "row": 3,
+      "col": 7,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 3,
+  "dayName": "E Enjte"
+}

@@ -370,6 +370,18 @@ export class TangoGameService {
     this.stopTimer();
   }
 
+  checkCorrect(): boolean {
+    const b = this.board();
+    for (let r = 0; r < this.SIZE; r++) {
+      for (let c = 0; c < this.SIZE; c++) {
+        if (b[r][c] === EMPTY) continue;
+        const expected = this.solution[r][c] === 0 ? SUN : MOON;
+        if (b[r][c] !== expected) return false;
+      }
+    }
+    return true;
+  }
+
   reset(): void {
     const b: number[][] = [];
     for (let r = 0; r < this.SIZE; r++) {
@@ -390,7 +402,9 @@ export class TangoGameService {
     this.historyLength.set(0);
     this.clearHint();
     this.conflictCells.set([]);
-    this.startTimer();
+    // Keep timer running without resetting seconds
+    this.stopTimer();
+    this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
   }
 
   restoreCompleted(savedBoard: number[][]): void {
@@ -432,30 +446,6 @@ export class TangoGameService {
     this.history = [];
     this.historyLength.set(0);
     this.stopTimer();
-  }
-
-  resetPractice(): void {
-    const b: number[][] = [];
-    for (let r = 0; r < this.SIZE; r++) {
-      const row: number[] = [];
-      for (let c = 0; c < this.SIZE; c++) {
-        const pf = this.prefilled[r][c];
-        if (pf === 0) row.push(SUN);
-        else if (pf === 1) row.push(MOON);
-        else row.push(EMPTY);
-      }
-      b.push(row);
-    }
-    this.board.set(b);
-    this.gameWon.set(false);
-    this.timerDisabled.set(true);
-    this.isRestored.set(false);
-    this.history = [];
-    this.historyLength.set(0);
-    this.clearHint();
-    this.conflictCells.set([]);
-    this.stopTimer();
-    this.timerSeconds.set(0);
   }
 
   // Timer

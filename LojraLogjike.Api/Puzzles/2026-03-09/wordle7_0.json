@@ -1,0 +1,138 @@
+{
+  "gridSize": 7,
+  "solution": [
+    [
+      "D",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "V"
+    ],
+    [
+      "E",
+      "N",
+      "D",
+      "X",
+      "X",
+      "X",
+      "E"
+    ],
+    [
+      "R",
+      "X",
+      "H",
+      "X",
+      "V",
+      "I",
+      "T"
+    ],
+    [
+      "\u00CB",
+      "X",
+      "E",
+      "R",
+      "A",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "P",
+      "X",
+      "X",
+      "J",
+      "E",
+      "T"
+    ],
+    [
+      "X",
+      "O",
+      "X",
+      "X",
+      "Z",
+      "X",
+      "R"
+    ],
+    [
+      "X",
+      "R",
+      "\u00CB",
+      "R",
+      "\u00CB",
+      "X",
+      "E"
+    ]
+  ],
+  "words": [
+    {
+      "word": "ERA",
+      "row": 3,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DHE",
+      "row": 1,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "VIT",
+      "row": 2,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VET",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "END",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DER\u00CB",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "VAJZ\u00CB",
+      "row": 2,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "R\u00CBR\u00CB",
+      "row": 6,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "JET",
+      "row": 4,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "POR",
+      "row": 4,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRE",
+      "row": 4,
+      "col": 6,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 0,
+  "dayName": "E H\u00EBn\u00EB"
+}

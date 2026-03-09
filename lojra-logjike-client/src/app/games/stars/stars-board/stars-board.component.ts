@@ -44,12 +44,15 @@ export class StarsBoardComponent {
 
   get cellSize(): number {
     const s = this.size;
-    if (s >= 12) return 32;
-    if (s >= 11) return 36;
-    if (s >= 10) return 38;
-    if (s >= 9) return 42;
-    if (s >= 8) return 46;
-    return 52;
+    let base: number;
+    if (s >= 12) base = 40;
+    else if (s >= 11) base = 44;
+    else if (s >= 10) base = 48;
+    else if (s >= 9) base = 52;
+    else if (s >= 8) base = 56;
+    else base = 64;
+    // Ensure board width is at least ~420px
+    return Math.max(base, Math.ceil(420 / s));
   }
 
   get svgWidth(): number { return this.size * this.cellSize; }

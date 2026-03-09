@@ -1,0 +1,194 @@
+<div class="snake-board-wrapper">
+  <svg class="snake-board-svg"
+       [attr.width]="svgWidth" [attr.height]="svgHeight"
+       [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight"
+       xmlns="http://www.w3.org/2000/svg"
+       (mouseleave)="onDragEnd()"
+       (mouseup)="onDragEnd()"
+       (touchstart)="onTouchStart($event)"
+       (touchmove)="onTouchMove($event)"
+       (touchend)="onDragEnd()"
+       (touchcancel)="onDragEnd()">
+
+    <!-- SVG background -->
+    <rect width="100%" height="100%" fill="#FFF8F0"/>
+
+    <defs>
+      <pattern id="snake-conflict-stripes" width="8" height="8"
+               patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+        <rect width="4" height="8" fill="rgba(220, 38, 38, 0.35)"/>
+      </pattern>
+      <!-- Per-segment linear gradients for green→red body coloring -->
+      @for (seg of snakeSegments; track seg.gradId) {
+        <linearGradient [attr.id]="seg.gradId"
+                        [attr.x1]="seg.x1" [attr.y1]="seg.y1"
+                        [attr.x2]="seg.x2" [attr.y2]="seg.y2"
+                        gradientUnits="userSpaceOnUse">
+          <stop offset="0%"   [attr.stop-color]="seg.c1"/>
+          <stop offset="100%" [attr.stop-color]="seg.c2"/>
+        </linearGradient>
+      }
+    </defs>
+
+    <!-- Column clues (above each column) -->
+    @for (col of colIndices; track col) {
+      <text [attr.x]="rowClueX(col)"
+            [attr.y]="boardOffsetY / 2 + 1"
+            text-anchor="middle" dominant-baseline="middle"
+            class="clue-text"
+            [class.clue-done]="colClueHighlight(col)">
+        {{ game.getColClues()[col] }}
+      </text>
+    }
+
+    <!-- Row clues (left of each row) -->
+    @for (row of rowIndices; track row) {
+      <text [attr.x]="boardOffsetX / 2"
+            [attr.y]="colClueY(row)"
+            text-anchor="middle" dominant-baseline="middle"
+            class="clue-text"
+            [class.clue-done]="rowClueHighlight(row)">
+        {{ game.getRowClues()[row] }}
+      </text>
+    }
+
+    <!-- Board background -->
+    <rect [attr.x]="boardOffsetX" [attr.y]="boardOffsetY"
+          [attr.width]="boardW" [attr.height]="boardH"
+          rx="12" ry="12" fill="#ffffff"/>
+
+    <!-- Board group -->
+    <g [attr.transform]="'translate(' + boardOffsetX + ',' + boardOffsetY + ')'">
+
+      <!-- Cell backgrounds -->
+      @for (i of cells; track i) {
+        <rect [attr.x]="cellX(i)" [attr.y]="cellY(i)"
+              [attr.width]="cellSize" [attr.height]="cellSize"
+              class="cell-bg"/>
+      }
+
+      <!-- Grid lines -->
+      @for (row of rowIndices; track row) {
+        @if (row > 0) {
+          <line x1="0" [attr.y1]="row * cellSize" [attr.x2]="boardW" [attr.y2]="row * cellSize"
+                stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+        }
+      }
+      @for (col of colIndices; track col) {
+        @if (col > 0) {
+          <line [attr.x1]="col * cellSize" y1="0" [attr.x2]="col * cellSize" [attr.y2]="boardH"
+                stroke="rgba(0,0,0,0.08)" stroke-width="1"/>
+        }
+      }
+
+      <!-- Conflict cell background tint — rendered BEFORE snake body so
+           the snake tube stays fully visible on top, just with a red-tinted cell behind it -->
+      @for (i of cells; track i) {
+        @if (isConflict(i)) {
+          <rect [attr.x]="cellX(i)" [attr.y]="cellY(i)"
+                [attr.width]="cellSize" [attr.height]="cellSize"
+                fill="rgba(220, 38, 38, 0.15)" class="conflict-cell"/>
+        }
+      }
+
+      <!-- ── SNAKE BODY: thick round-cap connector lines ── -->
+      @for (seg of snakeSegments; track seg.gradId) {
+        <line [attr.x1]="seg.x1" [attr.y1]="seg.y1"
+              [attr.x2]="seg.x2" [attr.y2]="seg.y2"
+              [attr.stroke-width]="snakeBodyWidth"
+              [attr.stroke]="'url(#' + seg.gradId + ')'"
+              stroke-linecap="round"
+              class="snake-connector-line"
+              [class.snake-win]="game.gameWon()"
+              [style.animation-delay]="game.gameWon() ? (winAnimDelay(seg.pathPos) + 'ms') : '0ms'"/>
+      }
+
+      <!-- ── ISOLATED DOT (single cell with no snake neighbors) ── -->
+      @for (i of cells; track i) {
+        @if (isSnake(i) && !isHead(i) && !isTail(i) && isIsolated(i)) {
+          <circle
+            [attr.cx]="cellX(i) + cellSize / 2"
+            [attr.cy]="cellY(i) + cellSize / 2"
+            [attr.r]="snakeBodyWidth / 2"
+            [attr.fill]="isolatedColor(i)"
+            class="snake-body-dot"
+            [class.snake-win]="game.gameWon()"/>
+        }
+      }
+
+      <!-- X marks -->
+      @for (i of cells; track i) {
+        @if (isMarkX(i)) {
+          <g [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ')'">
+            <line [attr.x1]="-xSize" [attr.y1]="-xSize" [attr.x2]="xSize" [attr.y2]="xSize"
+                  stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+            <line [attr.x1]="xSize" [attr.y1]="-xSize" [attr.x2]="-xSize" [attr.y2]="xSize"
+                  stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          </g>
+        }
+      }
+
+      <!-- Head (filled with head gradient color, rotated to face AWAY from body) -->
+      @for (i of cells; track i) {
+        @if (isHead(i)) {
+          <g [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ') rotate(' + headRotation + ')'">
+            <circle [attr.r]="snakeBodyWidth / 2"
+                    [attr.fill]="headColor"
+                    class="head-circle" [class.snake-win]="game.gameWon()"/>
+            <!-- Eyes positioned at top of head (facing UP before rotation) -->
+            <circle [attr.cx]="-cellSize * 0.1" [attr.cy]="-cellSize * 0.11" [attr.r]="cellSize * 0.07"
+                    class="head-eye"/>
+            <circle [attr.cx]="cellSize * 0.1" [attr.cy]="-cellSize * 0.11" [attr.r]="cellSize * 0.07"
+                    class="head-eye"/>
+          </g>
+        }
+      }
+
+      <!-- Tail (teardrop pointing away from body, filled with tail color).
+           Uses tailR (slightly larger than snakeBodyWidth/2) to fully cover
+           the round linecap from the connector line underneath. -->
+      @for (i of cells; track i) {
+        @if (isTail(i)) {
+          <path
+            [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ') rotate(' + tailRotation + ')'"
+            [attr.d]="'M 0,' + (-tailR) +
+                      ' A ' + tailR + ',' + tailR + ' 0 0 0 0,' + tailR +
+                      ' Q ' + (tailR * 2.2) + ',0 0,' + (-tailR) + ' Z'"
+            [attr.fill]="tailColor"
+            class="tail-circle"
+            [class.snake-win]="game.gameWon()"/>
+        }
+      }
+
+      <!-- Hint highlight — rendered after snake body so border is visible on top -->
+      @for (i of cells; track i) {
+        @if (isHintCell(i)) {
+          <rect [attr.x]="cellX(i) + 2" [attr.y]="cellY(i) + 2"
+                [attr.width]="cellSize - 4" [attr.height]="cellSize - 4"
+                fill="none"
+                stroke="#eab308"
+                stroke-width="3"
+                rx="4" ry="4"
+                class="hint-cell"/>
+        }
+      }
+
+      <!-- Invisible interaction layer -->
+      @for (i of cells; track i) {
+        <rect [attr.x]="cellX(i)" [attr.y]="cellY(i)"
+              [attr.width]="cellSize" [attr.height]="cellSize"
+              fill="transparent"
+              style="cursor: pointer"
+              (click)="onCellClick(i)"
+              (mousedown)="onDragStart(i, $event)"
+              (mouseenter)="onDragOver(i)"/>
+      }
+
+    </g>
+
+    <!-- Board border -->
+    <rect [attr.x]="boardOffsetX" [attr.y]="boardOffsetY"
+          [attr.width]="boardW" [attr.height]="boardH"
+          rx="12" ry="12" fill="none" stroke="#1a1a1a" stroke-width="3"/>
+  </svg>
+</div>

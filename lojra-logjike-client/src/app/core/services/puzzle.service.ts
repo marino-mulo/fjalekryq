@@ -6,6 +6,7 @@ import { QueensPuzzle } from '../models/queens-puzzle.model';
 import { Wordle7Puzzle } from '../models/wordle7-puzzle.model';
 import { TangoPuzzle } from '../models/tango-puzzle.model';
 import { StarsPuzzle } from '../models/stars-puzzle.model';
+import { SnakePuzzle } from '../models/snake-puzzle.model';
 
 @Injectable({ providedIn: 'root' })
 export class PuzzleService {
@@ -45,5 +46,13 @@ export class PuzzleService {
 
   getStarsByDay(dayIndex: number): Observable<StarsPuzzle> {
     return this.http.get<StarsPuzzle>(`/api/puzzles/stars/${dayIndex}`);
+  }
+
+  getSnakeToday(): Observable<SnakePuzzle> {
+    return this.http.get<SnakePuzzle>('/api/puzzles/snake/today');
+  }
+
+  getSnakeByDay(dayIndex: number): Observable<SnakePuzzle> {
+    return this.http.get<SnakePuzzle>(`/api/puzzles/snake/${dayIndex}`);
   }
 }

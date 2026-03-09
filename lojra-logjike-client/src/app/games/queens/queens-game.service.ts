@@ -661,7 +661,9 @@ export class QueensGameService {
     this.historyLength.set(0);
     this.clearHint();
     this.conflictCells.set([]);
-    this.startTimer();
+    // Keep timer running without resetting seconds
+    this.stopTimer();
+    this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
   }
 
   restoreCompleted(savedBoard: number[][]): void {
@@ -703,23 +705,6 @@ export class QueensGameService {
     this.history = [];
     this.historyLength.set(0);
     this.stopTimer(); // stay paused
-  }
-
-  resetPractice(): void {
-    const b: number[][] = [];
-    for (let r = 0; r < this.size; r++) {
-      b.push(new Array(this.size).fill(EMPTY));
-    }
-    this.board.set(b);
-    this.gameWon.set(false);
-    this.timerDisabled.set(true);
-    this.isRestored.set(false);
-    this.history = [];
-    this.historyLength.set(0);
-    this.clearHint();
-    this.conflictCells.set([]);
-    this.stopTimer();
-    this.timerSeconds.set(0);
   }
 
   /**

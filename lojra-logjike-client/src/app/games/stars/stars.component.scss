@@ -5,7 +5,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 16px 24px 32px;
+  padding: 16px 16px 32px;
 }
 
 .top-strip {
@@ -13,14 +13,13 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  max-width: 400px;
   margin-bottom: 16px;
 }
 
 .game-timer {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   font-family: 'Courier New', monospace;
   font-size: 0.85rem;
   font-weight: 700;
@@ -30,19 +29,45 @@
   padding: 4px 12px;
   color: #666;
   letter-spacing: 1px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s;
+
+  svg {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background: #f5f5f5;
+  }
 
   &.practice {
     color: #aaa;
     border-style: dashed;
   }
 
-  &.solved {
-    color: #15803d;
-    background: #F0FDF4;
-    border-color: #86efac;
-    font-family: var(--font-body);
-    font-size: 0.8rem;
-    letter-spacing: 0;
+}
+
+.first-solve-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #15803d;
+  background: #F0FDF4;
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
+  padding: 3px 14px;
+  margin: -8px auto 12px;
+  width: fit-content;
+
+  svg {
+    display: block;
+    flex-shrink: 0;
   }
 }
 
@@ -87,10 +112,11 @@
   display: inline-flex;
   flex-direction: column;
   align-items: stretch;
+  max-width: 100%;
 }
 
 .board-area {
-  display: inline-block;
+  display: block;
 }
 
 /* ══════════════════════════════════════
@@ -326,6 +352,7 @@
 .pause-resume-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 0.95rem;
 }
@@ -341,10 +368,10 @@
   gap: 4px;
   margin-top: 18px;
   padding: 20px 24px;
-  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
-  border: 2px solid #FCD34D;
+  background: #fff;
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
-  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .completed-card-label {
@@ -514,4 +541,12 @@
   .info-rule {
     padding: 10px 12px;
   }
+}
+
+.win-modal-time {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 8px;
+  letter-spacing: 0.5px;
 }

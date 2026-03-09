@@ -1,4 +1,9 @@
-using LojraLogjike.Api.Data;
+using LojraLogjike.Api.Games.Snake;
+using LojraLogjike.Api.Games.Zip;
+using LojraLogjike.Api.Games.Queens;
+using LojraLogjike.Api.Games.Stars;
+using LojraLogjike.Api.Games.Tango;
+using LojraLogjike.Api.Games.Wordle7;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LojraLogjike.Api.Controllers;

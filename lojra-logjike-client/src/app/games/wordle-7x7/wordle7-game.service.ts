@@ -234,17 +234,19 @@ export class Wordle7GameService {
     this.stopTimer();
   }
 
-  /** Reset the puzzle: re-scramble letters, reset timer & swaps, keep puzzle data */
+  /** Reset the puzzle: re-scramble letters, keep timer running, keep puzzle data */
   resetPuzzle(): void {
     this.gameWon.set(false);
     this.timerDisabled.set(false);
     this.isRestored.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
-    this.timerStarted = false;
-    this.stopTimer();
-    this.timerSeconds.set(0);
+    this.timerStarted = true;
     this.clearHintState();
+
+    // Keep timer running without resetting seconds
+    this.stopTimer();
+    this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
 
     const scrambled = this.scrambleGrid(this.solutionGrid);
     this.grid.set(scrambled);

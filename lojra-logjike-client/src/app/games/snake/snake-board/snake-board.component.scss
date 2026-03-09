@@ -1,0 +1,89 @@
+.snake-board-wrapper {
+  display: block;
+  user-select: none;
+  touch-action: none;
+}
+
+.snake-board-svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Clue labels ── */
+.clue-text {
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  fill: #888;
+  transition: fill 0.2s;
+}
+
+.clue-done {
+  fill: #0d9488;
+}
+
+/* ── Cell background ── */
+.cell-bg {
+  fill: #ffffff;
+}
+
+/* ── Snake path connector lines ──
+   Colors are set inline (green→red gradient per segment).
+   stroke-linecap is set inline per element (butt for head/tail, round otherwise).
+   fill: none only for the <line> elements, NOT for <circle> body dots. */
+.snake-connector-line {
+  fill: none;
+}
+
+/* ── Snake body circles (dot caps for each body cell) ──
+   fill is set inline via [attr.fill]; no fill override here. */
+.snake-body-dot {
+}
+
+/* Win animation — pulse brightness along the tube */
+.snake-connector-line.snake-win,
+.snake-body-dot.snake-win,
+.head-circle.snake-win,
+.tail-circle.snake-win {
+  animation: snakeWinPulse 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes snakeWinPulse {
+  0%   { opacity: 1;   filter: brightness(1.0); }
+  100% { opacity: 0.6; filter: brightness(1.3); }
+}
+
+/* ── Head ── */
+.head-circle {
+  /* fill set inline via headColor */
+  stroke: rgba(0,0,0,0.2);
+  stroke-width: 1.5;
+}
+
+.head-eye {
+  fill: #ffffff;
+}
+
+/* ── Tail ── */
+.tail-circle {
+  /* fill set inline via tailColor */
+  stroke: rgba(0,0,0,0.2);
+  stroke-width: 1.5;
+}
+
+/* ── Conflict ── */
+.conflict-cell {
+  pointer-events: none;
+}
+
+/* ── Hint ── */
+.hint-cell {
+  pointer-events: none;
+  animation: hintPulse 0.3s ease;
+}
+
+@keyframes hintPulse {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

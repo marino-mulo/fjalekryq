@@ -13,6 +13,8 @@
   display: block;
   cursor: pointer;
   user-select: none;
+  max-width: 100%;
+  height: auto;
 }
 
 /* ── Interaction Cells (invisible SVG rects) ── */
