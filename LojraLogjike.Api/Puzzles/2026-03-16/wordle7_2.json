@@ -1,0 +1,173 @@
+{
+  "gridSize": 8,
+  "solution": [
+    [
+      "P",
+      "I",
+      "K",
+      "\u00CB",
+      "X",
+      "F",
+      "I",
+      "K"
+    ],
+    [
+      "I",
+      "X",
+      "X",
+      "X",
+      "X",
+      "L",
+      "X",
+      "X"
+    ],
+    [
+      "K",
+      "U",
+      "Q",
+      "X",
+      "X",
+      "E",
+      "N",
+      "D"
+    ],
+    [
+      "X",
+      "X",
+      "U",
+      "X",
+      "F",
+      "X",
+      "X",
+      "O"
+    ],
+    [
+      "B",
+      "X",
+      "M",
+      "O",
+      "S",
+      "X",
+      "X",
+      "R"
+    ],
+    [
+      "U",
+      "J",
+      "\u00CB",
+      "X",
+      "H",
+      "\u00CB",
+      "N",
+      "\u00CB"
+    ],
+    [
+      "Z",
+      "X",
+      "X",
+      "X",
+      "A",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "J",
+      "E",
+      "T",
+      "\u00CB",
+      "X",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "MOS",
+      "row": 4,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "FSHAT",
+      "row": 3,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "H\u00CBN\u00CB",
+      "row": 5,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DOR\u00CB",
+      "row": 2,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "QUM\u00CB",
+      "row": 2,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "JET\u00CB",
+      "row": 7,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "END",
+      "row": 2,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "UJ\u00CB",
+      "row": 5,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "FLE",
+      "row": 0,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "KUQ",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BUZ",
+      "row": 4,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "PIK",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "PIK\u00CB",
+      "row": 0,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "FIK",
+      "row": 0,
+      "col": 5,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 2,
+  "dayName": "E M\u00EBrkur\u00EB"
+}

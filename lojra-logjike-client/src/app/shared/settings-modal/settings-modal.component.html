@@ -1,0 +1,49 @@
+@if (isOpen()) {
+  <div class="modal-overlay active" (click)="close()">
+    <div class="modal settings-modal" (click)="$event.stopPropagation()">
+      <button class="modal-close" (click)="close()">
+        <img src="icons/close.svg" width="18" height="18" alt="">
+      </button>
+
+      <div class="section-header">
+        <img src="icons/envelope.svg" width="20" height="20" alt="">
+        <h2>Njoftime me Email</h2>
+      </div>
+      <p class="section-desc">Merr një email çdo ditë për t'ju kujtuar enigmat e ditës.</p>
+
+      <div class="settings-section">
+
+        @if (subscribed) {
+          <div class="subscribed-state">
+            <img src="icons/check.svg" width="20" height="20" alt="">
+            <span class="subscribed-text">{{ email }}</span>
+          </div>
+        } @else {
+          <div class="email-form">
+            <input
+              type="email"
+              class="email-input"
+              placeholder="Email-i juaj..."
+              [(ngModel)]="email"
+              (ngModelChange)="onEmailChange()"
+              (keydown.enter)="subscribe()"
+            />
+            <button class="btn btn--subscribe" [disabled]="loading || !isValidEmail" (click)="subscribe()">
+              @if (loading) {
+                <span class="spinner"></span>
+              } @else {
+                Regjistrohu
+              }
+            </button>
+          </div>
+        }
+
+        @if (statusMessage) {
+          <p class="status-msg" [class.success]="statusType === 'success'" [class.error]="statusType === 'error'">
+            {{ statusMessage }}
+          </p>
+        }
+      </div>
+    </div>
+  </div>
+}

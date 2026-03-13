@@ -119,12 +119,11 @@
       <!-- X marks -->
       @for (i of cells; track i) {
         @if (isMarkX(i)) {
-          <g [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ')'">
-            <line [attr.x1]="-xSize" [attr.y1]="-xSize" [attr.x2]="xSize" [attr.y2]="xSize"
-                  stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-            <line [attr.x1]="xSize" [attr.y1]="-xSize" [attr.x2]="-xSize" [attr.y2]="xSize"
-                  stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
-          </g>
+          <image href="icons/mark-x.svg"
+                 [attr.x]="cellX(i) + cellSize/2 - xSize"
+                 [attr.y]="cellY(i) + cellSize/2 - xSize"
+                 [attr.width]="xSize * 2" [attr.height]="xSize * 2"
+                 class="mark-x"/>
         }
       }
 

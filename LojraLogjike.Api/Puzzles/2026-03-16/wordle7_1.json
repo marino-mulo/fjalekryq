@@ -1,0 +1,150 @@
+{
+  "gridSize": 7,
+  "solution": [
+    [
+      "D",
+      "X",
+      "X",
+      "X",
+      "Z",
+      "I",
+      "M"
+    ],
+    [
+      "E",
+      "X",
+      "G",
+      "X",
+      "X",
+      "X",
+      "I"
+    ],
+    [
+      "T",
+      "I",
+      "J",
+      "X",
+      "P",
+      "I",
+      "K"
+    ],
+    [
+      "X",
+      "X",
+      "A",
+      "R",
+      "I",
+      "X",
+      "X"
+    ],
+    [
+      "N",
+      "U",
+      "K",
+      "X",
+      "K",
+      "U",
+      "Q"
+    ],
+    [
+      "X",
+      "J",
+      "X",
+      "X",
+      "\u00CB",
+      "X",
+      "E"
+    ],
+    [
+      "N",
+      "\u00CB",
+      "N",
+      "\u00CB",
+      "X",
+      "X",
+      "N"
+    ]
+  ],
+  "words": [
+    {
+      "word": "ARI",
+      "row": 3,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GJAK",
+      "row": 1,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "PIK\u00CB",
+      "row": 2,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "KUQ",
+      "row": 4,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "TIJ",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "NUK",
+      "row": 4,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "UJ\u00CB",
+      "row": 4,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "N\u00CBN\u00CB",
+      "row": 6,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PIK",
+      "row": 2,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QEN",
+      "row": 4,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "DET",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "MIK",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZIM",
+      "row": 0,
+      "col": 4,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 1,
+  "dayName": "E Mart\u00EB"
+}

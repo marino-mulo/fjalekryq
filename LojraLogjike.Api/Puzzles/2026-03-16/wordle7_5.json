@@ -1,0 +1,204 @@
+{
+  "gridSize": 9,
+  "solution": [
+    [
+      "X",
+      "X",
+      "X",
+      "V",
+      "A",
+      "J",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "E",
+      "X",
+      "X",
+      "D",
+      "H",
+      "E"
+    ],
+    [
+      "X",
+      "X",
+      "F",
+      "L",
+      "E",
+      "T",
+      "\u00CB",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "R",
+      "X",
+      "M",
+      "I",
+      "K"
+    ],
+    [
+      "X",
+      "X",
+      "P",
+      "L",
+      "A",
+      "K",
+      "\u00CB",
+      "X",
+      "O"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "A",
+      "X",
+      "R",
+      "X",
+      "X",
+      "T"
+    ],
+    [
+      "X",
+      "Z",
+      "O",
+      "G",
+      "X",
+      "A",
+      "J",
+      "O",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "U",
+      "X",
+      "H",
+      "X",
+      "R",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "T",
+      "R",
+      "E",
+      "X",
+      "S",
+      "A",
+      "J"
+    ]
+  ],
+  "words": [
+    {
+      "word": "PLAK\u00CB",
+      "row": 4,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "LAGUR",
+      "row": 4,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRE",
+      "row": 8,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "D\u00CBM\u00CB",
+      "row": 1,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "FLET\u00CB",
+      "row": 2,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ZOG",
+      "row": 6,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MIK",
+      "row": 3,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KOT",
+      "row": 3,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "VEL",
+      "row": 0,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "ERA",
+      "row": 2,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "VAJ",
+      "row": 0,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KRAH",
+      "row": 4,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "AJO",
+      "row": 6,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DHE",
+      "row": 1,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ORA",
+      "row": 6,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "SAJ",
+      "row": 8,
+      "col": 6,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 5,
+  "dayName": "E Shtun\u00EB"
+}

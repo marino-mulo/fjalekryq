@@ -4,7 +4,7 @@
 }
 
 .section-inner {
-  max-width: 1100px;
+  max-width: 900px;
   margin: 0 auto;
 }
 
@@ -23,60 +23,65 @@
   gap: 20px;
 }
 
-.game-card {
-  background: var(--white);
-  border: var(--border);
-  border-radius: var(--radius-lg);
-  padding: 28px 20px;
-  text-align: center;
-  box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
+/* ── Game Tile ── */
+.game-tile {
   display: flex;
   flex-direction: column;
   align-items: center;
+  border-radius: 20px;
+  border: var(--border);
+  color: var(--black);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  text-align: center;
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 4px 6px 0px var(--black);
+    box-shadow: 6px 8px 0px var(--black);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 2px 2px 0px var(--black);
   }
 }
 
-.game-card-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
+/* Icon sits at top, fixed 180px size */
+.game-tile-icon {
+  width: 180px;
+  height: 180px;
+  object-fit: contain;
+  display: block;
+  margin: 16px auto 0;
+}
+
+.game-tile-content {
+  padding: 16px 20px 20px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  border: var(--border);
-}
-
-.game-card-icon--yellow { background: var(--yellow-light); }
-.game-card-icon--coral { background: var(--coral-light); }
-.game-card-icon--green { background: var(--green-light); }
-.game-card-icon--blue { background: var(--blue-light); }
-.game-card-icon--purple { background: var(--purple-light); }
-.game-card-icon--orange { background: var(--orange-light); }
-.game-card-icon--teal { background: var(--teal-light); }
-
-.game-card-title {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 800;
-  margin-bottom: 8px;
-  color: var(--black);
-}
-
-.game-card-desc {
-  font-size: 0.88rem;
-  color: #666;
-  line-height: 1.45;
-  margin-bottom: 18px;
   flex: 1;
 }
 
-.game-card-btn {
+.game-tile-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin-bottom: 4px;
+  color: var(--black);
+}
+
+.game-tile-desc {
+  font-size: 0.88rem;
+  color: #555;
+  line-height: 1.4;
+  margin-bottom: 14px;
+  flex: 1;
+}
+
+/* ── Play Button ── */
+.game-tile-btn {
   display: inline-block;
   font-family: var(--font-body);
   font-size: 0.9rem;
@@ -95,16 +100,40 @@
   }
 }
 
-.game-card-btn--yellow { background: var(--yellow-light); }
-.game-card-btn--coral { background: var(--coral-light); }
-.game-card-btn--green { background: var(--green-light); }
-.game-card-btn--blue { background: var(--blue-light); }
-.game-card-btn--purple { background: var(--purple-light); }
-.game-card-btn--orange { background: var(--orange-light); }
-.game-card-btn--teal { background: var(--teal-light); }
+.game-tile-btn--purple { background: var(--white); }
+.game-tile-btn--yellow { background: var(--white); }
+.game-tile-btn--coral { background: var(--white); }
+.game-tile-btn--green { background: var(--white); }
+.game-tile-btn--orange { background: var(--white); }
+.game-tile-btn--teal { background: var(--white); }
 
-/* ── Info Section ── */
-.info-section {
+/* ── Tile Color Variants ── */
+.game-tile--purple {
+  background: var(--purple-light);
+}
+
+.game-tile--yellow {
+  background: var(--yellow-light);
+}
+
+.game-tile--coral {
+  background: var(--coral-light);
+}
+
+.game-tile--green {
+  background: var(--green-light);
+}
+
+.game-tile--orange {
+  background: var(--orange-light);
+}
+
+.game-tile--teal {
+  background: var(--teal-light);
+}
+
+/* ── About Section ── */
+.about-section {
   background: var(--cream-dark);
   border-top: var(--border);
   border-bottom: var(--border);
@@ -112,10 +141,8 @@
 }
 
 .info-grid {
-  max-width: 1100px;
-  margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
 }
 
@@ -132,7 +159,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 12px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+
+  &--yellow { background: var(--yellow-light); }
+  &--green { background: var(--green-light); }
+  &--purple { background: var(--purple-light); }
 }
 
 .info-title {
@@ -147,44 +181,6 @@
   font-size: 0.9rem;
   color: #666;
   line-height: 1.5;
-}
-
-/* ── About Section ── */
-.about-section {
-  padding: 56px 24px;
-}
-
-.about-grid {
-  max-width: 900px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
-}
-
-.about-card {
-  background: var(--cream);
-  border: var(--border);
-  border-radius: var(--radius);
-  padding: 20px 16px;
-  text-align: center;
-
-  h4 {
-    font-family: var(--font-display);
-    font-size: 0.95rem;
-    font-weight: 800;
-    margin-bottom: 6px;
-    color: var(--black);
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  }
-
-  p {
-    font-size: 0.82rem;
-    color: #666;
-    line-height: 1.45;
-  }
 }
 
 /* ── Social Links ── */
@@ -244,23 +240,32 @@
     gap: 14px;
   }
 
-  .game-card {
-    padding: 20px 14px;
+  .game-tile-content {
+    padding: 12px 14px 16px;
   }
 
-  .game-card-icon {
-    width: 60px;
-    height: 60px;
+  .game-tile-title {
+    font-size: 1.1rem;
   }
 
-  .about-grid {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  .game-tile-desc {
+    font-size: 0.82rem;
+  }
+
+  .game-tile-icon {
+    width: 140px;
+    height: 140px;
+    margin-top: 12px;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .games-section,
-  .info-section,
   .about-section {
     padding: 36px 16px;
   }
@@ -270,12 +275,31 @@
     gap: 12px;
   }
 
-  .info-grid {
-    grid-template-columns: 1fr;
+  .game-tile-icon {
+    width: 100%;
+    height: auto;
+    margin-top: 8px;
   }
 
-  .about-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+  .game-tile-content {
+    padding: 10px 12px 14px;
+  }
+
+  .game-tile-title {
+    font-size: 1rem;
+  }
+
+  .game-tile-desc {
+    font-size: 0.8rem;
+    margin-bottom: 10px;
+  }
+
+  .game-tile-btn {
+    padding: 6px 20px;
+    font-size: 0.85rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
   }
 }

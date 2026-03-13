@@ -2,11 +2,12 @@ import { Component, inject, ElementRef, ViewChild } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { ViewportScroller } from '@angular/common';
 import { GameHeaderService } from '../../core/services/game-header.service';
+import { SettingsModalComponent } from '../settings-modal/settings-modal.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, SettingsModalComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
@@ -16,6 +17,7 @@ export class HeaderComponent {
   gameHeader = inject(GameHeaderService);
 
   showDayModal = false;
+  showSettings = false;
   modalTop = 0;
   modalRight = 0;
 
@@ -34,7 +36,11 @@ export class HeaderComponent {
   }
 
   onSettings(): void {
-    this.gameHeader.triggerSettings();
+    this.showSettings = true;
+  }
+
+  closeSettings(): void {
+    this.showSettings = false;
   }
 
   toggleDayModal(): void {

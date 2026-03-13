@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <circle cx="12" cy="12" r="10" fill="#10b981"/>
+  <!-- Left eye -->
+  <circle cx="8.5" cy="9" r="2.2" fill="white"/>
+  <circle cx="8.5" cy="9" r="1.2" fill="#1a1a1a"/>
+  <!-- Right eye -->
+  <circle cx="15.5" cy="9" r="2.2" fill="white"/>
+  <circle cx="15.5" cy="9" r="1.2" fill="#1a1a1a"/>
+</svg>

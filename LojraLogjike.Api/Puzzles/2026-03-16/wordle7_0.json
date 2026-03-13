@@ -1,0 +1,144 @@
+{
+  "gridSize": 7,
+  "solution": [
+    [
+      "X",
+      "X",
+      "X",
+      "E",
+      "N",
+      "D",
+      "X"
+    ],
+    [
+      "M",
+      "E",
+      "S",
+      "X",
+      "X",
+      "H",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "H",
+      "X",
+      "Q",
+      "E",
+      "N"
+    ],
+    [
+      "X",
+      "D",
+      "I",
+      "K",
+      "U",
+      "X",
+      "U"
+    ],
+    [
+      "X",
+      "U",
+      "X",
+      "X",
+      "M",
+      "I",
+      "K"
+    ],
+    [
+      "D",
+      "A",
+      "R",
+      "K",
+      "\u00CB",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "S",
+      "O",
+      "T"
+    ]
+  ],
+  "words": [
+    {
+      "word": "DIKU",
+      "row": 3,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QEN",
+      "row": 2,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DHE",
+      "row": 0,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "DUA",
+      "row": 3,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "QUM\u00CBS",
+      "row": 2,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "NUK",
+      "row": 2,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "DARK\u00CB",
+      "row": 5,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "END",
+      "row": 0,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "SOT",
+      "row": 6,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "SHI",
+      "row": 1,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "MES",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MIK",
+      "row": 4,
+      "col": 4,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 0,
+  "dayName": "E H\u00EBn\u00EB"
+}

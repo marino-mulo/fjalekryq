@@ -1,3 +1,4 @@
+using LojraLogjike.Api.Email;
 using LojraLogjike.Api.Generation;
 
 // ── CLI Commands ──
@@ -13,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHostedService<PuzzleGenerationHostedService>();
+builder.Services.AddHostedService<DailyEmailHostedService>();
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

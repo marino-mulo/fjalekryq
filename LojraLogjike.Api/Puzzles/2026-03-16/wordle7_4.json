@@ -1,0 +1,204 @@
+{
+  "gridSize": 9,
+  "solution": [
+    [
+      "P",
+      "X",
+      "V",
+      "\u00CB",
+      "R",
+      "\u00CB",
+      "X",
+      "X",
+      "M"
+    ],
+    [
+      "I",
+      "X",
+      "A",
+      "X",
+      "X",
+      "X",
+      "Q",
+      "X",
+      "J"
+    ],
+    [
+      "K",
+      "U",
+      "J",
+      "T",
+      "I",
+      "M",
+      "E",
+      "X",
+      "E"
+    ],
+    [
+      "\u00CB",
+      "X",
+      "X",
+      "R",
+      "X",
+      "X",
+      "N",
+      "U",
+      "K"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "E",
+      "N",
+      "D",
+      "X",
+      "X",
+      "\u00CB"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "E",
+      "R",
+      "A",
+      "X"
+    ],
+    [
+      "X",
+      "Z",
+      "E",
+      "M",
+      "\u00CB",
+      "R",
+      "X",
+      "R",
+      "X"
+    ],
+    [
+      "X",
+      "O",
+      "X",
+      "U",
+      "X",
+      "\u00CB",
+      "X",
+      "R",
+      "X"
+    ],
+    [
+      "X",
+      "G",
+      "J",
+      "A",
+      "K",
+      "X",
+      "X",
+      "\u00CB",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "END",
+      "row": 4,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DER\u00CB",
+      "row": 4,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZEM\u00CBR",
+      "row": 6,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ZOG",
+      "row": 6,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "GJAK",
+      "row": 8,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "TRE",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "KUJTIME",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VAJ",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "QEN",
+      "row": 1,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "MUA",
+      "row": 6,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "V\u00CBR\u00CB",
+      "row": 0,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PIK\u00CB",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "NUK",
+      "row": 3,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ERA",
+      "row": 5,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MJEK\u00CB",
+      "row": 0,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "ARR\u00CB",
+      "row": 5,
+      "col": 7,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 4,
+  "dayName": "E Premte"
+}

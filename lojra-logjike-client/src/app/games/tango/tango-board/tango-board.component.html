@@ -61,33 +61,33 @@
     }
   }
 
-  <!-- Sun symbols: simple filled circle -->
+  <!-- Sun symbols -->
   @for (i of cells; track i) {
     @if (isSun(i)) {
-      <circle
-        [attr.cx]="cellCenterX(i)"
-        [attr.cy]="cellCenterY(i)"
-        [attr.r]="symbolRadius"
-        fill="#F59E0B"
-        [attr.opacity]="isPrefilled(i) ? 0.65 : 1"
-        [class.symbol-win]="game.gameWon()"
-        [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
-        [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)"
-      />
+      <g [class.symbol-win]="game.gameWon()"
+         [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
+         [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)">
+        <image href="icons/sun.svg"
+               [attr.x]="cellCenterX(i) - symbolRadius"
+               [attr.y]="cellCenterY(i) - symbolRadius"
+               [attr.width]="symbolRadius * 2" [attr.height]="symbolRadius * 2"
+               [attr.opacity]="isPrefilled(i) ? 0.65 : 1"/>
+      </g>
     }
   }
 
-  <!-- Moon symbols: filled crescent -->
+  <!-- Moon symbols -->
   @for (i of cells; track i) {
     @if (isMoon(i)) {
-      <path
-        [attr.d]="moonPath(cellCenterX(i), cellCenterY(i))"
-        fill="#6366F1"
-        [attr.opacity]="isPrefilled(i) ? 0.65 : 1"
-        [class.symbol-win]="game.gameWon()"
-        [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
-        [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)"
-      />
+      <g [class.symbol-win]="game.gameWon()"
+         [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
+         [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)">
+        <image href="icons/moon.svg"
+               [attr.x]="cellCenterX(i) - symbolRadius"
+               [attr.y]="cellCenterY(i) - symbolRadius"
+               [attr.width]="symbolRadius * 2" [attr.height]="symbolRadius * 2"
+               [attr.opacity]="isPrefilled(i) ? 0.65 : 1"/>
+      </g>
     }
   }
 
@@ -109,25 +109,11 @@
 
   <!-- Constraint indicators (= or ×) on cell borders -->
   @for (ct of constraintDisplays; track $index) {
-    <!-- Background circle for constraint -->
-    <circle
-      [attr.cx]="ct.x"
-      [attr.cy]="ct.y"
-      r="10"
-      fill="white"
-      stroke="#d4d4d4"
-      stroke-width="1"
-    />
-    <text
-      [attr.x]="ct.x"
-      [attr.y]="ct.y"
-      text-anchor="middle"
-      dominant-baseline="central"
-      font-size="13"
-      font-weight="800"
-      [attr.fill]="ct.symbol === '=' ? '#F97316' : '#DC2626'"
-      style="pointer-events: none; font-family: system-ui, sans-serif;"
-    >{{ ct.symbol }}</text>
+    <image [attr.href]="ct.symbol === '=' ? 'icons/constraint-equals.svg' : 'icons/constraint-x.svg'"
+           [attr.x]="ct.x - 10"
+           [attr.y]="ct.y - 10"
+           width="20" height="20"
+           style="pointer-events: none;"/>
   }
 
   <!-- Click interaction layer -->

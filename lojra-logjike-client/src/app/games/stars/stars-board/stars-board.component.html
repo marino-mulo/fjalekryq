@@ -49,32 +49,25 @@
       <!-- X marks -->
       @for (i of cells; track i) {
         @if (isMarkX(i)) {
-          <g class="mark-x"
-             [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ')'">
-            <line [attr.x1]="-xSize/2" [attr.y1]="-xSize/2" [attr.x2]="xSize/2" [attr.y2]="xSize/2"
-                  stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-            <line [attr.x1]="xSize/2" [attr.y1]="-xSize/2" [attr.x2]="-xSize/2" [attr.y2]="xSize/2"
-                  stroke="#888" stroke-width="1.5" stroke-linecap="round"/>
-          </g>
+          <image href="icons/mark-x.svg"
+                 [attr.x]="cellX(i) + cellSize/2 - xSize/2"
+                 [attr.y]="cellY(i) + cellSize/2 - xSize/2"
+                 [attr.width]="xSize" [attr.height]="xSize"
+                 class="mark-x"/>
         }
       }
 
       <!-- Star icons -->
       @for (i of cells; track i) {
         @if (isStar(i)) {
-          <!-- Outer g: positioning only -->
-          <g [attr.transform]="'translate(' + starX(i) + ',' + starY(i) + ')'">
-            <!-- Inner g: animation target -->
-            <g class="star-icon"
-               [class.star-win]="game.gameWon()"
-               [style.animation-delay]="game.gameWon() ? (starWinDelay(i) + 'ms') : '0ms'">
-              <g [attr.transform]="'scale(' + (starSize / 24) + ') translate(-12, -12)'">
-                <polygon
-                  points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"
-                  fill="#F59E0B" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round"
-                  paint-order="stroke fill"/>
-              </g>
-            </g>
+          <g class="star-icon"
+             [class.star-win]="game.gameWon()"
+             [style.animation-delay]="game.gameWon() ? (starWinDelay(i) + 'ms') : '0ms'"
+             [attr.transform-origin]="starX(i) + ' ' + starY(i)">
+            <image href="icons/star.svg"
+                   [attr.x]="starX(i) - starSize/2"
+                   [attr.y]="starY(i) - starSize/2"
+                   [attr.width]="starSize" [attr.height]="starSize"/>
           </g>
         }
       }

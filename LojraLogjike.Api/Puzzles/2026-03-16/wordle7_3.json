@@ -1,0 +1,167 @@
+{
+  "gridSize": 8,
+  "solution": [
+    [
+      "V",
+      "X",
+      "Z",
+      "X",
+      "D",
+      "H",
+      "E",
+      "X"
+    ],
+    [
+      "A",
+      "J",
+      "O",
+      "X",
+      "A",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "J",
+      "X",
+      "G",
+      "U",
+      "R",
+      "\u00CB",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "P",
+      "X",
+      "X",
+      "K",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "L",
+      "U",
+      "M",
+      "\u00CB",
+      "T",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "A",
+      "X",
+      "I",
+      "X",
+      "R",
+      "X",
+      "M"
+    ],
+    [
+      "X",
+      "K",
+      "X",
+      "R",
+      "X",
+      "U",
+      "X",
+      "I"
+    ],
+    [
+      "V",
+      "\u00CB",
+      "R",
+      "\u00CB",
+      "X",
+      "P",
+      "I",
+      "K"
+    ]
+  ],
+  "words": [
+    {
+      "word": "LUM\u00CBT",
+      "row": 4,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PLAK\u00CB",
+      "row": 3,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "GUR\u00CB",
+      "row": 2,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "V\u00CBR\u00CB",
+      "row": 7,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MIR\u00CB",
+      "row": 4,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRUP",
+      "row": 4,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZOG",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "AJO",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PIK",
+      "row": 7,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DARK\u00CB",
+      "row": 0,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "DHE",
+      "row": 0,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MIK",
+      "row": 5,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "VAJ",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 3,
+  "dayName": "E Enjte"
+}

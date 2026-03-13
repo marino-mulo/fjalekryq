@@ -1,0 +1,255 @@
+{
+  "gridSize": 10,
+  "solution": [
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "V",
+      "X",
+      "E",
+      "N",
+      "D"
+    ],
+    [
+      "X",
+      "Z",
+      "I",
+      "M",
+      "X",
+      "A",
+      "X",
+      "X",
+      "X",
+      "E"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "U",
+      "X",
+      "L",
+      "A",
+      "G",
+      "U",
+      "R"
+    ],
+    [
+      "G",
+      "X",
+      "J",
+      "A",
+      "V",
+      "\u00CB",
+      "X",
+      "X",
+      "X",
+      "\u00CB"
+    ],
+    [
+      "J",
+      "X",
+      "X",
+      "X",
+      "I",
+      "X",
+      "A",
+      "J",
+      "O",
+      "X"
+    ],
+    [
+      "A",
+      "X",
+      "M",
+      "O",
+      "T",
+      "\u00CB",
+      "R",
+      "X",
+      "R",
+      "X"
+    ],
+    [
+      "K",
+      "J",
+      "O",
+      "X",
+      "X",
+      "X",
+      "I",
+      "N",
+      "A",
+      "T"
+    ],
+    [
+      "X",
+      "X",
+      "L",
+      "U",
+      "L",
+      "E",
+      "X",
+      "X",
+      "X",
+      "I"
+    ],
+    [
+      "X",
+      "X",
+      "L",
+      "X",
+      "X",
+      "R",
+      "X",
+      "X",
+      "X",
+      "J"
+    ],
+    [
+      "E",
+      "M",
+      "\u00CB",
+      "R",
+      "X",
+      "A",
+      "R",
+      "T",
+      "H",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "MOT\u00CBR",
+      "row": 5,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VIT",
+      "row": 3,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "MOLL\u00CB",
+      "row": 5,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "ARI",
+      "row": 4,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "EM\u00CBR",
+      "row": 9,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KJO",
+      "row": 6,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GJAK",
+      "row": 3,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "LULE",
+      "row": 7,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "JAV\u00CB",
+      "row": 3,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MUA",
+      "row": 1,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "VAL\u00CB",
+      "row": 0,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "LAGUR",
+      "row": 2,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DER\u00CB",
+      "row": 0,
+      "col": 9,
+      "direction": "vertical"
+    },
+    {
+      "word": "END",
+      "row": 0,
+      "col": 7,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ERA",
+      "row": 7,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZIM",
+      "row": 1,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ARTH",
+      "row": 9,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "INAT",
+      "row": 6,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "AJO",
+      "row": 4,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ORA",
+      "row": 4,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "TIJ",
+      "row": 6,
+      "col": 9,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 6,
+  "dayName": "E Diel"
+}

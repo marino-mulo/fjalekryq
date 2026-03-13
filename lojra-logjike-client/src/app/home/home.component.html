@@ -3,211 +3,94 @@
     <h2 class="section-title">Zgjidh lojrat e ditës</h2>
     <div class="games-grid">
 
-      <div class="game-card game-card--purple">
-        <div class="game-card-icon game-card-icon--purple">
-          <svg width="40" height="40" viewBox="0 0 64 64">
-            <circle cx="12" cy="12" r="6" fill="#A855F7" stroke="#1a1a1a" stroke-width="2"/>
-            <circle cx="52" cy="12" r="6" fill="#A855F7" stroke="#1a1a1a" stroke-width="2"/>
-            <circle cx="32" cy="52" r="6" fill="#A855F7" stroke="#1a1a1a" stroke-width="2"/>
-            <line x1="12" y1="12" x2="52" y2="12" stroke="#1a1a1a" stroke-width="2.5"/>
-            <line x1="52" y1="12" x2="32" y2="52" stroke="#1a1a1a" stroke-width="2.5"/>
-            <line x1="32" y1="52" x2="12" y2="12" stroke="#1a1a1a" stroke-width="2.5"/>
-          </svg>
+      <!-- ═══ Fjalëkryq ═══ -->
+      <div class="game-tile game-tile--green">
+        <img src="icons/fjalekryq.svg" class="game-tile-icon" alt="Fjalëkryq">
+        <div class="game-tile-content">
+          <h3 class="game-tile-title">Fjalëkryq</h3>
+          <p class="game-tile-desc">Gjej fjalët e fshehura duke shkëmbyer shkronjat.</p>
+          <a routerLink="/games/wordle-7x7" class="game-tile-btn game-tile-btn--green">Luaj</a>
         </div>
-        <h3 class="game-card-title">Zip</h3>
-        <p class="game-card-desc">Lidh numrat duke mbushur çdo qelizë të tabelës.</p>
-        <a routerLink="/games/zip" class="game-card-btn game-card-btn--purple">Luaj</a>
       </div>
 
-      <div class="game-card game-card--yellow">
-        <div class="game-card-icon game-card-icon--yellow">
-          <svg width="40" height="40" viewBox="0 0 64 64">
-            <defs>
-              <linearGradient id="starFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#FFCC66"/>
-                <stop offset="100%" stop-color="#F5A623"/>
-              </linearGradient>
-            </defs>
-            <path d="M32,4 C33,4 35,16 37,20 C38,23 40,24 43,24 C48,24 56,24 59,24 C59,26 52,30 47,34 C44,36 44,39 45,42 C46,47 49,56 49,59 C47,58 41,53 37,50 C34,48 30,48 27,50 C23,53 17,58 15,59 C15,56 18,47 19,42 C20,39 20,36 17,34 C12,30 5,26 5,24 C8,24 16,24 21,24 C24,24 26,23 27,20 C29,16 31,4 32,4 Z"
-                  fill="url(#starFill)" stroke="#E8922E" stroke-width="2"/>
-          </svg>
+      <!-- ═══ Zip ═══ -->
+      <div class="game-tile game-tile--purple">
+        <img src="icons/zip.svg" class="game-tile-icon" alt="Zinxhiri">
+        <div class="game-tile-content">
+          <h3 class="game-tile-title">Zinxhiri</h3>
+          <p class="game-tile-desc">Lidh numrat duke mbushur çdo qelizë të tabelës.</p>
+          <a routerLink="/games/zip" class="game-tile-btn game-tile-btn--purple">Luaj</a>
         </div>
-        <h3 class="game-card-title">Stars</h3>
-        <p class="game-card-desc">Vendos yje në çdo zonë duke ndjekur rregullat e lojës.</p>
-        <a routerLink="/games/stars" class="game-card-btn game-card-btn--yellow">Luaj</a>
       </div>
 
-      <div class="game-card game-card--coral">
-        <div class="game-card-icon game-card-icon--coral">
-          <svg width="40" height="40" viewBox="0 0 64 64">
-            <!-- 3x3 grid background -->
-            <rect x="4" y="4" width="56" height="56" rx="4" fill="#FFF1F2" stroke="#1a1a1a" stroke-width="2"/>
-            <line x1="23" y1="4" x2="23" y2="60" stroke="#1a1a1a" stroke-width="1.5"/>
-            <line x1="41" y1="4" x2="41" y2="60" stroke="#1a1a1a" stroke-width="1.5"/>
-            <line x1="4" y1="23" x2="60" y2="23" stroke="#1a1a1a" stroke-width="1.5"/>
-            <line x1="4" y1="41" x2="60" y2="41" stroke="#1a1a1a" stroke-width="1.5"/>
-            <!-- Queen crown in center cell -->
-            <path d="M27,38 L27,30 L29,33 L32,27 L35,33 L37,30 L37,38 Z" fill="#E11D48" stroke="#1a1a1a" stroke-width="1.5"/>
-            <circle cx="27" cy="29" r="1.5" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
-            <circle cx="32" cy="26" r="1.5" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
-            <circle cx="37" cy="29" r="1.5" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
-            <!-- Coral dots for placed queens -->
-            <circle cx="13" cy="13" r="4" fill="#FB7185" stroke="#1a1a1a" stroke-width="1.5"/>
-            <circle cx="50" cy="50" r="4" fill="#FB7185" stroke="#1a1a1a" stroke-width="1.5"/>
-          </svg>
+      <!-- ═══ Gjarpëri ═══ -->
+      <div class="game-tile game-tile--teal">
+        <img src="icons/gjarperi.svg" class="game-tile-icon" alt="Gjarpëri">
+        <div class="game-tile-content">
+          <h3 class="game-tile-title">Gjarpëri</h3>
+          <p class="game-tile-desc">Vizato shtegun e gjarpërit duke ndjekur numrat e rreshtave dhe kolonave.</p>
+          <a routerLink="/games/snake" class="game-tile-btn game-tile-btn--teal">Luaj</a>
         </div>
-        <h3 class="game-card-title">Queens</h3>
-        <p class="game-card-desc">Vendos mbretëreshat në tabelë pa u sulmuar njëra-tjetrën.</p>
-        <a routerLink="/games/queens" class="game-card-btn game-card-btn--coral">Luaj</a>
       </div>
 
-      <div class="game-card game-card--green">
-        <div class="game-card-icon game-card-icon--green">
-          <svg width="40" height="40" viewBox="0 0 64 64">
-            <!-- Row of letter tiles -->
-            <rect x="3" y="8" width="13" height="13" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="2"/>
-            <rect x="19" y="8" width="13" height="13" rx="3" fill="#BBF7D0" stroke="#1a1a1a" stroke-width="2"/>
-            <rect x="35" y="8" width="13" height="13" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="2"/>
-            <rect x="51" y="8" width="10" height="13" rx="3" fill="#86EFAC" stroke="#1a1a1a" stroke-width="1.5"/>
-            <!-- Letters on tiles -->
-            <text x="9.5" y="18.5" text-anchor="middle" font-family="var(--font-display)" font-size="10" font-weight="900" fill="#fff">F</text>
-            <text x="25.5" y="18.5" text-anchor="middle" font-family="var(--font-display)" font-size="10" font-weight="900" fill="#1a1a1a">J</text>
-            <text x="41.5" y="18.5" text-anchor="middle" font-family="var(--font-display)" font-size="10" font-weight="900" fill="#fff">A</text>
-            <text x="56" y="18.5" text-anchor="middle" font-family="var(--font-display)" font-size="9" font-weight="900" fill="#1a1a1a">L</text>
-            <!-- Second row (dimmed, not solved yet) -->
-            <rect x="3" y="25" width="13" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <rect x="19" y="25" width="13" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <rect x="35" y="25" width="13" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <rect x="51" y="25" width="10" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <!-- Third row -->
-            <rect x="3" y="42" width="13" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <rect x="19" y="42" width="13" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <rect x="35" y="42" width="13" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-            <rect x="51" y="42" width="10" height="13" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.5"/>
-          </svg>
+      <!-- ═══ Stars ═══ -->
+      <div class="game-tile game-tile--yellow">
+        <img src="icons/stars.svg" class="game-tile-icon" alt="Yje">
+        <div class="game-tile-content">
+          <h3 class="game-tile-title">Yje</h3>
+          <p class="game-tile-desc">Vendos yje në çdo zonë duke ndjekur rregullat e lojës.</p>
+          <a routerLink="/games/stars" class="game-tile-btn game-tile-btn--yellow">Luaj</a>
         </div>
-        <h3 class="game-card-title">Fjalëkryq</h3>
-        <p class="game-card-desc">Gjej fjalët e fshehura duke shkëmbyer shkronjat.</p>
-        <a routerLink="/games/wordle-7x7" class="game-card-btn game-card-btn--green">Luaj</a>
       </div>
 
-      <div class="game-card game-card--orange">
-        <div class="game-card-icon game-card-icon--orange">
-          <svg width="40" height="40" viewBox="0 0 64 64">
-            <!-- 2x2 grid with = and × constraints -->
-            <rect x="6" y="6" width="24" height="24" rx="4" fill="#FFF7ED" stroke="#1a1a1a" stroke-width="2"/>
-            <rect x="34" y="6" width="24" height="24" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="2"/>
-            <rect x="6" y="34" width="24" height="24" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="2"/>
-            <rect x="34" y="34" width="24" height="24" rx="4" fill="#FFF7ED" stroke="#1a1a1a" stroke-width="2"/>
-            <!-- = sign between top cells -->
-            <line x1="31" y1="15" x2="33" y2="15" stroke="#F97316" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="31" y1="19" x2="33" y2="19" stroke="#F97316" stroke-width="2.5" stroke-linecap="round"/>
-            <!-- × sign between bottom cells -->
-            <line x1="30.5" y1="43" x2="33.5" y2="49" stroke="#E11D48" stroke-width="2.5" stroke-linecap="round"/>
-            <line x1="33.5" y1="43" x2="30.5" y2="49" stroke="#E11D48" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
+      <!-- ═══ Queens ═══ -->
+      <div class="game-tile game-tile--coral">
+        <img src="icons/queens.svg" class="game-tile-icon" alt="Mbretëresha">
+        <div class="game-tile-content">
+          <h3 class="game-tile-title">Mbretëresha</h3>
+          <p class="game-tile-desc">Vendos mbretëreshat në tabelë pa sulmuar njëra-tjetrën.</p>
+          <a routerLink="/games/queens" class="game-tile-btn game-tile-btn--coral">Luaj</a>
         </div>
-        <h3 class="game-card-title">Tango</h3>
-        <p class="game-card-desc">Plotëso tabelën me simbole duke ndjekur rregullat e barazisë dhe kundërshtisë.</p>
-        <a routerLink="/games/tango" class="game-card-btn game-card-btn--orange">Luaj</a>
       </div>
 
-      <div class="game-card game-card--teal">
-        <div class="game-card-icon game-card-icon--teal">
-          <svg width="40" height="40" viewBox="0 0 64 64">
-            <!-- Grid background -->
-            <rect x="4" y="4" width="56" height="56" rx="6" fill="#F0FDFA" stroke="#1a1a1a" stroke-width="2"/>
-            <!-- Snake path: teal filled cells -->
-            <rect x="8" y="8" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <rect x="22" y="8" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <rect x="36" y="8" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <rect x="36" y="22" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <rect x="22" y="22" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <rect x="22" y="36" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <rect x="36" y="36" width="12" height="12" rx="3" fill="#14B8A6" stroke="#0d9488" stroke-width="1.5"/>
-            <!-- Head circle (green) -->
-            <circle cx="14" cy="14" r="7" fill="#10b981" stroke="#059669" stroke-width="2"/>
-            <!-- Tail circle (red) -->
-            <circle cx="42" cy="42" r="5" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
-          </svg>
+      <!-- ═══ Tango ═══ -->
+      <div class="game-tile game-tile--orange">
+        <img src="icons/tango.svg" class="game-tile-icon" alt="Balanca">
+        <div class="game-tile-content">
+          <h3 class="game-tile-title">Balanca</h3>
+          <p class="game-tile-desc">Plotëso tabelën me simbole duke ndjekur rregullat e barazisë dhe kundërshtisë.</p>
+          <a routerLink="/games/tango" class="game-tile-btn game-tile-btn--orange">Luaj</a>
         </div>
-        <h3 class="game-card-title">Gjarpëri</h3>
-        <p class="game-card-desc">Vizato shtegun e gjarpërit duke ndjekur numrat e rreshtave dhe kolonave.</p>
-        <a routerLink="/games/snake" class="game-card-btn game-card-btn--teal">Luaj</a>
       </div>
 
-    </div>
-  </div>
-</section>
-
-<section class="info-section">
-  <div class="section-inner">
-    <div class="info-grid">
-      <div class="info-box">
-        <div class="info-emoji">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18h6"/><path d="M10 22h4"/>
-            <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" fill="#FEF3C7"/>
-          </svg>
-        </div>
-        <h3 class="info-title">Mëso duke luajtur</h3>
-        <p class="info-desc">Çdo lojë është projektuar për të stimuluar mendimin logjik dhe kreativitetin.</p>
-      </div>
-      <div class="info-box">
-        <div class="info-emoji">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#E11D48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 12 7s5-3 7.5-3a2.5 2.5 0 0 1 0 5H18"/>
-            <path d="M6 9l1.5 9h9L18 9"/><path d="M9 22h6"/><line x1="12" y1="18" x2="12" y2="22"/>
-          </svg>
-        </div>
-        <h3 class="info-title">Sfido veten çdo ditë</h3>
-        <p class="info-desc">Enigma të reja çdo ditë që të mbajnë mendjen aktive dhe të motivuar.</p>
-      </div>
-      <div class="info-box">
-        <div class="info-emoji">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#6B21A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2C8 2 4 5.5 4 10c0 3 1.5 5 3 6.5V20h10v-3.5c1.5-1.5 3-3.5 3-6.5 0-4.5-4-8-8-8z" fill="#F3E8FF"/>
-            <path d="M8 20h8v2H8z" fill="#EDE9FE"/><path d="M9 10c0-1.7 1.3-3 3-3"/>
-          </svg>
-        </div>
-        <h3 class="info-title">Stërvit trurin</h3>
-        <p class="info-desc">Lojra që të hënën janë të lehta deri të dielën që është e sfiduese.</p>
-      </div>
     </div>
   </div>
 </section>
 
 <section class="about-section" id="rreth">
   <div class="section-inner">
-    <h2 class="section-title">Rreth platformës</h2>
-    <div class="about-grid">
-      <div class="about-card">
-        <h4>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-          </svg>
-          Pa instalim
-        </h4>
-        <p>Luaj direkt në shfletues, pa nevojë për aplikacion.</p>
+    <h2 class="section-title">Rreth Lojra Logjike</h2>
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="info-emoji info-emoji--yellow">
+          <img src="icons/lightbulb.svg" width="36" height="36" alt="">
+        </div>
+        <h3 class="info-title">Stërvit trurin</h3>
+        <p class="info-desc">Çdo lojë është projektuar për të stimuluar mendimin logjik dhe kreativitetin.</p>
       </div>
-      <div class="about-card">
-        <h4>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
-          </svg>
-          Mobile-friendly
-        </h4>
-        <p>Optimizuar për celular, tablet dhe kompjuter.</p>
+      <div class="info-box">
+        <div class="info-emoji info-emoji--green">
+          <img src="icons/globe.svg" width="36" height="36" alt="">
+        </div>
+        <h3 class="info-title">Pa instalim</h3>
+        <p class="info-desc">Luaj direkt në shfletues, pa nevojë për aplikacion.</p>
       </div>
-      <div class="about-card">
-        <h4>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-          Çdo ditë
-        </h4>
-        <p>Enigma të reja shtohen çdo ditë automatikisht.</p>
+      <div class="info-box">
+        <div class="info-emoji info-emoji--purple">
+          <img src="icons/phone.svg" width="36" height="36" alt="">
+        </div>
+        <h3 class="info-title">Për çdo pajisje</h3>
+        <p class="info-desc">Optimizuar për celular, tablet dhe kompjuter.</p>
       </div>
     </div>
 
@@ -216,22 +99,13 @@
       <span class="social-label">Na ndiqni</span>
       <div class="social-icons">
         <a href="https://instagram.com/" target="_blank" rel="noopener" class="social-icon" title="Instagram">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-            <circle cx="12" cy="12" r="5"/>
-            <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
-          </svg>
+          <img src="icons/instagram.svg" width="22" height="22" alt="Instagram">
         </a>
         <a href="https://tiktok.com/" target="_blank" rel="noopener" class="social-icon" title="TikTok">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/>
-          </svg>
+          <img src="icons/tiktok.svg" width="22" height="22" alt="TikTok">
         </a>
-        <a href="mailto:email@example.com" class="social-icon" title="Email">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2"/>
-            <polyline points="22,4 12,13 2,4"/>
-          </svg>
+        <a href="mailto:email@example.com" class="social-icon">
+          <img src="icons/envelope.svg" width="22" height="22" alt="Email">
         </a>
       </div>
     </div>
