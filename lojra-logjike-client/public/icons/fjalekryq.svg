@@ -1,31 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect x="4" y="4" width="60" height="60" rx="6" fill="#F0FDF4" stroke="#1a1a1a" stroke-width="2"/>
-  <rect x="7" y="7" width="10" height="10" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
-  <rect x="21" y="7" width="10" height="10" rx="3" fill="#EAB308" stroke="#1a1a1a" stroke-width="1.5"/>
-  <rect x="35" y="7" width="10" height="10" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
-  <rect x="49" y="7" width="10" height="12" rx="3" fill="#9CA3AF" stroke="#1a1a1a" stroke-width="1.5">
-    <animate attributeName="fill" values="#9CA3AF;#9CA3AF;#22C55E;#22C55E;#9CA3AF" keyTimes="0;0.3;0.5;0.8;1" dur="3s" repeatCount="indefinite"/>
-  </rect>
-  <text x="13" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">F</text>
-  <text x="27" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">J</text>
-  <text x="41" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">A</text>
-  <text x="54" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#888">L
-    <animate attributeName="fill" values="#888;#888;#fff;#fff;#888" keyTimes="0;0.3;0.5;0.8;1" dur="3s" repeatCount="indefinite"/>
+  <rect x="2" y="2" width="59" height="59" rx="5" fill="#DCFCE7" stroke="#000" stroke-width="1.2"/>
+  <rect x="5.5" y="5" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="19.5" y="5" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="33.5" y="5" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="47.5" y="5" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+
+  <rect x="5.5" y="19" width="10" height="10" rx="3" fill="#22C55E" stroke="#D1D5DB" stroke-width="1"/>
+  <rect x="19.5" y="19" width="10" height="10" rx="3" fill="#22C55E"  stroke="#D1D5DB" stroke-width="1"/>
+  <rect x="33.5" y="19" width="10" height="10" rx="3" fill="#22C55E"  stroke="#D1D5DB" stroke-width="1"/>
+  <rect x="47.5" y="19" width="10" height="10" rx="3" fill="#EAB308"  stroke="#D1D5DB" stroke-width="1"/>
+  <text x="10.5" y="27" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">L</text>
+  <text x="24.5" y="27" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">O</text>
+  <text x="38.5" y="27" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">J</text>
+  <text x="52.5" y="27" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">&#203;
+   <animate attributeName="fill" values="#fff;#fff;#000;#000;#fff" keyTimes="0;0.3;0.5;0.8;1" dur="3s" repeatCount="indefinite"/>
   </text>
-  <rect x="7" y="22" width="10" height="10" rx="3" fill="#22C55E" stroke-width="1.5"/>
-  <rect x="21" y="22" width="10" height="10" rx="3" fill="#22C55E"  stroke-width="1.5"/>
-  <rect x="35" y="22" width="10" height="10" rx="3" fill="#9CA3AF"  stroke-width="1.5"/>
-  <rect x="49" y="22" width="10" height="10" rx="3" fill="#EAB308"  stroke-width="1.5"/>
-  <text x="13" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">L</text>
-  <text x="27" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">O</text>
-  <text x="41" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#888">J</text>
-  <text x="55" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">&#203;</text>
-  <rect x="7" y="37" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="21" y="37" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="35" y="37" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="49" y="37" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="7" y="51" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="21" y="51" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="35" y="51" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
-  <rect x="49" y="51" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  
+ 
+  <rect x="5" y="34" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="19.5" y="34" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="33.5" y="34" width="10" height="10" rx="3" fill="#22C55E" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="47.5" y="34" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+   <text x="38.5" y="42" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">A</text>
+  
+  <rect x="5.5" y="48" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="19.5" y="48" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="33.5" y="48" width="10" height="10" rx="3" fill="#22C55E" stroke="#D1D5DB" stroke-width="1.2"/>
+  <rect x="47.5" y="48" width="10" height="10" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+
+ <text x="38.5" y="56" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">M</text>
+
 </svg>

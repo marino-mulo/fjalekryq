@@ -72,20 +72,53 @@
 /* ── Queen Icons ── */
 .queen-icon {
   pointer-events: none;
-  transition: filter 0.3s;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: queen-place 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
-/* ── Win: pulsing glow on queens ── */
-.queen-win {
-  animation: queen-glow 1.8s ease-in-out infinite;
-}
-
-@keyframes queen-glow {
-  0%, 100% {
-    filter: brightness(1) drop-shadow(0 0 2px rgba(225, 29, 72, 0.2));
+@keyframes queen-place {
+  0% {
+    transform: scale(0);
+    opacity: 0;
   }
-  50% {
-    filter: brightness(1.15) drop-shadow(0 0 12px rgba(225, 29, 72, 0.6));
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── Win: dancing queens ── */
+.queen-win {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: queen-dance 3.8s ease-in-out infinite;
+}
+
+@keyframes queen-dance {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(225, 29, 72, 0.15));
+  }
+  7% {
+    transform: translateY(-2px) rotate(-4deg) scale(1.03);
+    filter: drop-shadow(0 0 3px rgba(225, 29, 72, 0.4));
+  }
+  13% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(225, 29, 72, 0.15));
+  }
+  20% {
+    transform: translateY(-1.5px) rotate(4deg) scale(1.02);
+    filter: drop-shadow(0 0 2px rgba(225, 29, 72, 0.3));
+  }
+  27% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(225, 29, 72, 0.15));
+  }
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    filter: drop-shadow(0 0 1px rgba(225, 29, 72, 0.15));
   }
 }
 

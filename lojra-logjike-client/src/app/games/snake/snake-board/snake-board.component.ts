@@ -176,7 +176,6 @@ export class SnakeBoardComponent {
   // ── Drag state ──
   private dragging = false;
   private dragVisited = new Set<number>();
-  private dragSavedSnapshot = false;
   private didDrag = false;
 
   onDragStart(i: number, event: MouseEvent): void {
@@ -190,7 +189,6 @@ export class SnakeBoardComponent {
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     this.placeXIfEmpty(i);
   }
 
@@ -202,7 +200,6 @@ export class SnakeBoardComponent {
   onDragEnd(): void {
     this.dragging = false;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
   }
 
   onTouchStart(event: TouchEvent): void {
@@ -218,7 +215,6 @@ export class SnakeBoardComponent {
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     this.placeXIfEmpty(i);
   }
 
@@ -237,11 +233,9 @@ export class SnakeBoardComponent {
     const val = this.game.board()[r]?.[c];
     if (val !== EMPTY) return; // only paint empty cells
 
-    if (!this.dragSavedSnapshot) {
-      (this.game as any).history.push(this.game.board().map((row: number[]) => [...row]));
-      (this.game as any).historyLength.set((this.game as any).history.length);
-      this.dragSavedSnapshot = true;
-    }
+    // Save undo snapshot for each cell placement
+    (this.game as any).history.push(this.game.board().map((row: number[]) => [...row]));
+    (this.game as any).historyLength.set((this.game as any).history.length);
     const b = this.game.board().map((row: number[]) => [...row]);
     b[r][c] = MARK_X;
     this.game.board.set(b);
@@ -407,10 +401,17 @@ export class SnakeBoardComponent {
     return t !== undefined ? this.lerpColor(t) : '#14B8A6';
   }
 
+  /** Size of the head SVG icon (slightly larger than body width for visual presence) */
+  get headIconSize(): number { return this.snakeBodyWidth * 1.35; }
   /** Head color (always green end) */
   get headColor(): string { return this.lerpColor(0); }
   /** Tail color (always red end) */
   get tailColor(): string { return this.lerpColor(1); }
+
+  /** Path position (0..1) for an isolated dot cell */
+  isolatedPathPos(i: number): number {
+    return this.pathIndexMap.get(i) ?? 0;
+  }
 
   /** Win animation delay based on path position 0..1 → 0..700ms */
   winAnimDelay(pathPos: number): number {

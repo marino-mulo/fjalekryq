@@ -677,9 +677,8 @@ export class QueensGameService {
   }
 
   /** Get snapshot of current in-progress state for persistence */
-  getProgressSnapshot(): { board: number[][]; timerSeconds: number } | null {
+  getProgressSnapshot(): { board: number[][]; timerSeconds: number; history: number[][][] } | null {
     if (this.gameWon() || this.isRestored() || this.timerDisabled()) return null;
-    // Only save if user has placed at least one mark
     const b = this.board();
     let hasMove = false;
     for (const row of b) {
@@ -692,19 +691,20 @@ export class QueensGameService {
     return {
       board: b.map(r => [...r]),
       timerSeconds: this.timerSeconds(),
+      history: this.history.map(h => h.map(r => [...r])),
     };
   }
 
   /** Restore a paused in-progress state */
-  restorePaused(savedBoard: number[][], savedTimer: number): void {
+  restorePaused(savedBoard: number[][], savedTimer: number, savedHistory?: number[][][]): void {
     this.board.set(savedBoard);
     this.timerSeconds.set(savedTimer);
     this.gameWon.set(false);
     this.timerDisabled.set(false);
     this.isRestored.set(false);
-    this.history = [];
-    this.historyLength.set(0);
-    this.stopTimer(); // stay paused
+    this.history = savedHistory ?? [];
+    this.historyLength.set(this.history.length);
+    this.stopTimer();
   }
 
   /**

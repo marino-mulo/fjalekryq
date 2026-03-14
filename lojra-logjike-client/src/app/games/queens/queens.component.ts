@@ -22,6 +22,7 @@ interface SavedResult {
 interface SavedProgress {
   board: number[][];
   timerSeconds: number;
+  history?: number[][][];
   date: string;
 }
 
@@ -171,6 +172,7 @@ export class QueensComponent implements OnInit, OnDestroy {
     const progress: SavedProgress = {
       board: snapshot.board,
       timerSeconds: snapshot.timerSeconds,
+      history: snapshot.history,
       date: new Date().toISOString(),
     };
     localStorage.setItem(this.progressKey(dayIndex), JSON.stringify(progress));
@@ -206,7 +208,7 @@ export class QueensComponent implements OnInit, OnDestroy {
       } else {
         const progress = this.getSavedProgress(dayIndex);
         if (progress && progress.board.length > 0) {
-          this.game.restorePaused(progress.board, progress.timerSeconds);
+          this.game.restorePaused(progress.board, progress.timerSeconds, progress.history);
           this.isCompleted.set(false);
           this.completedTime.set(0);
           this.showPause = true;

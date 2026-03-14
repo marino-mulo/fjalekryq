@@ -1,3 +1,5 @@
+// TODO: Uncomment when email subscription is needed
+/*
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using LojraLogjike.Api.Email;
@@ -81,3 +83,4 @@ public class SubscriptionController : ControllerBase
 
 public record SubscribeRequest(string Email);
 public record UnsubscribeRequest(string Email);
+*/

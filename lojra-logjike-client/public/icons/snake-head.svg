@@ -1,9 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <circle cx="12" cy="12" r="10" fill="#10b981"/>
+
+  <!-- Head shaped like tail -->
+  <g transform="translate(12 13) rotate(-90) translate(-12 -12)">
+ 
+    <path d="M12,2 A10,10 0 0,0 12,22 Q33,12 12,2 Z"
+          fill="#10b981" stroke="#08855b" stroke-width="0.8" stroke-linejoin="round"
+        stroke-linecap="round"/>
+  </g>
+  
+
+  <!-- Tongue -->
+  <g transform="rotate(180 12 3)">
+    <path d="M11 1.6 Q12 3.8 13 1.6 Q12.7 5.2 12 5.2 Q11.3 5.2 11 1.6 Z"
+          fill="#ef4444"/>
+  </g>
+
   <!-- Left eye -->
   <circle cx="8.5" cy="9" r="2.2" fill="white"/>
-  <circle cx="8.5" cy="9" r="1.2" fill="#1a1a1a"/>
+  <circle cx="8.5" cy="9" r="1.1" fill="#1a1a1a"/>
+
   <!-- Right eye -->
   <circle cx="15.5" cy="9" r="2.2" fill="white"/>
-  <circle cx="15.5" cy="9" r="1.2" fill="#1a1a1a"/>
+  <circle cx="15.5" cy="9" r="1.1" fill="#1a1a1a"/>
+
 </svg>

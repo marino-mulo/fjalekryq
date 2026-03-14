@@ -79,7 +79,7 @@
 .star-win {
   transform-origin: center;
   transform-box: fill-box;
-  animation: star-dance 1.6s ease-in-out infinite;
+  animation: star-dance 3.6s ease-in-out infinite;
 }
 
 @keyframes star-dance {
@@ -87,19 +87,19 @@
     transform: translateY(0) rotate(0deg) scale(1);
     filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
   }
-  15% {
+  7% {
     transform: translateY(-2px) rotate(-4deg) scale(1.03);
     filter: drop-shadow(0 0 3px rgba(245, 158, 11, 0.4));
   }
-  30% {
+  13% {
     transform: translateY(0) rotate(0deg) scale(1);
     filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
   }
-  45% {
+  20% {
     transform: translateY(-1.5px) rotate(4deg) scale(1.02);
     filter: drop-shadow(0 0 2px rgba(245, 158, 11, 0.3));
   }
-  60% {
+  27% {
     transform: translateY(0) rotate(0deg) scale(1);
     filter: drop-shadow(0 0 1px rgba(245, 158, 11, 0.15));
   }

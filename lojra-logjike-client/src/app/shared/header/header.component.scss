@@ -158,19 +158,31 @@
   border: 1px solid #FDBA74;
 }
 
-.nav-link {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 600;
+/* ── Header social icons ── */
+.header-social {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--black);
+  background: var(--white);
   color: var(--black);
-  text-decoration: none;
-  padding: 6px 10px;
-  border-radius: 8px;
-  transition: background 0.15s;
-  cursor: pointer;
+  transition: all 0.15s;
+  box-shadow: 2px 2px 0 var(--black);
 
   &:hover {
-    background: var(--cream);
+    transform: translateY(-2px);
+    box-shadow: 3px 4px 0 var(--black);
+    background: #FAF5FF;
+    color: #6B21A8;
+    border-color: #6B21A8;
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 1px 1px 0 var(--black);
   }
 }
 

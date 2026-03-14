@@ -41,17 +41,29 @@
 .snake-body-dot {
 }
 
-/* Win animation — pulse brightness along the tube */
-.snake-connector-line.snake-win,
+/* Win animation — connector lines draw from head to tail, fade, pause, repeat */
+.snake-connector-line.snake-win {
+  animation: snakeWinDraw 4s ease-in-out infinite;
+}
+
+/* Head, tail, body dots — appear with draw but stay visible */
 .snake-body-dot.snake-win,
 .head-circle.snake-win,
 .tail-circle.snake-win {
-  animation: snakeWinPulse 1.2s ease-in-out infinite alternate;
+  animation: snakeWinStay 0.3s ease-in-out forwards;
 }
 
-@keyframes snakeWinPulse {
-  0%   { opacity: 1;   filter: brightness(1.0); }
-  100% { opacity: 0.6; filter: brightness(1.3); }
+@keyframes snakeWinDraw {
+  0%   { opacity: 0; }
+  5%   { opacity: 1; }
+  55%  { opacity: 1; }
+  60%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+
+@keyframes snakeWinStay {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* ── Head ── */

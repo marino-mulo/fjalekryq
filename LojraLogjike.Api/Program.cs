@@ -1,4 +1,4 @@
-using LojraLogjike.Api.Email;
+// using LojraLogjike.Api.Email; // TODO: Uncomment when email subscription is needed
 using LojraLogjike.Api.Generation;
 
 // ── CLI Commands ──
@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddHostedService<PuzzleGenerationHostedService>();
-builder.Services.AddHostedService<DailyEmailHostedService>();
+// builder.Services.AddHostedService<DailyEmailHostedService>(); // TODO: Uncomment when email subscription is needed
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>

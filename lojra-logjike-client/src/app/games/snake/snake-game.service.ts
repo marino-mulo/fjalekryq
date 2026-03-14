@@ -330,6 +330,13 @@ export class SnakeGameService {
     // Continuous path from head to tail
     if (!this.isValidPath(b)) return;
 
+    // Auto-fill remaining empty cells with X
+    const filled = b.map(r => [...r]);
+    for (let r = 0; r < n; r++)
+      for (let c = 0; c < n; c++)
+        if (filled[r][c] === EMPTY) filled[r][c] = MARK_X;
+    this.board.set(filled);
+
     this.gameWon.set(true);
     this.stopTimer();
   }
@@ -409,24 +416,24 @@ export class SnakeGameService {
     this.stopTimer();
   }
 
-  restorePaused(savedBoard: number[][], savedTimer: number): void {
+  restorePaused(savedBoard: number[][], savedTimer: number, savedHistory?: number[][][]): void {
     this.board.set(savedBoard);
     this.timerSeconds.set(savedTimer);
     this.gameWon.set(false);
     this.timerDisabled.set(false);
     this.isRestored.set(false);
-    this.history = [];
-    this.historyLength.set(0);
+    this.history = savedHistory ?? [];
+    this.historyLength.set(this.history.length);
     this.stopTimer();
   }
 
-  getProgressSnapshot(): { board: number[][]; timerSeconds: number } | null {
+  getProgressSnapshot(): { board: number[][]; timerSeconds: number; history: number[][][] } | null {
     if (this.gameWon() || this.isRestored() || this.timerDisabled()) return null;
     const b = this.board();
     let hasMove = false;
     for (const row of b) { for (const cell of row) { if (cell !== EMPTY) { hasMove = true; break; } } if (hasMove) break; }
     if (!hasMove) return null;
-    return { board: b.map(r => [...r]), timerSeconds: this.timerSeconds() };
+    return { board: b.map(r => [...r]), timerSeconds: this.timerSeconds(), history: this.history.map(h => h.map(r => [...r])) };
   }
 
   pauseTimer(): void { this.stopTimer(); }

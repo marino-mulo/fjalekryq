@@ -1,19 +1,16 @@
 import { Component, inject, ElementRef, ViewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
-import { ViewportScroller } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { GameHeaderService } from '../../core/services/game-header.service';
-import { SettingsModalComponent } from '../settings-modal/settings-modal.component';
+// import { SettingsModalComponent } from '../settings-modal/settings-modal.component'; // TODO: Uncomment when email subscription is needed
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, SettingsModalComponent],
+  imports: [RouterLink],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss'
 })
 export class HeaderComponent {
-  private router = inject(Router);
-  private scroller = inject(ViewportScroller);
   gameHeader = inject(GameHeaderService);
 
   showDayModal = false;
@@ -22,14 +19,6 @@ export class HeaderComponent {
   modalRight = 0;
 
   @ViewChild('dayBtn') dayBtnRef!: ElementRef<HTMLButtonElement>;
-
-  scrollTo(fragment: string) {
-    if (this.router.url === '/' || this.router.url.startsWith('/#')) {
-      this.scroller.scrollToAnchor(fragment);
-    } else {
-      this.router.navigate(['/'], { fragment });
-    }
-  }
 
   onInfo(): void {
     this.gameHeader.triggerInfo();

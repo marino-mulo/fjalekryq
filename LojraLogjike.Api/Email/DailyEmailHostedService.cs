@@ -1,3 +1,5 @@
+// TODO: Uncomment when email subscription is needed
+/*
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
@@ -107,3 +109,4 @@ public class DailyEmailHostedService : BackgroundService
         _logger.LogInformation("Daily emails sent: {Sent} success, {Failed} failed", sent, failed);
     }
 }
+*/

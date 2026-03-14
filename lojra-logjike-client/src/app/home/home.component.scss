@@ -183,55 +183,6 @@
   line-height: 1.5;
 }
 
-/* ── Social Links ── */
-.social-links {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
-}
-
-.social-label {
-  font-family: var(--font-display);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #888;
-  letter-spacing: 0.5px;
-}
-
-.social-icons {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.social-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  border: 2px solid var(--black);
-  background: var(--white);
-  color: var(--black);
-  transition: all 0.15s;
-  box-shadow: 2px 2px 0 var(--black);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 3px 4px 0 var(--black);
-    background: #FAF5FF;
-    color: #6B21A8;
-    border-color: #6B21A8;
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 1px 1px 0 var(--black);
-  }
-}
 
 /* ── Responsive ── */
 @media (max-width: 768px) {

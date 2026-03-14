@@ -119,12 +119,11 @@ export class StarsBoardComponent {
     return idx >= 0 ? idx * 120 : 0;
   }
 
-  get xSize(): number { return this.cellSize * 0.16; }
+  get xSize(): number { return this.cellSize * 0.32; }
 
   // ── Drag state ──
   private dragging = false;
   private dragVisited = new Set<number>();
-  private dragSavedSnapshot = false;
   private didDrag = false;
 
   @ViewChild('boardSvg', { static: false }) boardSvgRef!: ElementRef<SVGSVGElement>;
@@ -136,7 +135,6 @@ export class StarsBoardComponent {
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     this.placeXIfEmpty(i);
   }
 
@@ -148,7 +146,6 @@ export class StarsBoardComponent {
   onDragEnd(): void {
     this.dragging = false;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
   }
 
   onTouchStart(event: TouchEvent): void {
@@ -160,7 +157,6 @@ export class StarsBoardComponent {
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     this.placeXIfEmpty(i);
   }
 
@@ -178,11 +174,10 @@ export class StarsBoardComponent {
     const val = this.game.board()[r]?.[c];
     if (val !== EMPTY && val !== AUTO_X) return;
 
-    if (!this.dragSavedSnapshot) {
-      (this.game as any).history.push(this.game.board().map((row: number[]) => [...row]));
-      (this.game as any).historyLength.set((this.game as any).history.length);
-      this.dragSavedSnapshot = true;
-    }
+    // Save undo snapshot for each cell placement
+    (this.game as any).history.push(this.game.board().map((row: number[]) => [...row]));
+    (this.game as any).historyLength.set((this.game as any).history.length);
+
     const b = this.game.board().map((row: number[]) => [...row]);
     b[r][c] = MARK_X;
     this.game.board.set(b);

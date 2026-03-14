@@ -112,7 +112,8 @@
             [attr.r]="snakeBodyWidth / 2"
             [attr.fill]="isolatedColor(i)"
             class="snake-body-dot"
-            [class.snake-win]="game.gameWon()"/>
+            [class.snake-win]="game.gameWon()"
+            [style.animation-delay]="game.gameWon() ? (winAnimDelay(isolatedPathPos(i)) + 'ms') : '0ms'"/>
         }
       }
 
@@ -127,25 +128,22 @@
         }
       }
 
-      <!-- Head (filled with head gradient color, rotated to face AWAY from body) -->
+      <!-- Head (SVG icon, rotated to face AWAY from body) -->
       @for (i of cells; track i) {
         @if (isHead(i)) {
-          <g [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ') rotate(' + headRotation + ')'">
-            <circle [attr.r]="snakeBodyWidth / 2"
-                    [attr.fill]="headColor"
-                    class="head-circle" [class.snake-win]="game.gameWon()"/>
-            <!-- Eyes positioned at top of head (facing UP before rotation) -->
-            <circle [attr.cx]="-cellSize * 0.1" [attr.cy]="-cellSize * 0.11" [attr.r]="cellSize * 0.07"
-                    class="head-eye"/>
-            <circle [attr.cx]="cellSize * 0.1" [attr.cy]="-cellSize * 0.11" [attr.r]="cellSize * 0.07"
-                    class="head-eye"/>
+          <g [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ') rotate(' + headRotation + ')'"
+             class="head-circle" [class.snake-win]="game.gameWon()"
+             style="animation-delay: 0ms;">
+            <image href="icons/snake-head.svg"
+                   [attr.x]="-headIconSize / 2"
+                   [attr.y]="-headIconSize / 2"
+                   [attr.width]="headIconSize"
+                   [attr.height]="headIconSize"/>
           </g>
         }
       }
 
-      <!-- Tail (teardrop pointing away from body, filled with tail color).
-           Uses tailR (slightly larger than snakeBodyWidth/2) to fully cover
-           the round linecap from the connector line underneath. -->
+      <!-- Tail (teardrop pointing away from body) -->
       @for (i of cells; track i) {
         @if (isTail(i)) {
           <path
@@ -155,7 +153,8 @@
                       ' Q ' + (tailR * 2.2) + ',0 0,' + (-tailR) + ' Z'"
             [attr.fill]="tailColor"
             class="tail-circle"
-            [class.snake-win]="game.gameWon()"/>
+            [class.snake-win]="game.gameWon()"
+            [style.animation-delay]="game.gameWon() ? (winAnimDelay(1) + 'ms') : '0ms'"/>
         }
       }
 

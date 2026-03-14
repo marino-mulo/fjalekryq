@@ -32,11 +32,11 @@
       <!-- Thin grid lines -->
       @for (line of horizontalGridLines; track $index) {
         <line x1="0" [attr.y1]="line.y" [attr.x2]="svgWidth" [attr.y2]="line.y"
-              stroke="rgba(0,0,0,0.07)" stroke-width="1"/>
+              stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
       }
       @for (line of verticalGridLines; track $index) {
         <line [attr.x1]="line.x" y1="0" [attr.x2]="line.x" [attr.y2]="svgHeight"
-              stroke="rgba(0,0,0,0.07)" stroke-width="1"/>
+              stroke="rgba(0,0,0,0.35)" stroke-width="1"/>
       }
 
       <!-- Zone borders -->

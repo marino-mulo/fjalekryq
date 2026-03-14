@@ -141,13 +141,19 @@ export class QueensBoardComponent {
   queenX(i: number): number { return this.cellX(i) + this.cellSize / 2; }
   queenY(i: number): number { return this.cellY(i) + this.cellSize / 2; }
 
-  // X mark size (smaller than before)
-  get xSize(): number { return this.cellSize * 0.22; }
+  /** Staggered delay for each queen's win dance animation */
+  queenWinDelay(i: number): number {
+    const queenCells = this.cells.filter(c => this.isQueen(c));
+    const idx = queenCells.indexOf(i);
+    return idx >= 0 ? idx * 120 : 0;
+  }
+
+  // X mark size
+  get xSize(): number { return this.cellSize * 0.36; }
 
   // ── Drag-to-place-X state ──
   private dragging = false;
   private dragVisited = new Set<number>();
-  private dragSavedSnapshot = false;
   private didDrag = false;  // true if drag actually placed any X
 
   @ViewChild('boardSvg', { static: false }) boardSvgRef!: ElementRef<SVGSVGElement>;
@@ -163,7 +169,6 @@ export class QueensBoardComponent {
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     this.placeXIfEmpty(i);
   }
 
@@ -175,7 +180,6 @@ export class QueensBoardComponent {
   onDragEnd(): void {
     this.dragging = false;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     // didDrag stays true until the click event fires (or is cleared next click)
   }
 
@@ -191,7 +195,6 @@ export class QueensBoardComponent {
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
-    this.dragSavedSnapshot = false;
     this.placeXIfEmpty(i);
   }
 
@@ -211,12 +214,9 @@ export class QueensBoardComponent {
     const val = this.game.board()[r]?.[c];
     if (val !== EMPTY && val !== AUTO_X) return;
 
-    // Save one undo snapshot for the entire drag
-    if (!this.dragSavedSnapshot) {
-      (this.game as any).history.push(this.game.board().map((row: number[]) => [...row]));
-      (this.game as any).historyLength.set((this.game as any).history.length);
-      this.dragSavedSnapshot = true;
-    }
+    // Save undo snapshot for each cell placement
+    (this.game as any).history.push(this.game.board().map((row: number[]) => [...row]));
+    (this.game as any).historyLength.set((this.game as any).history.length);
 
     // Place MARK_X directly on the board
     const b = this.game.board().map((row: number[]) => [...row]);

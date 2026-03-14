@@ -300,6 +300,11 @@ export class ZipBoardComponent implements OnDestroy {
     return overlays;
   }
 
+  /** Staggered delay for win draw animation */
+  winDrawDelay(segIndex: number): string {
+    return `${segIndex * 40}ms`;
+  }
+
   // ── Input Handling ──
 
   onMouseDown(e: MouseEvent, i: number) {

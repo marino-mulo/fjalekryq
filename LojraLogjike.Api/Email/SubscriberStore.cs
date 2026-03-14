@@ -1,3 +1,5 @@
+// TODO: Uncomment when email subscription is needed
+/*
 using System.Text.Json;
 
 namespace LojraLogjike.Api.Email;
@@ -203,3 +205,4 @@ public static class SubscriberStore
         File.WriteAllText(GetSentMarkerPath(), DateTime.Now.ToString("yyyy-MM-dd"));
     }
 }
+*/

@@ -417,7 +417,7 @@ export class TangoGameService {
     this.stopTimer();
   }
 
-  getProgressSnapshot(): { board: number[][]; timerSeconds: number } | null {
+  getProgressSnapshot(): { board: number[][]; timerSeconds: number; history: number[][][] } | null {
     if (this.gameWon() || this.isRestored() || this.timerDisabled()) return null;
     const b = this.board();
     let hasMove = false;
@@ -434,17 +434,18 @@ export class TangoGameService {
     return {
       board: b.map(r => [...r]),
       timerSeconds: this.timerSeconds(),
+      history: this.history.map(h => h.map(r => [...r])),
     };
   }
 
-  restorePaused(savedBoard: number[][], savedTimer: number): void {
+  restorePaused(savedBoard: number[][], savedTimer: number, savedHistory?: number[][][]): void {
     this.board.set(savedBoard);
     this.timerSeconds.set(savedTimer);
     this.gameWon.set(false);
     this.timerDisabled.set(false);
     this.isRestored.set(false);
-    this.history = [];
-    this.historyLength.set(0);
+    this.history = savedHistory ?? [];
+    this.historyLength.set(this.history.length);
     this.stopTimer();
   }
 

@@ -50,18 +50,22 @@
   filter: brightness(1.12);
 }
 
-/* ── Win: pulsing glow on entire tube ── */
+/* ── Win: tube draws itself from start to finish, pauses, repeats ──
+   Total cycle = 4s. Draw appears in first ~5%, stays visible with glow
+   until ~55%, fades out ~55-60%, stays hidden ~60-100% (2s pause). */
 .tube-win {
-  animation: tube-glow 1.8s ease-in-out infinite;
+  animation: tube-win-cycle 4s ease-in-out infinite;
 }
 
-@keyframes tube-glow {
-  0%, 100% {
-    filter: brightness(1) drop-shadow(0 0 2px rgba(168, 85, 247, 0.2));
-  }
-  50% {
-    filter: brightness(1.18) drop-shadow(0 0 14px rgba(168, 85, 247, 0.7));
-  }
+@keyframes tube-win-cycle {
+  0%  { opacity: 0; filter: brightness(1); }
+  5%  { opacity: 1; filter: brightness(1.4) drop-shadow(0 0 10px rgba(168, 85, 247, 0.8)); }
+  12% { opacity: 1; filter: brightness(1) drop-shadow(0 0 2px rgba(168, 85, 247, 0.2)); }
+  30% { opacity: 1; filter: brightness(1.18) drop-shadow(0 0 14px rgba(168, 85, 247, 0.7)); }
+  48% { opacity: 1; filter: brightness(1) drop-shadow(0 0 2px rgba(168, 85, 247, 0.2)); }
+  55% { opacity: 1; filter: brightness(1); }
+  60% { opacity: 0; filter: brightness(1); }
+  100% { opacity: 0; filter: brightness(1); }
 }
 
 /* ── Checkpoint Number Overlays ── */

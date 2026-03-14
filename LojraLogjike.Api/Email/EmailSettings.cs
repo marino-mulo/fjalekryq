@@ -1,3 +1,5 @@
+// TODO: Uncomment when email subscription is needed
+/*
 namespace LojraLogjike.Api.Email;
 
 public class EmailSettings
@@ -9,3 +11,4 @@ public class EmailSettings
     public string AppPassword { get; set; } = "";
     public string SiteUrl { get; set; } = "http://localhost:4200";
 }
+*/

@@ -40,7 +40,8 @@
               [attr.stroke-width]="tubeWidth"
               stroke-linecap="round"
               class="tube-segment"
-              [class.tube-win]="game.gameWon()"/>
+              [class.tube-win]="game.gameWon()"
+              [style.animation-delay]="game.gameWon() ? winDrawDelay(seg.index) : '0ms'"/>
       }
 
       <!-- Tube start cap (rounded circle at first cell) -->
@@ -49,7 +50,8 @@
                 [attr.r]="tubeWidth / 2"
                 fill="rgb(168, 85, 247)"
                 class="tube-segment"
-                [class.tube-win]="game.gameWon()"/>
+                [class.tube-win]="game.gameWon()"
+                style="animation-delay: 0ms;"/>
       }
 
       <!-- Tube head cap (slightly brighter circle at last cell) -->
@@ -58,7 +60,8 @@
                 [attr.r]="tubeWidth / 2"
                 fill="rgb(148, 75, 237)"
                 class="tube-segment tube-head"
-                [class.tube-win]="game.gameWon()"/>
+                [class.tube-win]="game.gameWon()"
+                [style.animation-delay]="game.gameWon() ? winDrawDelay(tubeSegmentLines.length) : '0ms'"/>
       }
 
       <!-- Wall lines (thick dark lines between cells) -->
