@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
+  <!-- Sparkle lines -->
+  <line x1="14" y1="8" x2="16" y2="12" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+  <line x1="34" y1="8" x2="32" y2="12" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
+  <line x1="8" y1="18" x2="12" y2="19" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+  <line x1="40" y1="18" x2="36" y2="19" stroke="#3B82F6" stroke-width="2" stroke-linecap="round"/>
+  <!-- Left hand -->
+  <path d="M16 30L20 18C20 18 21 16 22.5 17C24 18 23 20 23 20L20 28" fill="#FBBF24" stroke="#D97706" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M16 30L14 24C14 24 13 22 14.5 21.5C16 21 17 23 17 23L18 28" fill="#FBBF24" stroke="#D97706" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Right hand -->
+  <path d="M32 30L28 18C28 18 27 16 25.5 17C24 18 25 20 25 20L28 28" fill="#FBBF24" stroke="#D97706" stroke-width="1" stroke-linejoin="round"/>
+  <path d="M32 30L34 24C34 24 35 22 33.5 21.5C32 21 31 23 31 23L30 28" fill="#FBBF24" stroke="#D97706" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Palms -->
+  <ellipse cx="17" cy="32" rx="4" ry="5" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+  <ellipse cx="31" cy="32" rx="4" ry="5" fill="#FBBF24" stroke="#D97706" stroke-width="1"/>
+  <!-- Stars -->
+  <circle cx="24" cy="10" r="2" fill="#EC4899"/>
+  <circle cx="10" cy="14" r="1.5" fill="#8B5CF6"/>
+  <circle cx="38" cy="14" r="1.5" fill="#10B981"/>
+</svg>

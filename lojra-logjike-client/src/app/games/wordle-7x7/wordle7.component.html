@@ -7,7 +7,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>
         </svg>
-        <span>{{ game.formatTime(game.timerSeconds()) }}</span>
+        <span>{{ game.formatTimeClock(game.timerSeconds()) }}</span>
       </div>
     } @else {
       <div></div>
@@ -28,8 +28,14 @@
 
   @if (isCompleted()) {
     <div class="completed-card">
-      <span class="completed-card-label">{{ completedPraise() }}</span>
-      <span class="completed-card-time">{{ completedSwaps() }} shkëmbime &middot; {{ game.formatTime(completedTime()) }}</span>
+      @if (game.hintCount() === 0) {
+        <img src="icons/medal.svg" class="completed-card-icon" alt="">
+        <span class="completed-card-label">Perfect Game!</span>
+      } @else {
+        <img [src]="completedIcon()" class="completed-card-icon" alt="">
+        <span class="completed-card-label">{{ completedPraise() }}</span>
+      }
+      <span class="completed-card-time">{{ completedSwaps() }} shkëmbime &middot; {{ game.formatTime(completedTime()) }}@if (game.hintCount() > 0) { me {{ game.hintCount() }} ndihma}</span>
       @if (hasPreviousDay()) {
         <button class="btn btn--primary" (click)="playPreviousDay()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -95,23 +101,33 @@
 @if (showInfo) {
   <div class="modal-overlay active" (click)="closeInfo()">
     <div class="modal info-modal" (click)="$event.stopPropagation()">
-      <h2>Si luhet Fjalëkryqi</h2>
+      <div class="info-header">
+        <h2>Si luhet?</h2>
+        <button class="info-close" (click)="closeInfo()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <hr class="info-divider">
+      <span class="info-label">RREGULLAT</span>
       <div class="info-rules">
-        <div class="info-rule">
-          <div class="info-rule-num">1</div>
-          <p>Shkronjat janë të përziara — kliko dy qeliza për t'i shkëmbyer.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">2</div>
-          <p><span class="info-color info-color-green"></span> <strong>Jeshile</strong> — shkronja është në vendin e duhur.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">3</div>
-          <p><span class="info-color info-color-yellow"></span> <strong>Verdhë</strong> — shkronja i përket fjalës por është në vendin e gabuar.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">4</div>
-          <p><span class="info-color info-color-grey"></span> <strong>Gri</strong> — shkronja nuk i përket asnjë fjale në atë pozicion.</p>
+        <p>1. Kliko dy shkronja për t'i shkëmbyer vendin.</p>
+        <p>2. Vendos të gjitha shkronjat në vendin e duhur për të formuar fjalët.</p>
+      </div>
+      <div class="info-cycle">
+        <span>Ngjyrat:</span>
+        <div class="info-colors">
+          <div class="info-color-item">
+            <span class="color-dot color-green"></span>
+            <span>Vendi i duhur</span>
+          </div>
+          <div class="info-color-item">
+            <span class="color-dot color-yellow"></span>
+            <span>Fjala e duhur, vendi i gabuar</span>
+          </div>
+          <div class="info-color-item">
+            <span class="color-dot color-grey"></span>
+            <span>Nuk i përket fjalës</span>
+          </div>
         </div>
       </div>
       <button class="btn btn--primary" (click)="closeInfo()">Luaj</button>

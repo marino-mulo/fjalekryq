@@ -55,10 +55,15 @@ export class StarsComponent implements OnInit, OnDestroy {
   completedTime = signal(0);
   isCompleted = signal(false);
   completedPraise = signal('Bravo!');
+  completedIcon = signal('icons/party.svg');
 
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
+  private readonly ICONS = ['icons/party.svg', 'icons/fire.svg', 'icons/rocket.svg', 'icons/sparkles.svg', 'icons/clap.svg', 'icons/thumbsup.svg'];
   private pickPraise(): string {
     return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)];
+  }
+  private pickIcon(): string {
+    return this.ICONS[Math.floor(Math.random() * this.ICONS.length)];
   }
 
   // Pause state
@@ -200,6 +205,7 @@ export class StarsComponent implements OnInit, OnDestroy {
         this.isCompleted.set(true);
         this.completedTime.set(saved.time);
         this.completedPraise.set(this.pickPraise());
+        this.completedIcon.set(this.pickIcon());
         this.game.destroy();
         this.game.timerSeconds.set(saved.time);
         if (saved.board && saved.board.length > 0) {
@@ -238,6 +244,7 @@ export class StarsComponent implements OnInit, OnDestroy {
     this.isCompleted.set(true);
     this.completedTime.set(time);
     this.completedPraise.set(this.pickPraise());
+        this.completedIcon.set(this.pickIcon());
     this.clearProgress(dayIndex);
   }
 
@@ -278,6 +285,7 @@ export class StarsComponent implements OnInit, OnDestroy {
       clearTimeout(this.checkTimeout);
       this.checkTimeout = null;
     }
+    this.game.checkCount.update(v => v + 1);
     const isCorrect = this.game.checkCorrect();
     this.checkResult.set(isCorrect ? 'correct' : 'error');
     this.checkTimeout = setTimeout(() => {

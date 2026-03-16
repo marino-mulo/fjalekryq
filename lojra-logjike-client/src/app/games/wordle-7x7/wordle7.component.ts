@@ -57,10 +57,15 @@ export class Wordle7Component implements OnInit, OnDestroy {
   completedSwaps = signal(0);
   isCompleted = signal(false);
   completedPraise = signal('Bravo!');
+  completedIcon = signal('icons/party.svg');
 
+  private readonly ICONS = ['icons/party.svg', 'icons/fire.svg', 'icons/rocket.svg', 'icons/sparkles.svg', 'icons/clap.svg', 'icons/thumbsup.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
   private pickPraise(): string {
     return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)];
+  }
+  private pickIcon(): string {
+    return this.ICONS[Math.floor(Math.random() * this.ICONS.length)];
   }
 
   // Pause state
@@ -201,6 +206,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
         this.completedTime.set(saved.time);
         this.completedSwaps.set(saved.swaps ?? 0);
         this.completedPraise.set(this.pickPraise());
+        this.completedIcon.set(this.pickIcon());
         this.game.destroy();
         this.game.timerSeconds.set(saved.time);
 
@@ -244,6 +250,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.completedTime.set(time);
     this.completedSwaps.set(swaps);
     this.completedPraise.set(this.pickPraise());
+        this.completedIcon.set(this.pickIcon());
     this.clearProgress(dayIndex);
   }
 

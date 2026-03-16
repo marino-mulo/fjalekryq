@@ -28,6 +28,8 @@ export class SnakeGameService {
   readonly hintMessage = signal('');
   readonly hintCooldown = signal(false);
   readonly hintCooldownRemaining = signal(0);
+  readonly hintCount = signal(0);
+  readonly checkCount = signal(0);
 
   private hintTimeout: ReturnType<typeof setTimeout> | null = null;
   private hintCooldownInterval: ReturnType<typeof setInterval> | null = null;
@@ -134,6 +136,7 @@ export class SnakeGameService {
 
   hint(): void {
     if (!this.canHint()) return;
+    this.hintCount.update(v => v + 1);
     this.clearHint();
 
     const b = this.board();
@@ -446,6 +449,8 @@ export class SnakeGameService {
   private startTimer(): void {
     this.stopTimer();
     this.timerSeconds.set(0);
+    this.hintCount.set(0);
+    this.checkCount.set(0);
     this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
   }
 
@@ -454,9 +459,20 @@ export class SnakeGameService {
   }
 
   formatTime(seconds: number): string {
-    const m = String(Math.floor(seconds / 60)).padStart(2, '0');
-    const s = String(seconds % 60).padStart(2, '0');
-    return `${m}:${s}`;
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    const parts: string[] = [];
+    if (h > 0) parts.push(`${h} orë`);
+    if (m > 0) parts.push(`${m} minuta`);
+    if (s > 0 || parts.length === 0) parts.push(`${s} sekonda`);
+    return parts.join(' e ');
+  }
+
+  formatTimeClock(seconds: number): string {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
   }
 
   private startHintCooldown(): void {

@@ -7,7 +7,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>
         </svg>
-        <span>{{ game.formatTime(game.timerSeconds()) }}</span>
+        <span>{{ game.formatTimeClock(game.timerSeconds()) }}</span>
       </div>
     } @else {
       <div></div>
@@ -30,8 +30,14 @@
 
   @if (isCompleted()) {
     <div class="completed-card">
-      <span class="completed-card-label">{{ completedPraise() }}</span>
-      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}</span>
+      @if (game.hintCount() === 0 && game.checkCount() === 0) {
+        <img src="icons/medal.svg" class="completed-card-icon" alt="">
+        <span class="completed-card-label">Perfect Game!</span>
+      } @else {
+        <img [src]="completedIcon()" class="completed-card-icon" alt="">
+        <span class="completed-card-label">{{ completedPraise() }}</span>
+      }
+      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}@if (game.checkCount() > 0 || game.hintCount() > 0) { me{{ game.checkCount() > 0 ? ' ' + game.checkCount() + ' kontrolle' : '' }}{{ game.checkCount() > 0 && game.hintCount() > 0 ? ' dhe' : '' }}{{ game.hintCount() > 0 ? ' ' + game.hintCount() + ' ndihma' : '' }}}</span>
       @if (hasPreviousDay()) {
         <button class="btn btn--primary" (click)="playPreviousDay()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -128,23 +134,28 @@
 @if (showInfo) {
   <div class="modal-overlay active" (click)="closeInfo()">
     <div class="modal info-modal" (click)="$event.stopPropagation()">
-      <h2>Si luhet Mbretëresha</h2>
+      <div class="info-header">
+        <h2>Si luhet?</h2>
+        <button class="info-close" (click)="closeInfo()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <hr class="info-divider">
+      <span class="info-label">RREGULLAT</span>
       <div class="info-rules">
-        <div class="info-rule">
-          <div class="info-rule-num">1</div>
-          <p>Vendos nga një mbretëreshë në çdo rresht dhe në çdo kolonë.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">2</div>
-          <p>Çdo zonë me ngjyrë duhet të ketë saktësisht një mbretëreshë.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">3</div>
-          <p>Mbretëreshat nuk mund të prekin njëra-tjetrën — as diagonalisht.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">4</div>
-          <p>Kliko një herë për X, kliko përsëri për mbretëreshë, dhe një herë tjetër për ta fshirë.</p>
+        <p>1. Vendos nga një mbretëreshë në çdo rresht, kolonë, dhe zonë me ngjyrë.</p>
+        <p>2. Mbretëreshat nuk mund të prekin njëra-tjetrën, as diagonalisht.</p>
+      </div>
+      <div class="info-cycle">
+        <span>Kliko për të ndërruar:</span>
+        <div class="info-cycle-icons">
+          <span class="cycle-cell cycle-empty"></span>
+          <span class="cycle-arrow">&#8594;</span>
+          <span class="cycle-cell"><img src="icons/mark-x.svg" class="cycle-icon" alt="X"></span>
+          <span class="cycle-arrow">&#8594;</span>
+          <span class="cycle-cell"><img src="icons/crown.svg" class="cycle-icon" alt="Mbretëreshë"></span>
+          <span class="cycle-arrow">&#8594;</span>
+          <span class="cycle-cell cycle-empty"></span>
         </div>
       </div>
       <button class="btn btn--primary" (click)="closeInfo()">Luaj</button>

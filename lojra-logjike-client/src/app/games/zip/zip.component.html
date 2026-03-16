@@ -7,7 +7,7 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>
         </svg>
-        <span>{{ game.formatTime(game.timerSeconds()) }}</span>
+        <span>{{ game.formatTimeClock(game.timerSeconds()) }}</span>
       </div>
     } @else {
       <div></div>
@@ -30,8 +30,14 @@
 
   @if (isCompleted()) {
     <div class="completed-card">
-      <span class="completed-card-label">{{ completedPraise() }}</span>
-      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}</span>
+      @if (game.hintCount() === 0) {
+        <img src="icons/medal.svg" class="completed-card-icon" alt="">
+        <span class="completed-card-label">Perfect Game!</span>
+      } @else {
+        <img [src]="completedIcon()" class="completed-card-icon" alt="">
+        <span class="completed-card-label">{{ completedPraise() }}</span>
+      }
+      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}@if (game.hintCount() > 0) { me {{ game.hintCount() }} ndihma}</span>
       @if (hasPreviousDay()) {
         <button class="btn btn--primary" (click)="playPreviousDay()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -93,24 +99,21 @@
 @if (showInfo) {
   <div class="modal-overlay active" (click)="closeInfo()">
     <div class="modal info-modal" (click)="$event.stopPropagation()">
-      <h2>Si luhet Zinxhiri</h2>
+      <div class="info-header">
+        <h2>Si luhet?</h2>
+        <button class="info-close" (click)="closeInfo()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <hr class="info-divider">
+      <span class="info-label">RREGULLAT</span>
       <div class="info-rules">
-        <div class="info-rule">
-          <div class="info-rule-num">1</div>
-          <p>Lidh numrat me rradhë (1, 2, 3...) duke mbushur çdo qelizë të tabelës.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">2</div>
-          <p>Lëviz vetëm horizontalisht ose vertikalisht (jo diagonalisht).</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">3</div>
-          <p>Nuk mund të kalosh mbi murë që ndajnë qelizat.</p>
-        </div>
-        <div class="info-rule">
-          <div class="info-rule-num">4</div>
-          <p>Mbush të gjitha qelizat për të fituar!</p>
-        </div>
+        <p>1. Lidh numrat me radhë (1, 2, 3...) duke mbushur çdo qelizë.</p>
+        <p>2. Lëviz vetëm horizontalisht ose vertikalisht.</p>
+        <p>3. Nuk mund të kalosh mbi muret që ndajnë qelizat.</p>
+      </div>
+      <div class="info-cycle">
+        <span>Kliko qelizat fqinje për të vazhduar shtegun.</span>
       </div>
       <button class="btn btn--primary" (click)="closeInfo()">Luaj</button>
     </div>
