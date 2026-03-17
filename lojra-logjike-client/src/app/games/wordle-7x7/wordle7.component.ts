@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, HostListener, isDevMode } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
@@ -101,7 +101,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
       const dayIndex = DAY_SLUGS.indexOf(daySlug.toLowerCase());
 
-      if (dayIndex === -1 || dayIndex > this.todayIndex) {
+      if (dayIndex === -1 || (!isDevMode() && dayIndex > this.todayIndex)) {
         this.router.navigate(['/games/wordle-7x7', DAY_SLUGS[this.todayIndex]], { replaceUrl: true });
         return;
       }
@@ -237,7 +237,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   isDayAccessible(dayIndex: number): boolean {
-    return dayIndex <= this.todayIndex;
+    return isDevMode() || dayIndex <= this.todayIndex;
   }
 
   onWin(): void {
@@ -306,7 +306,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
       index: d.index,
       letter: d.letter,
       name: d.name,
-      accessible: d.index <= this.todayIndex,
+      accessible: isDevMode() || d.index <= this.todayIndex,
       completed: this.isDayCompleted(d.index),
       isToday: d.index === this.todayIndex,
     }));

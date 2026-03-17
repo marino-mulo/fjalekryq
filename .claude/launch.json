@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "cd lojra-logjike-client && npx ng serve --port 4200"],
+      "port": 4200
+    }
+  ]
+}

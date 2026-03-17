@@ -36,6 +36,34 @@
   letter-spacing: -0.5px;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dev-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1.5px solid #EF4444;
+  background: #FEF2F2;
+  color: #EF4444;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #EF4444;
+    color: white;
+  }
+}
+
 .header-nav {
   display: flex;
   align-items: center;

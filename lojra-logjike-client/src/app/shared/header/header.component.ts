@@ -1,4 +1,4 @@
-import { Component, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, inject, ElementRef, ViewChild, isDevMode } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { GameHeaderService } from '../../core/services/game-header.service';
 // import { SettingsModalComponent } from '../settings-modal/settings-modal.component'; // TODO: Uncomment when email subscription is needed
@@ -12,6 +12,7 @@ import { GameHeaderService } from '../../core/services/game-header.service';
 })
 export class HeaderComponent {
   gameHeader = inject(GameHeaderService);
+  devMode = isDevMode();
 
   showDayModal = false;
   showSettings = false;
@@ -44,5 +45,10 @@ export class HeaderComponent {
   selectDay(index: number): void {
     this.gameHeader.selectDay(index);
     this.showDayModal = false;
+  }
+
+  clearStorage(): void {
+    localStorage.clear();
+    window.location.reload();
   }
 }

@@ -1,9 +1,17 @@
 <header class="site-header">
   <div class="header-inner">
-    <a routerLink="/" class="logo">
-      <img class="logo-icon" src="logo.svg" alt="Shqiponja">
-      <span class="logo-text">Lojra Logjike</span>
-    </a>
+    <div class="header-left">
+      <a routerLink="/" class="logo">
+        <img class="logo-icon" src="logo.svg" alt="Shqiponja">
+        <span class="logo-text">Lojra Logjike</span>
+      </a>
+      @if (devMode) {
+        <button class="dev-reset-btn" (click)="clearStorage()" title="Pastro localStorage">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          DEV
+        </button>
+      }
+    </div>
     @if (gameHeader.isGamePage()) {
       <nav class="header-nav">
         @if (gameHeader.dayBarVisible()) {
