@@ -413,6 +413,8 @@
   text-align: left;
   max-width: 380px;
   padding: 28px 28px 24px;
+
+  .btn { display: block; margin: 0 auto; }
 }
 
 .info-header {
@@ -506,6 +508,7 @@
 .cycle-snake-cell {
   background: #22C55E;
   border-color: #16A34A;
+  border-radius: 50%;
 }
 
 .info-colors {
@@ -533,6 +536,11 @@
 .color-green { background: #22C55E; }
 .color-yellow { background: #EAB308; }
 .color-grey { background: #9CA3AF; }
+
+.info-modal .btn {
+  display: block;
+  margin: 0 auto;
+}
 /* ══════════════════════════════════════
    Responsive
    ══════════════════════════════════════ */

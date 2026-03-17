@@ -2,145 +2,127 @@
   "gridSize": 7,
   "solution": [
     [
-      "D",
+      "X",
+      "V",
       "X",
       "X",
-      "X",
-      "Z",
-      "I",
-      "M"
+      "Y",
+      "L",
+      "L"
     ],
     [
-      "E",
-      "X",
-      "G",
-      "X",
-      "X",
-      "X",
-      "I"
-    ],
-    [
-      "T",
-      "I",
-      "J",
-      "X",
-      "P",
-      "I",
-      "K"
-    ],
-    [
-      "X",
-      "X",
+      "Q",
       "A",
-      "R",
-      "I",
-      "X",
-      "X"
-    ],
-    [
       "N",
-      "U",
-      "K",
       "X",
-      "K",
-      "U",
-      "Q"
+      "X",
+      "X",
+      "\u00CB"
     ],
     [
       "X",
-      "J",
+      "L",
+      "X",
+      "L",
       "X",
       "X",
+      "R"
+    ],
+    [
+      "K",
       "\u00CB",
-      "X",
+      "N",
+      "A",
+      "Q",
+      "J",
       "E"
     ],
     [
-      "N",
-      "\u00CB",
-      "N",
-      "\u00CB",
+      "U",
       "X",
       "X",
-      "N"
+      "K",
+      "X",
+      "E",
+      "X"
+    ],
+    [
+      "F",
+      "X",
+      "X",
+      "\u00CB",
+      "X",
+      "T",
+      "X"
+    ],
+    [
+      "I",
+      "K",
+      "I",
+      "X",
+      "B",
+      "\u00CB",
+      "J"
     ]
   ],
   "words": [
     {
-      "word": "ARI",
+      "word": "K\u00CBNAQJE",
       "row": 3,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "GJAK",
-      "row": 1,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "PIK\u00CB",
-      "row": 2,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "KUQ",
-      "row": 4,
-      "col": 4,
-      "direction": "horizontal"
-    },
-    {
-      "word": "TIJ",
-      "row": 2,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "NUK",
-      "row": 4,
+      "word": "KUFI",
+      "row": 3,
       "col": 0,
-      "direction": "horizontal"
+      "direction": "vertical"
     },
     {
-      "word": "UJ\u00CB",
-      "row": 4,
+      "word": "VAL\u00CB",
+      "row": 0,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "N\u00CBN\u00CB",
+      "word": "L\u00CBRE",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "LAK\u00CB",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "QAN",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "IKI",
       "row": 6,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "PIK",
-      "row": 2,
+      "word": "YLL",
+      "row": 0,
       "col": 4,
       "direction": "horizontal"
     },
     {
-      "word": "QEN",
-      "row": 4,
-      "col": 6,
+      "word": "JET\u00CB",
+      "row": 3,
+      "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "DET",
-      "row": 0,
-      "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "MIK",
-      "row": 0,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "ZIM",
-      "row": 0,
+      "word": "B\u00CBJ",
+      "row": 6,
       "col": 4,
       "direction": "horizontal"
     }

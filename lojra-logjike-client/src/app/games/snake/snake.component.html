@@ -38,7 +38,7 @@
         <img [src]="completedIcon()" class="completed-card-icon" alt="">
         <span class="completed-card-label">{{ completedPraise() }}</span>
       }
-      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}@if (game.checkCount() > 0 || game.hintCount() > 0) { me{{ game.checkCount() > 0 ? ' ' + game.checkCount() + ' kontrolle' : '' }}{{ game.checkCount() > 0 && game.hintCount() > 0 ? ' dhe' : '' }}{{ game.hintCount() > 0 ? ' ' + game.hintCount() + ' ndihma' : '' }}}</span>
+      <span class="completed-card-time">Zgjidhur në {{ game.formatTime(completedTime()) }}@if (game.checkCount() > 0 || game.hintCount() > 0) { me{{ game.checkCount() > 0 ? ' ' + game.checkCount() + (game.checkCount() === 1 ? ' kontroll' : ' kontrolle') : '' }}{{ game.checkCount() > 0 && game.hintCount() > 0 ? ' dhe' : '' }}{{ game.hintCount() > 0 ? ' ' + game.hintCount() + (game.hintCount() === 1 ? ' ndihmë' : ' ndihma') : '' }}}</span>
       @if (hasPreviousDay()) {
         <button class="btn btn--primary" (click)="playPreviousDay()">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -154,9 +154,9 @@
         <div class="info-cycle-icons">
           <span class="cycle-cell cycle-empty"></span>
           <span class="cycle-arrow">&#8594;</span>
-          <span class="cycle-cell cycle-snake-cell"></span>
+          <span class="cycle-cell cycle-x">&times;</span>
           <span class="cycle-arrow">&#8594;</span>
-          <span class="cycle-cell"><img src="icons/mark-x.svg" class="cycle-icon" alt="X"></span>
+          <span class="cycle-cell cycle-snake-cell"></span>
           <span class="cycle-arrow">&#8594;</span>
           <span class="cycle-cell cycle-empty"></span>
         </div>

@@ -2,201 +2,195 @@
   "gridSize": 9,
   "solution": [
     [
-      "P",
-      "X",
       "V",
-      "\u00CB",
-      "R",
-      "\u00CB",
-      "X",
-      "X",
-      "M"
-    ],
-    [
       "I",
-      "X",
-      "A",
-      "X",
-      "X",
-      "X",
-      "Q",
-      "X",
-      "J"
-    ],
-    [
-      "K",
-      "U",
-      "J",
       "T",
-      "I",
-      "M",
+      "A",
+      "L",
       "E",
       "X",
+      "X",
+      "X"
+    ],
+    [
+      "A",
+      "X",
+      "R",
+      "X",
+      "\u00CB",
+      "X",
+      "I",
+      "K",
       "E"
     ],
     [
-      "\u00CB",
+      "J",
       "X",
-      "X",
-      "R",
-      "X",
-      "X",
-      "N",
-      "U",
-      "K"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "E",
-      "N",
-      "D",
-      "X",
-      "X",
-      "\u00CB"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "X",
-      "X",
-      "E",
-      "R",
-      "A",
-      "X"
-    ],
-    [
-      "X",
-      "Z",
       "E",
       "M",
-      "\u00CB",
       "R",
+      "A",
       "X",
-      "R",
+      "U",
       "X"
     ],
     [
       "X",
-      "O",
+      "X",
       "X",
       "U",
       "X",
-      "\u00CB",
       "X",
+      "X",
+      "O",
+      "X"
+    ],
+    [
+      "V",
+      "E",
+      "P",
       "R",
+      "I",
+      "M",
+      "E",
+      "T",
       "X"
     ],
     [
       "X",
-      "G",
-      "J",
+      "P",
+      "X",
+      "E",
+      "X",
       "A",
+      "X",
+      "\u00CB",
+      "X"
+    ],
+    [
+      "B",
+      "I",
+      "E",
+      "X",
+      "U",
+      "J",
+      "\u00CB",
+      "X",
+      "X"
+    ],
+    [
+      "X",
       "K",
       "X",
       "X",
+      "J",
+      "X",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "T",
+      "O",
+      "K",
       "\u00CB",
+      "S",
+      "X",
       "X"
     ]
   ],
   "words": [
     {
-      "word": "END",
+      "word": "VEPRIMET",
       "row": 4,
-      "col": 3,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "DER\u00CB",
+      "word": "MURE",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "EMRA",
+      "row": 2,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KUOT\u00CB",
+      "row": 1,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRE",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "VITALE",
+      "row": 0,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "EPIK",
+      "row": 4,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "MAJ",
       "row": 4,
       "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "ZEM\u00CBR",
-      "row": 6,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "ZOG",
-      "row": 6,
-      "col": 1,
-      "direction": "vertical"
-    },
-    {
-      "word": "GJAK",
-      "row": 8,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "TRE",
-      "row": 2,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "KUJTIME",
-      "row": 2,
-      "col": 0,
+      "word": "IKE",
+      "row": 1,
+      "col": 6,
       "direction": "horizontal"
     },
     {
       "word": "VAJ",
       "row": 0,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "QEN",
-      "row": 1,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "MUA",
-      "row": 6,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "V\u00CBR\u00CB",
-      "row": 0,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "PIK\u00CB",
-      "row": 0,
       "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "NUK",
-      "row": 3,
-      "col": 6,
+      "word": "UJ\u00CB",
+      "row": 6,
+      "col": 4,
       "direction": "horizontal"
     },
     {
-      "word": "ERA",
-      "row": 5,
-      "col": 5,
+      "word": "BIE",
+      "row": 6,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "MJEK\u00CB",
+      "word": "L\u00CBR",
       "row": 0,
-      "col": 8,
+      "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "ARR\u00CB",
-      "row": 5,
-      "col": 7,
+      "word": "UJK",
+      "row": 6,
+      "col": 4,
       "direction": "vertical"
+    },
+    {
+      "word": "TOK\u00CBS",
+      "row": 8,
+      "col": 2,
+      "direction": "horizontal"
     }
   ],
   "dayIndex": 4,

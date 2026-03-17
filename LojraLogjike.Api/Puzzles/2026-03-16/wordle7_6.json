@@ -5,249 +5,243 @@
       "X",
       "X",
       "X",
-      "X",
-      "X",
-      "V",
-      "X",
-      "E",
-      "N",
-      "D"
-    ],
-    [
-      "X",
-      "Z",
-      "I",
-      "M",
-      "X",
-      "A",
-      "X",
-      "X",
-      "X",
-      "E"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "U",
-      "X",
       "L",
-      "A",
-      "G",
       "U",
-      "R"
+      "T",
+      "A",
+      "X",
+      "X",
+      "U"
     ],
     [
-      "G",
-      "X",
-      "J",
-      "A",
-      "V",
+      "M",
+      "I",
+      "R",
       "\u00CB",
       "X",
       "X",
+      "X",
+      "P",
+      "I",
+      "J"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "R",
+      "X",
+      "B",
+      "X",
+      "L",
       "X",
       "\u00CB"
     ],
     [
-      "J",
-      "X",
-      "X",
-      "X",
-      "I",
-      "X",
+      "Q",
       "A",
       "J",
-      "O",
+      "X",
+      "B",
+      "A",
+      "B",
+      "A",
+      "I",
       "X"
     ],
     [
-      "A",
       "X",
-      "M",
-      "O",
       "T",
-      "\u00CB",
-      "R",
       "X",
-      "R",
+      "X",
+      "X",
+      "Z",
+      "X",
+      "K",
+      "X",
       "X"
     ],
     [
-      "K",
-      "J",
-      "O",
-      "X",
-      "X",
-      "X",
-      "I",
-      "N",
+      "Q",
+      "Y",
+      "T",
+      "E",
+      "T",
       "A",
-      "T"
+      "R",
+      "\u00CB",
+      "T",
+      "X"
     ],
     [
-      "X",
-      "X",
-      "L",
-      "U",
-      "L",
       "E",
       "X",
+      "O",
       "X",
       "X",
+      "X",
+      "X",
+      "X",
+      "I",
+      "X"
+    ],
+    [
+      "N",
+      "X",
+      "K",
+      "U",
+      "F",
+      "I",
+      "X",
+      "G",
+      "J",
       "I"
     ],
     [
       "X",
       "X",
-      "L",
+      "\u00CB",
+      "X",
+      "I",
       "X",
       "X",
-      "R",
+      "J",
       "X",
-      "X",
-      "X",
-      "J"
+      "X"
     ],
     [
+      "P",
       "E",
-      "M",
-      "\u00CB",
-      "R",
-      "X",
-      "A",
-      "R",
-      "T",
+      "S",
       "H",
+      "K",
+      "X",
+      "P",
+      "U",
+      "S",
       "X"
     ]
   ],
   "words": [
     {
-      "word": "MOT\u00CBR",
+      "word": "QYTETAR\u00CBT",
       "row": 5,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "VIT",
-      "row": 3,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "MOLL\u00CB",
-      "row": 5,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "ARI",
-      "row": 4,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "EM\u00CBR",
-      "row": 9,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "KJO",
-      "row": 6,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "GJAK",
-      "row": 3,
-      "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "LULE",
-      "row": 7,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "JAV\u00CB",
-      "row": 3,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MUA",
-      "row": 1,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "VAL\u00CB",
-      "row": 0,
-      "col": 5,
-      "direction": "vertical"
-    },
-    {
-      "word": "LAGUR",
+      "word": "BAZA",
       "row": 2,
       "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "DER\u00CB",
-      "row": 0,
-      "col": 9,
       "direction": "vertical"
     },
     {
-      "word": "END",
-      "row": 0,
-      "col": 7,
-      "direction": "horizontal"
-    },
-    {
-      "word": "ERA",
-      "row": 7,
-      "col": 5,
-      "direction": "vertical"
-    },
-    {
-      "word": "ZIM",
+      "word": "PLAK\u00CB",
       "row": 1,
-      "col": 1,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "BABAI",
+      "row": 3,
+      "col": 4,
       "direction": "horizontal"
     },
     {
-      "word": "ARTH",
-      "row": 9,
-      "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "INAT",
-      "row": 6,
-      "col": 6,
-      "direction": "horizontal"
-    },
-    {
-      "word": "AJO",
-      "row": 4,
-      "col": 6,
-      "direction": "horizontal"
-    },
-    {
-      "word": "ORA",
-      "row": 4,
+      "word": "TIJ",
+      "row": 5,
       "col": 8,
       "direction": "vertical"
     },
     {
-      "word": "TIJ",
-      "row": 6,
+      "word": "TOK\u00CBS",
+      "row": 5,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "KUFI",
+      "row": 7,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GJI",
+      "row": 7,
+      "col": 7,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PESHK",
+      "row": 9,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QEN",
+      "row": 5,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "PIJ",
+      "row": 1,
+      "col": 7,
+      "direction": "horizontal"
+    },
+    {
+      "word": "UJ\u00CB",
+      "row": 0,
       "col": 9,
       "direction": "vertical"
+    },
+    {
+      "word": "GJU",
+      "row": 7,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "PUS",
+      "row": 9,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "FIK",
+      "row": 7,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "ATY",
+      "row": 3,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "QAJ",
+      "row": 3,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MIR\u00CB",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "L\u00CBR",
+      "row": 0,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "LUTA",
+      "row": 0,
+      "col": 3,
+      "direction": "horizontal"
     }
   ],
   "dayIndex": 6,

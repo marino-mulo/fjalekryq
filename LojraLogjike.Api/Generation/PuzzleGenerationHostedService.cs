@@ -2,13 +2,12 @@ namespace LojraLogjike.Api.Generation;
 
 /// <summary>
 /// Background service that automatically generates next week's puzzles.
-/// - On startup: checks if next week's puzzles exist, generates if missing.
-/// - Every hour: checks again (catches Sunday rollover automatically).
+/// Runs only on Sundays — checks every 12 hours so it's guaranteed to run at least once on Sunday.
 /// </summary>
 public class PuzzleGenerationHostedService : BackgroundService
 {
     private readonly ILogger<PuzzleGenerationHostedService> _logger;
-    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(1);
+    private static readonly TimeSpan CheckInterval = TimeSpan.FromHours(12);
 
     public PuzzleGenerationHostedService(ILogger<PuzzleGenerationHostedService> logger)
     {
@@ -24,7 +23,15 @@ public class PuzzleGenerationHostedService : BackgroundService
         {
             try
             {
-                await TryGenerateNextWeek();
+                if (DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
+                {
+                    await TryGenerateNextWeek();
+                }
+                else
+                {
+                    _logger.LogInformation("Skipping puzzle generation — today is {Day}, will generate on Sunday",
+                        DateTime.Now.DayOfWeek);
+                }
             }
             catch (Exception ex)
             {
@@ -60,7 +67,7 @@ public class PuzzleGenerationHostedService : BackgroundService
         if (allExist)
             return; // Nothing to do
 
-        _logger.LogInformation("Auto-generating puzzles for week {WeekKey}...", nextMonday);
+        _logger.LogInformation("Sunday auto-generation: generating puzzles for week {WeekKey}...", nextMonday);
 
         await WeeklyPuzzleGenerator.GenerateWeek(nextMonday);
 
@@ -69,7 +76,7 @@ public class PuzzleGenerationHostedService : BackgroundService
 
     /// <summary>
     /// Get the next Monday's date as "YYYY-MM-DD".
-    /// If today is Monday, returns next Monday (current week puzzles should already exist).
+    /// On Sunday this returns tomorrow (the coming Monday).
     /// </summary>
     private static string GetNextMondayKey()
     {

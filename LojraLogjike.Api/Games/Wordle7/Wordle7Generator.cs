@@ -7,6 +7,9 @@ namespace LojraLogjike.Api.Games.Wordle7;
 /// </summary>
 public static class Wordle7Generator
 {
+    // Featured big-word length per day: Mon-Tue=7, Wed-Thu-Fri=8, Sat-Sun=9
+    private static readonly int[] FeaturedWordLength = [7, 7, 8, 8, 8, 9, 9];
+
     private static readonly (int size, int minWords, int minLetters, int attempts, string pool)[] DayConfigs =
     [
         (7,  8,  20, 800,  "small"),   // Monday
@@ -24,9 +27,10 @@ public static class Wordle7Generator
     public static Wordle7Puzzle Generate(int seed, int dayIndex, string dayName)
     {
         var cfg = DayConfigs[Math.Clamp(dayIndex, 0, 6)];
+        int featuredLen = FeaturedWordLength[Math.Clamp(dayIndex, 0, 6)];
         var rng = new Random(seed);
 
-        var result = GeneratePuzzle(rng, cfg.size, cfg.minWords, cfg.minLetters, cfg.attempts, cfg.pool);
+        var result = GeneratePuzzle(rng, cfg.size, cfg.minWords, cfg.minLetters, cfg.attempts, cfg.pool, featuredLen);
 
         if (result == null)
         {
@@ -34,7 +38,7 @@ public static class Wordle7Generator
             result = GeneratePuzzle(rng, cfg.size,
                 Math.Max(3, cfg.minWords - 3),
                 Math.Max(12, cfg.minLetters - 10),
-                cfg.attempts * 2, cfg.pool);
+                cfg.attempts * 2, cfg.pool, featuredLen);
         }
 
         if (result == null)
@@ -51,9 +55,10 @@ public static class Wordle7Generator
     }
 
     private static (string[][] grid, WordEntry[] words)? GeneratePuzzle(
-        Random rng, int size, int minWords, int minLetters, int maxAttempts, string poolName)
+        Random rng, int size, int minWords, int minLetters, int maxAttempts, string poolName, int featuredLen)
     {
         var pool = Wordle7Dictionary.GetPool(poolName);
+        var bigWords = Wordle7Dictionary.GetWordsByLength(featuredLen);
         string[][] bestGrid = null!;
         WordEntry[] bestWords = null!;
         int bestScore = 0;
@@ -65,8 +70,17 @@ public static class Wordle7Generator
             var wordSet = new HashSet<string>();
             var placed = new List<(string word, int row, int col, string dir)>();
 
-            // Place first word in center area
-            string first = pool[0];
+            // Place featured big word first (in center, horizontally)
+            string first;
+            if (bigWords.Length > 0)
+            {
+                Shuffle(bigWords, rng);
+                first = bigWords[0];
+            }
+            else
+            {
+                first = pool[0];
+            }
             if (first.Length > size) continue;
             int r = size / 2;
             int c = Math.Max(0, (size - first.Length) / 2);
@@ -106,7 +120,7 @@ public static class Wordle7Generator
             int nWords = placed.Count;
             int nLetters = CountLetters(grid);
 
-            if (nWords >= minWords && nLetters >= minLetters && CheckConnectivity(placed))
+            if (nWords >= minWords && nLetters >= minLetters && !HasIsolatedLetters(grid, size) && CheckConnectivity(placed))
             {
                 // Clean placed words: remove any whose run doesn't match the actual grid
                 var cleanPlaced = CleanPlacedWords(grid, placed, size);
@@ -264,6 +278,38 @@ public static class Wordle7Generator
             foreach (var cell in row)
                 if (cell != "X") count++;
         return count;
+    }
+
+    /// <summary>
+    /// Returns true if any filled cell is not part of at least one word (horizontal or vertical run of 2+).
+    /// </summary>
+    private static bool HasIsolatedLetters(string[][] grid, int size)
+    {
+        for (int r = 0; r < size; r++)
+        {
+            for (int c = 0; c < size; c++)
+            {
+                if (grid[r][c] == "X") continue;
+
+                // Check horizontal run length through this cell
+                int hStart = c;
+                while (hStart > 0 && grid[r][hStart - 1] != "X") hStart--;
+                int hEnd = c;
+                while (hEnd < size - 1 && grid[r][hEnd + 1] != "X") hEnd++;
+                int hLen = hEnd - hStart + 1;
+
+                // Check vertical run length through this cell
+                int vStart = r;
+                while (vStart > 0 && grid[vStart - 1][c] != "X") vStart--;
+                int vEnd = r;
+                while (vEnd < size - 1 && grid[vEnd + 1][c] != "X") vEnd++;
+                int vLen = vEnd - vStart + 1;
+
+                if (hLen < 2 && vLen < 2)
+                    return true; // isolated letter
+            }
+        }
+        return false;
     }
 
     private static bool CheckConnectivity(List<(string word, int row, int col, string dir)> placed)

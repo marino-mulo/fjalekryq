@@ -394,6 +394,8 @@
   text-align: left;
   max-width: 380px;
   padding: 28px 28px 24px;
+
+  .btn { display: block; margin: 0 auto; }
 }
 
 .info-header {
@@ -514,6 +516,11 @@
 .color-green { background: #22C55E; }
 .color-yellow { background: #EAB308; }
 .color-grey { background: #9CA3AF; }
+
+.info-modal .btn {
+  display: block;
+  margin: 0 auto;
+}
 /* ══════════════════════════════════════
    Responsive
    ══════════════════════════════════════ */

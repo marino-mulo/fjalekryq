@@ -2,141 +2,117 @@
   "gridSize": 7,
   "solution": [
     [
-      "X",
-      "X",
-      "X",
-      "E",
-      "N",
-      "D",
-      "X"
-    ],
-    [
-      "M",
-      "E",
-      "S",
-      "X",
-      "X",
-      "H",
-      "X"
-    ],
-    [
-      "X",
-      "X",
-      "H",
-      "X",
-      "Q",
-      "E",
-      "N"
-    ],
-    [
+      "\u00C7",
       "X",
       "D",
       "I",
-      "K",
-      "U",
+      "L",
       "X",
-      "U"
+      "X"
     ],
     [
+      "U",
       "X",
       "U",
       "X",
+      "U",
       "X",
-      "M",
-      "I",
+      "S"
+    ],
+    [
+      "A",
+      "X",
+      "A",
+      "X",
+      "F",
+      "X",
       "K"
     ],
     [
-      "D",
-      "A",
+      "N",
+      "G",
+      "J",
+      "I",
+      "T",
+      "J",
+      "A"
+    ],
+    [
+      "X",
       "R",
-      "K",
+      "X",
+      "X",
       "\u00CB",
       "X",
-      "X"
+      "J"
+    ],
+    [
+      "P",
+      "A",
+      "T",
+      "A",
+      "X",
+      "X",
+      "\u00CB"
     ],
     [
       "X",
       "X",
       "X",
       "X",
-      "S",
-      "O",
-      "T"
+      "X",
+      "X",
+      "X"
     ]
   ],
   "words": [
     {
-      "word": "DIKU",
+      "word": "NGJITJA",
       "row": 3,
-      "col": 1,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "QEN",
-      "row": 2,
-      "col": 4,
-      "direction": "horizontal"
-    },
-    {
-      "word": "DHE",
+      "word": "DUAJ",
       "row": 0,
-      "col": 5,
+      "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "DUA",
+      "word": "LUFT\u00CB",
+      "row": 0,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "GRA",
       "row": 3,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "QUM\u00CBS",
-      "row": 2,
-      "col": 4,
-      "direction": "vertical"
+      "word": "DIL",
+      "row": 0,
+      "col": 2,
+      "direction": "horizontal"
     },
     {
-      "word": "NUK",
-      "row": 2,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "DARK\u00CB",
+      "word": "PATA",
       "row": 5,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "END",
+      "word": "\u00C7UAN",
       "row": 0,
-      "col": 3,
-      "direction": "horizontal"
-    },
-    {
-      "word": "SOT",
-      "row": 6,
-      "col": 4,
-      "direction": "horizontal"
-    },
-    {
-      "word": "SHI",
-      "row": 1,
-      "col": 2,
+      "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "MES",
+      "word": "SKAJ\u00CB",
       "row": 1,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MIK",
-      "row": 4,
-      "col": 4,
-      "direction": "horizontal"
+      "col": 6,
+      "direction": "vertical"
     }
   ],
   "dayIndex": 0,

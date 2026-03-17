@@ -2,169 +2,151 @@
   "gridSize": 8,
   "solution": [
     [
-      "P",
-      "I",
-      "K",
-      "\u00CB",
-      "X",
-      "F",
-      "I",
-      "K"
-    ],
-    [
-      "I",
-      "X",
-      "X",
-      "X",
-      "X",
       "L",
-      "X",
-      "X"
-    ],
-    [
-      "K",
       "U",
-      "Q",
-      "X",
-      "X",
-      "E",
-      "N",
-      "D"
-    ],
-    [
-      "X",
-      "X",
-      "U",
-      "X",
-      "F",
-      "X",
-      "X",
-      "O"
-    ],
-    [
-      "B",
-      "X",
-      "M",
-      "O",
-      "S",
-      "X",
-      "X",
-      "R"
-    ],
-    [
-      "U",
-      "J",
-      "\u00CB",
-      "X",
-      "H",
-      "\u00CB",
-      "N",
-      "\u00CB"
-    ],
-    [
-      "Z",
-      "X",
-      "X",
-      "X",
+      "T",
       "A",
       "X",
       "X",
+      "X",
+      "X"
+    ],
+    [
+      "O",
+      "X",
+      "O",
+      "X",
+      "G",
+      "A",
+      "F",
+      "\u00CB"
+    ],
+    [
+      "T",
+      "X",
+      "P",
+      "I",
+      "J",
+      "X",
+      "X",
       "X"
     ],
     [
       "X",
+      "P",
+      "X",
+      "X",
+      "U",
+      "X",
+      "X",
+      "S"
+    ],
+    [
+      "L",
+      "L",
+      "O",
+      "G",
+      "A",
+      "R",
+      "I",
+      "A"
+    ],
+    [
+      "X",
+      "E",
+      "X",
       "X",
       "J",
+      "X",
+      "X",
+      "J"
+    ],
+    [
+      "X",
+      "P",
+      "X",
+      "X",
       "E",
-      "T",
+      "R",
+      "A",
+      "X"
+    ],
+    [
+      "L",
+      "A",
+      "K",
       "\u00CB",
+      "X",
+      "X",
       "X",
       "X"
     ]
   ],
   "words": [
     {
-      "word": "MOS",
+      "word": "LLOGARIA",
       "row": 4,
-      "col": 2,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "FSHAT",
-      "row": 3,
+      "word": "GJUAJE",
+      "row": 1,
       "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "H\u00CBN\u00CB",
-      "row": 5,
-      "col": 4,
-      "direction": "horizontal"
-    },
-    {
-      "word": "DOR\u00CB",
-      "row": 2,
+      "word": "SAJ",
+      "row": 3,
       "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "QUM\u00CB",
-      "row": 2,
-      "col": 2,
+      "word": "PLEPA",
+      "row": 3,
+      "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "JET\u00CB",
+      "word": "LAK\u00CB",
       "row": 7,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PIJ",
+      "row": 2,
       "col": 2,
       "direction": "horizontal"
     },
     {
-      "word": "END",
-      "row": 2,
-      "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "UJ\u00CB",
-      "row": 5,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "FLE",
+      "word": "TOP",
       "row": 0,
-      "col": 5,
+      "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "KUQ",
-      "row": 2,
+      "word": "LUTA",
+      "row": 0,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "BUZ",
-      "row": 4,
-      "col": 0,
-      "direction": "vertical"
+      "word": "GAF\u00CB",
+      "row": 1,
+      "col": 4,
+      "direction": "horizontal"
     },
     {
-      "word": "PIK",
+      "word": "LOT",
       "row": 0,
       "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "PIK\u00CB",
-      "row": 0,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "FIK",
-      "row": 0,
-      "col": 5,
+      "word": "ERA",
+      "row": 6,
+      "col": 4,
       "direction": "horizontal"
     }
   ],

@@ -1,0 +1,364 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+
+  <!-- ═══════════════════════════════════════
+       GAME BOARD ICONS (with SMIL animations)
+       ═══════════════════════════════════════ -->
+
+  <!-- Zip — path draws itself -->
+  <symbol id="zip" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#F3E8FF" stroke="#1a1a1a" stroke-width="2"/>
+    <line x1="23" y1="4" x2="23" y2="60" stroke="#E9D5FF" stroke-width="1.2"/>
+    <line x1="41" y1="4" x2="41" y2="60" stroke="#E9D5FF" stroke-width="1.2"/>
+    <line x1="4" y1="23" x2="60" y2="23" stroke="#E9D5FF" stroke-width="1.2"/>
+    <line x1="4" y1="41" x2="60" y2="41" stroke="#E9D5FF" stroke-width="1.2"/>
+    <rect x="5" y="5" width="17" height="17" rx="2" fill="#C084FC" opacity="0.7"/>
+    <rect x="24" y="5" width="16" height="17" rx="2" fill="#C084FC" opacity="0.7"/>
+    <rect x="24" y="24" width="16" height="16" rx="2" fill="#C084FC" opacity="0.7"/>
+    <rect x="42" y="24" width="17" height="16" rx="2" fill="#C084FC" opacity="0.7"/>
+    <rect x="42" y="42" width="17" height="17" rx="2" fill="#C084FC" opacity="0.7"/>
+    <path d="M14,14 L32,14 L32,32 L50,32 L50,50"
+          fill="none" stroke="#7C3AED" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+          stroke-dasharray="150" stroke-dashoffset="150">
+      <animate attributeName="stroke-dashoffset" values="150;0;0;-150" keyTimes="0;0.4;0.7;1" dur="2.5s" repeatCount="indefinite"/>
+    </path>
+    <circle cx="14" cy="14" r="4" fill="#7C3AED" stroke="#1a1a1a" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="4" fill="#A855F7" stroke="#1a1a1a" stroke-width="1.5"/>
+    <text x="14" y="17" text-anchor="middle" font-size="7" font-weight="900" fill="#fff">1</text>
+    <text x="50" y="53" text-anchor="middle" font-size="7" font-weight="900" fill="#fff">5</text>
+  </symbol>
+
+  <!-- Stars — twinkle pulse -->
+  <symbol id="stars" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#FEF3C7" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="5" y="5" width="27" height="27" rx="2" fill="#FDE68A" opacity="0.6"/>
+    <rect x="33" y="5" width="26" height="27" rx="2" fill="#FCD34D" opacity="0.4"/>
+    <rect x="5" y="33" width="27" height="26" rx="2" fill="#FBBF24" opacity="0.3"/>
+    <rect x="33" y="33" width="26" height="26" rx="2" fill="#FDE68A" opacity="0.5"/>
+    <line x1="32" y1="4" x2="32" y2="60" stroke="#D97706" stroke-width="1" opacity="0.35"/>
+    <line x1="4" y1="32" x2="60" y2="32" stroke="#D97706" stroke-width="1" opacity="0.35"/>
+    <polygon points="18,12 20,17 25,17 21,21 22,26 18,23 14,26 15,21 11,17 16,17"
+             fill="#F59E0B" stroke="#D97706" stroke-width="1.2">
+      <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite"/>
+    </polygon>
+    <polygon points="46,40 48,45 53,45 49,49 50,54 46,51 42,54 43,49 39,45 44,45"
+             fill="#F59E0B" stroke="#D97706" stroke-width="1.2">
+      <animate attributeName="opacity" values="1;0.5;1" dur="2s" begin="0.8s" repeatCount="indefinite"/>
+    </polygon>
+  </symbol>
+
+  <!-- Queens — crowns bob up and down -->
+  <symbol id="queens" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#FFF1F2" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="5" y="5" width="54" height="13" rx="2" fill="#FFE4E6"/>
+    <rect x="5" y="19" width="54" height="13" rx="2" fill="#FECDD3"/>
+    <rect x="5" y="33" width="54" height="13" rx="2" fill="#FDA4AF" opacity="0.7"/>
+    <rect x="5" y="47" width="54" height="12" rx="2" fill="#FB7185" opacity="0.4"/>
+    <line x1="18" y1="4" x2="18" y2="60" stroke="#1a1a1a" stroke-width="0.6" opacity="0.15"/>
+    <line x1="32" y1="4" x2="32" y2="60" stroke="#1a1a1a" stroke-width="0.6" opacity="0.15"/>
+    <line x1="46" y1="4" x2="46" y2="60" stroke="#1a1a1a" stroke-width="0.6" opacity="0.15"/>
+    <line x1="4" y1="18" x2="60" y2="18" stroke="#1a1a1a" stroke-width="0.6" opacity="0.15"/>
+    <line x1="4" y1="32" x2="60" y2="32" stroke="#1a1a1a" stroke-width="0.6" opacity="0.15"/>
+    <line x1="4" y1="46" x2="60" y2="46" stroke="#1a1a1a" stroke-width="0.6" opacity="0.15"/>
+    <g>
+      <path d="M22,8 L22,15 L24,12 L25,8 L27,12 L28,15 L28,8 Z" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
+      <circle cx="22" cy="7.5" r="1.3" fill="#E11D48"/><circle cx="25" cy="6" r="1.3" fill="#E11D48"/><circle cx="28" cy="7.5" r="1.3" fill="#E11D48"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -2;0 0" dur="2s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <path d="M50,22 L50,29 L52,26 L53,22 L55,26 L56,29 L56,22 Z" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
+      <circle cx="50" cy="21.5" r="1.3" fill="#E11D48"/><circle cx="53" cy="20" r="1.3" fill="#E11D48"/><circle cx="56" cy="21.5" r="1.3" fill="#E11D48"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -2;0 0" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <path d="M8,36 L8,43 L10,40 L11,36 L13,40 L14,43 L14,36 Z" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
+      <circle cx="8" cy="35.5" r="1.3" fill="#E11D48"/><circle cx="11" cy="34" r="1.3" fill="#E11D48"/><circle cx="14" cy="35.5" r="1.3" fill="#E11D48"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -2;0 0" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </g>
+  </symbol>
+
+  <!-- Fjalekryq — tile reveals color -->
+  <symbol id="fjalekryq" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#F0FDF4" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="7" y="7" width="12" height="12" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="21" y="7" width="12" height="12" rx="3" fill="#EAB308" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="35" y="7" width="12" height="12" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="49" y="7" width="10" height="12" rx="3" fill="#9CA3AF" stroke="#1a1a1a" stroke-width="1.5">
+      <animate attributeName="fill" values="#9CA3AF;#9CA3AF;#22C55E;#22C55E;#9CA3AF" keyTimes="0;0.3;0.5;0.8;1" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <text x="13" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">F</text>
+    <text x="27" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">J</text>
+    <text x="41" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">A</text>
+    <text x="54" y="16" text-anchor="middle" font-size="8" font-weight="900" fill="#888">L
+      <animate attributeName="fill" values="#888;#888;#fff;#fff;#888" keyTimes="0;0.3;0.5;0.8;1" dur="3s" repeatCount="indefinite"/>
+    </text>
+    <rect x="7" y="22" width="12" height="12" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="21" y="22" width="12" height="12" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="35" y="22" width="12" height="12" rx="3" fill="#9CA3AF" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="49" y="22" width="10" height="12" rx="3" fill="#EAB308" stroke="#1a1a1a" stroke-width="1.5"/>
+    <text x="13" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">L</text>
+    <text x="27" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">O</text>
+    <text x="41" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#888">J</text>
+    <text x="54" y="31" text-anchor="middle" font-size="8" font-weight="900" fill="#fff">&#203;</text>
+    <rect x="7" y="37" width="12" height="12" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="21" y="37" width="12" height="12" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="35" y="37" width="12" height="12" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="49" y="37" width="10" height="12" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="7" y="51" width="12" height="8" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="21" y="51" width="12" height="8" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="35" y="51" width="12" height="8" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="49" y="51" width="10" height="8" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  </symbol>
+
+  <!-- Tango — sun/moon pulse -->
+  <symbol id="tango" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#FFF7ED" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="7" y="7" width="23" height="23" rx="4" fill="#FFEDD5" stroke="#1a1a1a" stroke-width="1.8"/>
+    <rect x="34" y="7" width="23" height="23" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="1.8"/>
+    <rect x="7" y="34" width="23" height="23" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="1.8"/>
+    <rect x="34" y="34" width="23" height="23" rx="4" fill="#FFEDD5" stroke="#1a1a1a" stroke-width="1.8"/>
+    <!-- Sun top-left -->
+    <g>
+      <circle cx="18" cy="18" r="4.5" fill="#FF8C00" stroke="#B45309" stroke-width="1.5"/>
+      <line x1="18" y1="10" x2="18" y2="12.5" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="18" y1="23.5" x2="18" y2="26" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="10" y1="18" x2="12.5" y2="18" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="23.5" y1="18" x2="26" y2="18" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="3s" repeatCount="indefinite"/>
+    </g>
+    <!-- Moon top-right -->
+    <g>
+      <path d="M45,13 A5,5 0 0,0 45,23 A7.5,7.5 0 0,1 45,13" fill="#6366F1" stroke="#4338CA" stroke-width="1.5"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="3s" begin="0.5s" repeatCount="indefinite"/>
+    </g>
+    <!-- Moon bottom-left -->
+    <g>
+      <path d="M18,41 A5,5 0 0,0 18,51 A7.5,7.5 0 0,1 18,41" fill="#6366F1" stroke="#4338CA" stroke-width="1.5"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="3s" begin="1s" repeatCount="indefinite"/>
+    </g>
+    <!-- Sun bottom-right -->
+    <g>
+      <circle cx="46" cy="46" r="4.5" fill="#FF8C00" stroke="#B45309" stroke-width="1.5"/>
+      <line x1="46" y1="38" x2="46" y2="40.5" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="46" y1="51.5" x2="46" y2="54" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="38" y1="46" x2="40.5" y2="46" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <line x1="51.5" y1="46" x2="54" y2="46" stroke="#FF8C00" stroke-width="1.5" stroke-linecap="round"/>
+      <animate attributeName="opacity" values="1;0.5;1" dur="3s" begin="1.5s" repeatCount="indefinite"/>
+    </g>
+    <!-- Constraint: = -->
+    <line x1="31" y1="16" x2="33" y2="16" stroke="#FF8C00" stroke-width="2" stroke-linecap="round"/>
+    <line x1="31" y1="20" x2="33" y2="20" stroke="#FF8C00" stroke-width="2" stroke-linecap="round"/>
+    <!-- Constraint: x -->
+    <line x1="30.5" y1="43" x2="33.5" y2="49" stroke="#E11D48" stroke-width="2" stroke-linecap="round"/>
+    <line x1="33.5" y1="43" x2="30.5" y2="49" stroke="#E11D48" stroke-width="2" stroke-linecap="round"/>
+  </symbol>
+
+  <!-- Gjarperi — sequential cell glow -->
+  <symbol id="gjarperi" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#F0FDFA" stroke="#1a1a1a" stroke-width="2"/>
+    <line x1="18" y1="4" x2="18" y2="60" stroke="#99F6E4" stroke-width="1"/>
+    <line x1="32" y1="4" x2="32" y2="60" stroke="#99F6E4" stroke-width="1"/>
+    <line x1="46" y1="4" x2="46" y2="60" stroke="#99F6E4" stroke-width="1"/>
+    <line x1="4" y1="18" x2="60" y2="18" stroke="#99F6E4" stroke-width="1"/>
+    <line x1="4" y1="32" x2="60" y2="32" stroke="#99F6E4" stroke-width="1"/>
+    <line x1="4" y1="46" x2="60" y2="46" stroke="#99F6E4" stroke-width="1"/>
+    <rect x="5" y="5" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="19" y="5" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0.3s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0.3s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="33" y="5" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0.6s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0.6s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="33" y="19" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0.9s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="0.9s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="33" y="33" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="1.2s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="1.2s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="19" y="33" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="1.5s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="1.5s" repeatCount="indefinite"/>
+    </rect>
+    <rect x="19" y="47" width="12" height="12" rx="2" fill="#14B8A6" opacity="0.6">
+      <animate attributeName="opacity" values="0.6;1;1;0.6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="1.8s" repeatCount="indefinite"/>
+      <animate attributeName="fill" values="#14B8A6;#0D9488;#0D9488;#14B8A6" keyTimes="0;0.3;0.5;1" dur="3.5s" begin="1.8s" repeatCount="indefinite"/>
+    </rect>
+    <circle cx="11" cy="11" r="4.5" fill="#10b981" stroke="#059669" stroke-width="1.5"/>
+    <circle cx="25" cy="53" r="3.5" fill="#ef4444" stroke="#b91c1c" stroke-width="1.5"/>
+    <text x="11" y="62" text-anchor="middle" font-size="6" font-weight="800" fill="#0D9488" opacity="0.7">3</text>
+    <text x="39" y="62" text-anchor="middle" font-size="6" font-weight="800" fill="#0D9488" opacity="0.7">3</text>
+    <text x="62" y="14" text-anchor="middle" font-size="6" font-weight="800" fill="#0D9488" opacity="0.7">1</text>
+  </symbol>
+
+  <!-- ═══════════════════════════════════════
+       SPLASH SCREEN ICONS (simplified, static)
+       ═══════════════════════════════════════ -->
+
+  <symbol id="mini-zip" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#F3E8FF" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="5" y="5" width="17" height="17" rx="2" fill="#C084FC" opacity="0.7"/>
+    <rect x="24" y="5" width="16" height="17" rx="2" fill="#C084FC" opacity="0.7"/>
+    <rect x="24" y="24" width="16" height="16" rx="2" fill="#C084FC" opacity="0.7"/>
+    <circle cx="14" cy="14" r="4" fill="#7C3AED" stroke="#1a1a1a" stroke-width="1.5"/>
+    <circle cx="32" cy="32" r="3" fill="#A855F7" stroke="#1a1a1a" stroke-width="1.5"/>
+  </symbol>
+
+  <symbol id="mini-stars" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#FEF3C7" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="5" y="5" width="27" height="27" rx="2" fill="#FDE68A" opacity="0.6"/>
+    <rect x="33" y="33" width="26" height="26" rx="2" fill="#FDE68A" opacity="0.5"/>
+    <polygon points="18,12 20,17 25,17 21,21 22,26 18,23 14,26 15,21 11,17 16,17" fill="#F59E0B" stroke="#D97706" stroke-width="1.2"/>
+    <polygon points="46,40 48,45 53,45 49,49 50,54 46,51 42,54 43,49 39,45 44,45" fill="#F59E0B" stroke="#D97706" stroke-width="1.2"/>
+  </symbol>
+
+  <symbol id="mini-queens" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#FFF1F2" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="5" y="5" width="54" height="13" rx="2" fill="#FFE4E6"/>
+    <rect x="5" y="19" width="54" height="13" rx="2" fill="#FECDD3"/>
+    <rect x="5" y="33" width="54" height="13" rx="2" fill="#FDA4AF" opacity="0.7"/>
+    <path d="M25,8 L25,15 L27,12 L28,8 L30,12 L31,15 L31,8 Z" fill="#E11D48" stroke="#1a1a1a" stroke-width="1"/>
+  </symbol>
+
+  <symbol id="mini-fjalekryq" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#F0FDF4" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="7" y="7" width="12" height="12" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="21" y="7" width="12" height="12" rx="3" fill="#EAB308" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="35" y="7" width="12" height="12" rx="3" fill="#22C55E" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="7" y="22" width="12" height="12" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+    <rect x="21" y="22" width="12" height="12" rx="3" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1.2"/>
+  </symbol>
+
+  <symbol id="mini-tango" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#FFF7ED" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="7" y="7" width="23" height="23" rx="4" fill="#FFEDD5" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="34" y="7" width="23" height="23" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="7" y="34" width="23" height="23" rx="4" fill="#FDBA74" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="34" y="34" width="23" height="23" rx="4" fill="#FFEDD5" stroke="#1a1a1a" stroke-width="1.5"/>
+    <circle cx="18" cy="18" r="4.5" fill="#FF8C00" stroke="#B45309" stroke-width="1.5"/>
+  </symbol>
+
+  <symbol id="mini-gjarperi" viewBox="0 0 64 64">
+    <rect x="4" y="4" width="56" height="56" rx="6" fill="#F0FDFA" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="5" y="5" width="12" height="12" rx="2" fill="#14B8A6"/>
+    <rect x="19" y="5" width="12" height="12" rx="2" fill="#14B8A6"/>
+    <rect x="33" y="5" width="12" height="12" rx="2" fill="#14B8A6"/>
+    <rect x="33" y="19" width="12" height="12" rx="2" fill="#14B8A6"/>
+    <circle cx="11" cy="11" r="4" fill="#10b981" stroke="#059669" stroke-width="1.5"/>
+  </symbol>
+
+  <!-- ═══════════════════════════════════════
+       UI ICONS
+       ═══════════════════════════════════════ -->
+
+  <!-- Settings gear -->
+  <symbol id="settings" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"/>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+    </g>
+  </symbol>
+
+  <!-- Calendar -->
+  <symbol id="calendar" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+      <line x1="16" y1="2" x2="16" y2="6"/>
+      <line x1="8" y1="2" x2="8" y2="6"/>
+      <line x1="3" y1="10" x2="21" y2="10"/>
+    </g>
+  </symbol>
+
+  <!-- Chevron down -->
+  <symbol id="chevron" viewBox="0 0 24 24">
+    <polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- Close X -->
+  <symbol id="close" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/>
+      <line x1="6" y1="6" x2="18" y2="18"/>
+    </g>
+  </symbol>
+
+  <!-- Envelope / Mail -->
+  <symbol id="envelope" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </g>
+  </symbol>
+
+  <!-- Check circle (green) -->
+  <symbol id="check" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" fill="#F0FDF4" stroke="#16a34a" stroke-width="1.5"/>
+    <polyline points="8 12 11 15 16 9" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+  <!-- Lightbulb (info section) -->
+  <symbol id="lightbulb" viewBox="0 0 24 24">
+    <g fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18h6"/><path d="M10 22h4"/>
+      <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z" fill="#FEF3C7"/>
+    </g>
+  </symbol>
+
+  <!-- Trophy (info section) -->
+  <symbol id="trophy" viewBox="0 0 24 24">
+    <g fill="none" stroke="#E11D48" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 12 7s5-3 7.5-3a2.5 2.5 0 0 1 0 5H18"/>
+      <path d="M6 9l1.5 9h9L18 9"/><path d="M9 22h6"/><line x1="12" y1="18" x2="12" y2="22"/>
+    </g>
+  </symbol>
+
+  <!-- Brain (info section) -->
+  <symbol id="brain" viewBox="0 0 24 24">
+    <g fill="none" stroke="#6B21A8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2C8 2 4 5.5 4 10c0 3 1.5 5 3 6.5V20h10v-3.5c1.5-1.5 3-3.5 3-6.5 0-4.5-4-8-8-8z" fill="#F3E8FF"/>
+      <path d="M8 20h8v2H8z" fill="#EDE9FE"/><path d="M9 10c0-1.7 1.3-3 3-3"/>
+    </g>
+  </symbol>
+
+  <!-- Globe -->
+  <symbol id="globe" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+    </g>
+  </symbol>
+
+  <!-- Phone / Mobile -->
+  <symbol id="phone" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
+    </g>
+  </symbol>
+
+  <!-- Clock -->
+  <symbol id="clock" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+    </g>
+  </symbol>
+
+  <!-- Instagram -->
+  <symbol id="instagram" viewBox="0 0 24 24">
+    <g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+      <circle cx="12" cy="12" r="5"/>
+    </g>
+    <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
+  </symbol>
+
+  <!-- TikTok -->
+  <symbol id="tiktok" viewBox="0 0 24 24">
+    <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </symbol>
+
+</svg>

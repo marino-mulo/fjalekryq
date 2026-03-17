@@ -3,197 +3,191 @@
   "solution": [
     [
       "X",
-      "X",
-      "X",
-      "V",
-      "A",
-      "J",
-      "X",
-      "X",
-      "X"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "E",
-      "X",
-      "X",
-      "D",
-      "H",
-      "E"
-    ],
-    [
-      "X",
-      "X",
-      "F",
-      "L",
-      "E",
-      "T",
-      "\u00CB",
-      "X",
-      "X"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "X",
-      "R",
-      "X",
       "M",
-      "I",
-      "K"
-    ],
-    [
-      "X",
-      "X",
-      "P",
-      "L",
-      "A",
-      "K",
-      "\u00CB",
-      "X",
-      "O"
-    ],
-    [
-      "X",
-      "X",
+      "O",
+      "S",
       "X",
       "A",
-      "X",
-      "R",
-      "X",
-      "X",
+      "D",
+      "E",
       "T"
     ],
     [
       "X",
-      "Z",
-      "O",
-      "G",
-      "X",
-      "A",
       "J",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "E"
+    ],
+    [
+      "D",
+      "E",
+      "T",
+      "X",
+      "X",
+      "X",
+      "S",
       "O",
-      "X"
+      "T"
     ],
     [
       "X",
-      "X",
-      "X",
-      "U",
-      "X",
-      "H",
-      "X",
-      "R",
-      "X"
-    ],
-    [
+      "K",
       "X",
       "X",
       "T",
+      "X",
+      "K",
+      "X",
+      "A"
+    ],
+    [
+      "P",
+      "\u00CB",
+      "R",
+      "V",
+      "O",
+      "J",
+      "A",
+      "T",
+      "X"
+    ],
+    [
+      "O",
+      "X",
+      "R",
+      "X",
+      "P",
+      "X",
+      "J",
+      "X",
+      "V"
+    ],
+    [
+      "R",
+      "X",
+      "U",
+      "X",
+      "X",
+      "H",
+      "\u00CB",
+      "N",
+      "A"
+    ],
+    [
+      "T",
+      "X",
+      "G",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "L"
+    ],
+    [
+      "X",
+      "L",
+      "\u00CB",
       "R",
       "E",
       "X",
-      "S",
-      "A",
-      "J"
+      "N",
+      "J",
+      "\u00CB"
     ]
   ],
   "words": [
     {
-      "word": "PLAK\u00CB",
+      "word": "P\u00CBRVOJAT",
       "row": 4,
-      "col": 2,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "LAGUR",
-      "row": 4,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "TRE",
-      "row": 8,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "D\u00CBM\u00CB",
-      "row": 1,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "FLET\u00CB",
+      "word": "SKAJ\u00CB",
       "row": 2,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "ZOG",
-      "row": 6,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MIK",
-      "row": 3,
       "col": 6,
-      "direction": "horizontal"
-    },
-    {
-      "word": "KOT",
-      "row": 3,
-      "col": 8,
       "direction": "vertical"
     },
     {
-      "word": "VEL",
+      "word": "MJEK\u00CB",
       "row": 0,
-      "col": 3,
+      "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "ERA",
-      "row": 2,
+      "word": "TOP",
+      "row": 3,
       "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "VAJ",
+      "word": "MOS",
       "row": 0,
-      "col": 3,
+      "col": 1,
       "direction": "horizontal"
     },
     {
-      "word": "KRAH",
+      "word": "DET",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PORT",
       "row": 4,
-      "col": 5,
+      "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "AJO",
-      "row": 6,
-      "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "DHE",
-      "row": 1,
+      "word": "SOT",
+      "row": 2,
       "col": 6,
       "direction": "horizontal"
     },
     {
-      "word": "ORA",
-      "row": 6,
-      "col": 7,
+      "word": "TETA",
+      "row": 0,
+      "col": 8,
       "direction": "vertical"
     },
     {
-      "word": "SAJ",
+      "word": "ADET",
+      "row": 0,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "RRUG\u00CB",
+      "row": 4,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "H\u00CBNA",
+      "row": 6,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "L\u00CBRE",
+      "row": 8,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VAL\u00CB",
+      "row": 5,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "NJ\u00CB",
       "row": 8,
       "col": 6,
       "direction": "horizontal"

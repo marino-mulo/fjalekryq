@@ -1,5 +1,6 @@
 // using LojraLogjike.Api.Email; // TODO: Uncomment when email subscription is needed
 using LojraLogjike.Api.Generation;
+using LojraLogjike.Api.Middleware;
 
 // ── CLI Commands ──
 if (args.Length > 0 && args[0] == "generate-week")
@@ -28,6 +29,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 app.UseCors();
+app.UseMiddleware<ApiKeyMiddleware>();
 app.MapControllers();
 
 app.Run();
