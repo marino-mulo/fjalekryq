@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <path d="M24 4C24 4 14 16 14 28C14 33.5 18.5 38 24 38C29.5 38 34 33.5 34 28C34 16 24 4 24 4Z" fill="#F59E0B" stroke="#D97706" stroke-width="1"/>
-  <path d="M24 14C24 14 18 22 18 28C18 31.3 20.7 34 24 34C27.3 34 30 31.3 30 28C30 22 24 14 24 14Z" fill="#FBBF24"/>
-  <path d="M24 22C24 22 21 26 21 29C21 30.7 22.3 32 24 32C25.7 32 27 30.7 27 29C27 26 24 22 24 22Z" fill="#FDE68A"/>
-  <!-- Base glow -->
-  <ellipse cx="24" cy="40" rx="8" ry="3" fill="#FEF3C7" opacity="0.5"/>
-</svg>

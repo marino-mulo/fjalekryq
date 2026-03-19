@@ -32,7 +32,7 @@
     <div class="completed-card">
       @if (game.hintCount() === 0) {
         <span class="completed-card-label">Perfect Game!</span>
-        <img src="icons/medal.svg" class="completed-card-icon" alt="">
+        <img src="icons/rewards/medal.svg" class="completed-card-icon" alt="">
       } @else {
         <span class="completed-card-label">{{ completedPraise() }}</span>
         <img [src]="completedIcon()" class="completed-card-icon" alt="">

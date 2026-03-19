@@ -49,7 +49,7 @@
       <!-- X marks -->
       @for (i of cells; track i) {
         @if (isMarkX(i)) {
-          <image href="icons/mark-x.svg"
+          <image href="icons/game/mark-x.svg"
                  [attr.x]="cellX(i) + cellSize/2 - xSize/2"
                  [attr.y]="cellY(i) + cellSize/2 - xSize/2"
                  [attr.width]="xSize" [attr.height]="xSize"
@@ -64,7 +64,7 @@
              [class.star-win]="game.gameWon()"
              [style.animation-delay]="game.gameWon() ? (starWinDelay(i) + 'ms') : '0ms'"
              [attr.transform-origin]="starX(i) + ' ' + starY(i)">
-            <image href="icons/star.svg"
+            <image href="icons/game/star.svg"
                    [attr.x]="starX(i) - starSize/2"
                    [attr.y]="starY(i) - starSize/2"
                    [attr.width]="starSize" [attr.height]="starSize"/>

@@ -72,7 +72,22 @@
       "Bash(for i in 3 4 5 6)",
       "Bash(do echo \"Testing day $i...\")",
       "Bash(do echo -n \"Day $i: \")",
-      "Bash(pkill -f \"LojraLogjike\")"
+      "Bash(pkill -f \"LojraLogjike\")",
+      "Bash(npm run build:*)",
+      "Bash(cmd //c \"netstat -ano | findstr :5000\")",
+      "Bash(ss:*)",
+      "Bash(py -3:*)",
+      "Bash(gh auth login -h github.com -p https -w)",
+      "Bash(git pull)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(lsof -ti:4200)",
+      "Bash(xargs kill -9)",
+      "Bash(pip install cairosvg)",
+      "Bash(npx --yes sharp-cli --help)",
+      "Bash(npx sharp-cli -i lojra-logjike-client/public/logo.svg -o lojra-logjike-client/public/logo.png -- resize 520 840)",
+      "Bash(npx sharp-cli -i lojra-logjike-client/public/logo.svg -o lojra-logjike-client/public/logo-profile.png -- resize 1080 1080 --fit contain --background \"#0f172a\")",
+      "Bash(for f in stars/stars.component.ts snake/snake.component.ts tango/tango.component.ts zip/zip.component.ts wordle-7x7/wordle7.component.ts)",
+      "Bash(do sed -i \"s|icons/rocket.svg|icons/rewards/rocket.svg|g; s|icons/medal.svg|icons/rewards/medal.svg|g; s|icons/fire.svg|icons/rewards/fire.svg|g; s|icons/trophy.svg|icons/rewards/trophy.svg|g\" \"$f\")"
     ]
   }
 }

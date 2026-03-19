@@ -55,10 +55,10 @@ export class StarsComponent implements OnInit, OnDestroy {
   completedTime = signal(0);
   isCompleted = signal(false);
   completedPraise = signal('Bravo!');
-  completedIcon = signal('icons/rocket.svg');
+  completedIcon = signal('icons/rewards/rocket.svg');
 
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
-  private readonly ICONS = ['icons/rocket.svg', 'icons/medal.svg', 'icons/fire.svg', 'icons/trophy.svg'];
+  private readonly ICONS = ['icons/rewards/rocket.svg', 'icons/rewards/medal.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private pickPraise(): string {
     return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)];
   }

@@ -1,0 +1,117 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="cupGrad" x1="18" y1="14" x2="46" y2="45" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fdff80d5"/>
+      <stop offset="1" stop-color="#e47f0b"/>
+    </linearGradient>
+
+    <linearGradient id="baseGrad" x1="25" y1="44" x2="39" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fdff80d5"/>
+      <stop offset="1" stop-color="#e47f0b"/>
+    </linearGradient>
+
+    <style>
+      .trophyFloat {
+        animation: trophyFloat 2.8s ease-in-out infinite;
+        transform-origin: 32px 34px;
+      }
+
+      .cupPulse {
+        animation: cupPulse 2s ease-in-out infinite;
+        transform-origin: 32px 28px;
+      }
+
+      .sparkLeft {
+        animation: sparkLeft 1.6s ease-in-out infinite;
+        transform-origin: 14px 18px;
+      }
+
+      .sparkRight {
+        animation: sparkRight 1.8s ease-in-out infinite;
+        transform-origin: 50px 18px;
+      }
+
+      .shineSweep {
+        animation: shineSweep 2.6s linear infinite;
+      }
+
+      @keyframes trophyFloat {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-2px) rotate(0.7deg); }
+      }
+
+      @keyframes cupPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+      }
+
+      @keyframes sparkLeft {
+        0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+        50% { transform: scale(1.18) rotate(10deg); opacity: 1; }
+      }
+
+      @keyframes sparkRight {
+        0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.7; }
+        50% { transform: scale(1.14) rotate(-10deg); opacity: 1; }
+      }
+
+      @keyframes shineSweep {
+        0%   { transform: translateX(-20px) rotate(18deg); opacity: 0; }
+        20%  { opacity: 0; }
+        40%  { opacity: 0.28; }
+        55%  { opacity: 0; }
+        100% { transform: translateX(24px) rotate(18deg); opacity: 0; }
+      }
+    </style>
+
+    <clipPath id="cupClip">
+      <path d="M20 18H44L40.5 39C40.2 40.8 38.7 42 36.9 42H27.1C25.3 42 23.8 40.8 23.5 39L20 18Z"/>
+    </clipPath>
+  </defs>
+
+  <g class="trophyFloat" filter="url(#shadow)">
+    <g class="cupPulse">
+      <!-- handles -->
+      <path
+        d="M20 20H15.5C12.7 20 10.5 17.8 10.5 15C10.5 12.2 12.7 10 15.5 10C18.1 10 18.9 13 22 13"
+        stroke="#ffcd44b9"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M44 20H48.5C51.3 20 53.5 17.8 53.5 15C53.5 12.2 51.3 10 48.5 10C45.9 10 45.1 13 42 13"
+        stroke="#ffcd44b9"
+        stroke-width="2.6"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+
+      <!-- cup -->
+      <path
+        d="M20 18H44L40.5 39C40.2 40.8 38.7 42 36.9 42H27.1C25.3 42 23.8 40.8 23.5 39L20 18Z"
+        fill="url(#cupGrad)"
+      />
+
+      <!-- shine -->
+      <g clip-path="url(#cupClip)">
+        <rect class="shineSweep" x="18" y="12" width="7" height="36" rx="3.5" fill="white"/>
+      </g>
+
+      <!-- cup highlight -->
+      <path
+        d="M25 21C23.7 23.5 23.1 27 23.4 31"
+        stroke="url(#shineGrad)"
+        stroke-width="3"
+        stroke-linecap="round"
+      />
+
+      <!-- stem -->
+      <rect x="29.5" y="42" width="5" height="8" rx="2.5" fill="url(#baseGrad)"/>
+
+      <!-- base -->
+      <rect x="23" y="50" width="18" height="5.5" rx="2.75" fill="url(#baseGrad)"/>
+      <rect x="27" y="55.5" width="10" height="3" rx="1.5" fill="#e47f0b"/>
+    </g>
+  </g>
+</svg>

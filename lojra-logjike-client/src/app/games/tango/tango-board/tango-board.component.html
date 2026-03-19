@@ -67,7 +67,7 @@
       <g [class.symbol-win]="game.gameWon()"
          [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
          [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)">
-        <image href="icons/sun.svg"
+        <image href="icons/game/sun.svg"
                [attr.x]="cellCenterX(i) - symbolRadius"
                [attr.y]="cellCenterY(i) - symbolRadius"
                [attr.width]="symbolRadius * 2" [attr.height]="symbolRadius * 2"
@@ -82,7 +82,7 @@
       <g [class.symbol-win]="game.gameWon()"
          [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
          [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)">
-        <image href="icons/moon.svg"
+        <image href="icons/game/moon.svg"
                [attr.x]="cellCenterX(i) - symbolRadius"
                [attr.y]="cellCenterY(i) - symbolRadius"
                [attr.width]="symbolRadius * 2" [attr.height]="symbolRadius * 2"
@@ -109,7 +109,7 @@
 
   <!-- Constraint indicators (= or ×) on cell borders -->
   @for (ct of constraintDisplays; track $index) {
-    <image [attr.href]="ct.symbol === '=' ? 'icons/constraint-equals.svg' : 'icons/constraint-x.svg'"
+    <image [attr.href]="ct.symbol === '=' ? 'icons/game/constraint-equals.svg' : 'icons/game/constraint-x.svg'"
            [attr.x]="ct.x - 10"
            [attr.y]="ct.y - 10"
            width="20" height="20"

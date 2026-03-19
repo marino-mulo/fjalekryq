@@ -55,7 +55,7 @@
       <!-- X marks -->
       @for (i of cells; track i) {
         @if (isMarkX(i)) {
-          <image href="icons/mark-x.svg"
+          <image href="icons/game/mark-x.svg"
                  [attr.x]="cellX(i) + cellSize/2 - xSize/2"
                  [attr.y]="cellY(i) + cellSize/2 - xSize/2"
                  [attr.width]="xSize" [attr.height]="xSize"
@@ -70,7 +70,7 @@
              [class.queen-win]="game.gameWon()"
              [style.animation-delay]="game.gameWon() ? (queenWinDelay(i) + 'ms') : '0ms'"
              [attr.transform-origin]="queenX(i) + ' ' + queenY(i)">
-            <image href="icons/crown.svg"
+            <image href="icons/game/crown.svg"
                    [attr.x]="queenX(i) - queenSize/2"
                    [attr.y]="queenY(i) - queenSize/2"
                    [attr.width]="queenSize" [attr.height]="queenSize"/>

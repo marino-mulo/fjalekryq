@@ -16,25 +16,25 @@
       <nav class="header-nav">
         @if (gameHeader.dayBarVisible()) {
           <button #dayBtn class="header-day-btn" (click)="toggleDayModal()">
-            <img src="icons/calendar.svg" width="16" height="16" alt="">
+            <img src="icons/ui/calendar.svg" width="16" height="16" alt="">
             {{ gameHeader.selectedDayName() }}
-            <img class="chevron" src="icons/chevron.svg" width="12" height="12" alt="">
+            <img class="chevron" src="icons/ui/chevron.svg" width="12" height="12" alt="">
           </button>
         }
         <button class="icon-btn" (click)="onInfo()" title="Si luhet">?</button>
         <!-- TODO: Uncomment when email subscription is needed
         <button class="icon-btn" (click)="onSettings()">
-          <img src="icons/envelope.svg" width="16" height="16" alt="">
+          <img src="icons/ui/envelope.svg" width="16" height="16" alt="">
         </button>
         -->
       </nav>
     } @else {
       <nav class="header-nav">
         <a href="https://instagram.com/lojralogjike.al" target="_blank" rel="noopener" class="header-social" title="Instagram">
-          <img src="icons/instagram.svg" width="20" height="20" alt="Instagram">
+          <img src="icons/ui/instagram.svg" width="20" height="20" alt="Instagram">
         </a>
         <a href="https://tiktok.com/@lojralogjike" target="_blank" rel="noopener" class="header-social" title="TikTok">
-          <img src="icons/tiktok.svg" width="20" height="20" alt="TikTok">
+          <img src="icons/ui/tiktok.svg" width="20" height="20" alt="TikTok">
         </a>
       </nav>
     }
@@ -57,7 +57,7 @@
         (click)="selectDay(item.index)">
         <span class="day-modal-name">{{ item.name }}</span>
         @if (item.completed && item.index !== gameHeader.dayBarSelectedIndex()) {
-          <img class="day-modal-check" src="icons/check.svg" width="16" height="16" alt="">
+          <img class="day-modal-check" src="icons/ui/check.svg" width="16" height="16" alt="">
         }
         @if (item.isToday) {
           <span class="day-modal-today-badge">Sot</span>
