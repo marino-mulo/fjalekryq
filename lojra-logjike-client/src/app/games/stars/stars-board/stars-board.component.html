@@ -7,8 +7,8 @@
        (mouseup)="onDragEnd()"
        (touchstart)="onTouchStart($event)"
        (touchmove)="onTouchMove($event)"
-       (touchend)="onDragEnd()"
-       (touchcancel)="onDragEnd()">
+       (touchend)="onTouchEnd()"
+       (touchcancel)="onTouchEnd()">
 
     <defs>
       <clipPath id="stars-board-clip">

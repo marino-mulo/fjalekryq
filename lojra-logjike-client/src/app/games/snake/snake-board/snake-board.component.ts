@@ -177,6 +177,7 @@ export class SnakeBoardComponent {
   private dragging = false;
   private dragVisited = new Set<number>();
   private didDrag = false;
+  private touchStartCell = -1;
 
   onDragStart(i: number, event: MouseEvent): void {
     if (this.game.gameWon()) return;
@@ -185,7 +186,7 @@ export class SnakeBoardComponent {
         (r === this.game.getTailRow() && c === this.game.getTailCol()) ||
         this.game.isGiven(r, c)) return;
     const val = this.game.board()[r]?.[c];
-    if (val === MARK_X) return; // don't drag-start on existing X
+    if (val === SNAKE || val === MARK_X) return;
     event.preventDefault();
     this.dragging = true;
     this.dragVisited.clear();
@@ -206,23 +207,30 @@ export class SnakeBoardComponent {
     if (this.game.gameWon()) return;
     const i = this.getCellFromTouch(event);
     if (i === -1) return;
-    const r = this.cellRow(i), c = this.cellCol(i);
-    if ((r === this.game.getHeadRow() && c === this.game.getHeadCol()) ||
-        (r === this.game.getTailRow() && c === this.game.getTailCol()) ||
-        this.game.isGiven(r, c)) return;
-    const val = this.game.board()[r]?.[c];
-    if (val === MARK_X) return;
     event.preventDefault();
-    this.dragging = true;
+    this.touchStartCell = i;
+    this.dragging = false;
     this.dragVisited.clear();
-    this.placeXIfEmpty(i);
   }
 
   onTouchMove(event: TouchEvent): void {
-    if (!this.dragging) return;
     event.preventDefault();
     const i = this.getCellFromTouch(event);
-    if (i !== -1) this.placeXIfEmpty(i);
+    if (i === -1) return;
+    if (!this.dragging && i !== this.touchStartCell) {
+      this.dragging = true;
+      this.placeXIfEmpty(this.touchStartCell);
+    }
+    if (this.dragging) this.placeXIfEmpty(i);
+  }
+
+  onTouchEnd(): void {
+    if (!this.dragging && this.touchStartCell !== -1) {
+      this.game.toggleCell(this.cellRow(this.touchStartCell), this.cellCol(this.touchStartCell));
+    }
+    this.dragging = false;
+    this.dragVisited.clear();
+    this.touchStartCell = -1;
   }
 
   // Drag paints X marks (not snake) — lets user quickly mark cells to exclude

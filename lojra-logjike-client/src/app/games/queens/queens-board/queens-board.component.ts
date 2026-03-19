@@ -155,6 +155,7 @@ export class QueensBoardComponent {
   private dragging = false;
   private dragVisited = new Set<number>();
   private didDrag = false;  // true if drag actually placed any X
+  private touchStartCell = -1; // cell where touch began (for tap detection)
 
   @ViewChild('boardSvg', { static: false }) boardSvgRef!: ElementRef<SVGSVGElement>;
 
@@ -187,22 +188,32 @@ export class QueensBoardComponent {
     if (this.game.gameWon()) return;
     const i = this.getCellFromTouch(event);
     if (i === -1) return;
-    const r = this.cellRow(i);
-    const c = this.cellCol(i);
-    const val = this.game.board()[r]?.[c];
-    if (val === QUEEN || val === MARK_X) return;
-
     event.preventDefault();
-    this.dragging = true;
+    this.touchStartCell = i;
+    this.dragging = false;
     this.dragVisited.clear();
-    this.placeXIfEmpty(i);
   }
 
   onTouchMove(event: TouchEvent): void {
-    if (!this.dragging) return;
     event.preventDefault();
     const i = this.getCellFromTouch(event);
-    if (i !== -1) this.placeXIfEmpty(i);
+    if (i === -1) return;
+    // Start drag only when finger moves to a different cell
+    if (!this.dragging && i !== this.touchStartCell) {
+      this.dragging = true;
+      this.placeXIfEmpty(this.touchStartCell);
+    }
+    if (this.dragging) this.placeXIfEmpty(i);
+  }
+
+  onTouchEnd(): void {
+    if (!this.dragging && this.touchStartCell !== -1) {
+      // It was a tap, not a drag — use normal toggle cycle
+      this.game.toggleCell(this.cellRow(this.touchStartCell), this.cellCol(this.touchStartCell));
+    }
+    this.dragging = false;
+    this.dragVisited.clear();
+    this.touchStartCell = -1;
   }
 
   private placeXIfEmpty(i: number): void {

@@ -125,6 +125,7 @@ export class StarsBoardComponent {
   private dragging = false;
   private dragVisited = new Set<number>();
   private didDrag = false;
+  private touchStartCell = -1;
 
   @ViewChild('boardSvg', { static: false }) boardSvgRef!: ElementRef<SVGSVGElement>;
 
@@ -152,19 +153,30 @@ export class StarsBoardComponent {
     if (this.game.gameWon()) return;
     const i = this.getCellFromTouch(event);
     if (i === -1) return;
-    const val = this.game.board()[this.cellRow(i)]?.[this.cellCol(i)];
-    if (val === STAR || val === MARK_X) return;
     event.preventDefault();
-    this.dragging = true;
+    this.touchStartCell = i;
+    this.dragging = false;
     this.dragVisited.clear();
-    this.placeXIfEmpty(i);
   }
 
   onTouchMove(event: TouchEvent): void {
-    if (!this.dragging) return;
     event.preventDefault();
     const i = this.getCellFromTouch(event);
-    if (i !== -1) this.placeXIfEmpty(i);
+    if (i === -1) return;
+    if (!this.dragging && i !== this.touchStartCell) {
+      this.dragging = true;
+      this.placeXIfEmpty(this.touchStartCell);
+    }
+    if (this.dragging) this.placeXIfEmpty(i);
+  }
+
+  onTouchEnd(): void {
+    if (!this.dragging && this.touchStartCell !== -1) {
+      this.game.toggleCell(this.cellRow(this.touchStartCell), this.cellCol(this.touchStartCell));
+    }
+    this.dragging = false;
+    this.dragVisited.clear();
+    this.touchStartCell = -1;
   }
 
   private placeXIfEmpty(i: number): void {
