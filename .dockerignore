@@ -1,0 +1,16 @@
+**/node_modules/
+**/dist/
+**/.angular/
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.idea/
+**/__pycache__/
+**/.venv/
+**/venv/
+.git
+.claude
+docs
+tools
+*.md
