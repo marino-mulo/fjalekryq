@@ -230,8 +230,10 @@ export class QueensBoardComponent {
     if (!touch) return -1;
     const svg = (event.currentTarget as SVGSVGElement);
     const rect = svg.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
+    const scaleX = this.svgWidth / rect.width;
+    const scaleY = this.svgHeight / rect.height;
+    const x = (touch.clientX - rect.left) * scaleX;
+    const y = (touch.clientY - rect.top) * scaleY;
     const col = Math.floor(x / this.cellSize);
     const row = Math.floor(y / this.cellSize);
     if (row < 0 || row >= this.size || col < 0 || col >= this.size) return -1;

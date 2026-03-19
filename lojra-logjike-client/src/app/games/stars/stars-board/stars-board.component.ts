@@ -189,8 +189,10 @@ export class StarsBoardComponent {
     if (!touch) return -1;
     const svg = (event.currentTarget as SVGSVGElement);
     const rect = svg.getBoundingClientRect();
-    const col = Math.floor((touch.clientX - rect.left) / this.cellSize);
-    const row = Math.floor((touch.clientY - rect.top) / this.cellSize);
+    const scaleX = this.svgWidth / rect.width;
+    const scaleY = this.svgHeight / rect.height;
+    const col = Math.floor(((touch.clientX - rect.left) * scaleX) / this.cellSize);
+    const row = Math.floor(((touch.clientY - rect.top) * scaleY) / this.cellSize);
     if (row < 0 || row >= this.size || col < 0 || col >= this.size) return -1;
     return row * this.size + col;
   }

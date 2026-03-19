@@ -9,6 +9,11 @@
   box-sizing: border-box;
 }
 
+// Prevent double-tap zoom on all interactive elements (mobile)
+button, a, [role="button"] {
+  touch-action: manipulation;
+}
+
 :root {
   --cream: #FFF8F0;
   --cream-dark: #F5EDE3;

@@ -248,8 +248,10 @@ export class SnakeBoardComponent {
     if (!touch) return -1;
     const svg = event.currentTarget as SVGSVGElement;
     const rect = svg.getBoundingClientRect();
-    const x = touch.clientX - rect.left - this.boardOffsetX;
-    const y = touch.clientY - rect.top - this.boardOffsetY;
+    const scaleX = this.svgWidth / rect.width;
+    const scaleY = this.svgHeight / rect.height;
+    const x = (touch.clientX - rect.left) * scaleX - this.boardOffsetX;
+    const y = (touch.clientY - rect.top) * scaleY - this.boardOffsetY;
     const col = Math.floor(x / this.cellSize);
     const row = Math.floor(y / this.cellSize);
     if (row < 0 || row >= this.size || col < 0 || col >= this.size) return -1;
