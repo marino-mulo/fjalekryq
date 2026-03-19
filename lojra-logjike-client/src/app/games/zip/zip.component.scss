@@ -334,10 +334,17 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
+.completed-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
 .completed-card-icon {
-  width: 36px;
-  height: 36px;
-  margin-bottom: 4px;
+  width: 28px;
+  height: 28px;
+  
 }
 
 .completed-card-label {

@@ -29,11 +29,15 @@
   @if (isCompleted()) {
     <div class="completed-card">
       @if (game.hintCount() === 0) {
-        <span class="completed-card-label">Perfect Game!</span>
-        <img src="icons/rewards/medal.svg" class="completed-card-icon" alt="">
+        <div class="completed-card-row">
+          <span class="completed-card-label">Perfect Game!</span>
+          <img src="icons/rewards/medal.svg" class="completed-card-icon" alt="">
+        </div>
       } @else {
-        <span class="completed-card-label">{{ completedPraise() }}</span>
-        <img [src]="completedIcon()" class="completed-card-icon" alt="">
+        <div class="completed-card-row">
+          <span class="completed-card-label">{{ completedPraise() }}</span>
+          <img [src]="completedIcon()" class="completed-card-icon" alt="">
+        </div>
       }
       <span class="completed-card-time">{{ completedSwaps() }} {{ completedSwaps() === 1 ? 'shkëmbim' : 'shkëmbime' }} &middot; {{ game.formatTime(completedTime()) }}@if (game.hintCount() > 0) { me {{ game.hintCount() }} {{ game.hintCount() === 1 ? 'ndihmë' : 'ndihma' }}}</span>
       @if (hasPreviousDay()) {
