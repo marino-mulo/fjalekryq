@@ -196,6 +196,7 @@ export class StarsGameService {
       this.historyLength.set(this.history.length);
       this.board.set(corrections.board);
       this.updateConflicts();
+      this.hintCells.set(corrections.cells);
       this.hintMessage.set(corrections.message);
       this.scheduleHintClear();
       this.startHintCooldown();
