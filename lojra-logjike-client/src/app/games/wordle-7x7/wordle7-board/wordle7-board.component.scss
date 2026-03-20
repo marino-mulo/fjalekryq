@@ -4,6 +4,7 @@
   border-radius: 16px;
   box-shadow: 6px 6px 0px var(--black);
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .wordle7-board-svg {

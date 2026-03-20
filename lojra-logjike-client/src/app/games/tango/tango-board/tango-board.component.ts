@@ -72,6 +72,7 @@ export class TangoBoardComponent {
   }
 
   onCellClick(i: number): void {
+    if (this.isPrefilled(i)) return;
     this.addHidingSymbol(i);
     this.game.toggleCell(this.cellRow(i), this.cellCol(i));
   }
