@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <!-- Background rounded rect with mint border -->
+  <rect x="12" y="12" width="176" height="176" rx="30" fill="#0f172a" stroke="#5EEAD4" stroke-width="5"/>
+
+  <!-- ★ Star (yellow) — upper center-left -->
+  <polygon points="80,34 85.5,47 99,48 89,56.5 92,69 80,62 68,69 71,56.5 61,48 74.5,47" fill="#FBBF24"/>
+
+  <!-- ■ Queens squares (purple) — top right -->
+  <circle cx="126" cy="46" r="4.5" fill="#8B5CF6" fill-opacity="0.7"/>
+  <rect x="133" y="38" width="14" height="14" rx="3" fill="#8B5CF6"/>
+  <rect x="151" y="38" width="14" height="14" rx="3" fill="#8B5CF6"/>
+  <rect x="133" y="56" width="14" height="14" rx="3" fill="#8B5CF6"/>
+  <rect x="151" y="56" width="14" height="14" rx="3" fill="#8B5CF6" fill-opacity="0.5"/>
+  <circle cx="163" cy="52" r="3.5" fill="#8B5CF6" fill-opacity="0.5"/>
+
+  <!-- ■ Snake/grid (teal) — left side -->
+  <circle cx="38" cy="82" r="4.5" fill="#2DD4BF"/>
+  <circle cx="54" cy="82" r="4.5" fill="#2DD4BF"/>
+  <rect x="32" y="90" width="14" height="14" rx="2.5" fill="#2DD4BF"/>
+  <rect x="50" y="90" width="14" height="14" rx="2.5" fill="#2DD4BF"/>
+  <rect x="68" y="90" width="14" height="14" rx="2.5" fill="#2DD4BF"/>
+  <rect x="32" y="108" width="14" height="14" rx="2.5" fill="#2DD4BF"/>
+  <rect x="50" y="108" width="14" height="14" rx="2.5" fill="#2DD4BF"/>
+
+  <!-- ♛ Crown (red) — center right -->
+  <path d="M119,118 L119,102 L128,110 L136,96 L144,110 L153,102 L153,118 Z" fill="#EF4444"/>
+
+  <!-- ☽ Moon crescent (purple) — bottom left -->
+  <path d="M58,122 A18,18 0 0,0 58,156 A 27,27 0 0,1 58,122 Z" fill="#818CF8"/>
+
+  <!-- ● Red dot — near moon -->
+  <circle cx="78" cy="124" r="5" fill="#EF4444"/>
+
+  <!-- ■ Wordle tiles — bottom center-right -->
+  <rect x="100" y="138" width="13" height="13" rx="2.5" fill="#22C55E"/>
+  <rect x="116" y="138" width="13" height="13" rx="2.5" fill="#EAB308"/>
+  <rect x="132" y="138" width="13" height="13" rx="2.5" fill="#475569"/>
+  <rect x="148" y="138" width="13" height="13" rx="2.5" fill="#EF4444"/>
+  <!-- Tiny letter marks on wordle tiles -->
+  <text x="106.5" y="149" font-size="8" font-weight="700" fill="white" font-family="sans-serif" text-anchor="middle">L</text>
+  <text x="122.5" y="149" font-size="8" font-weight="700" fill="white" font-family="sans-serif" text-anchor="middle">O</text>
+  <text x="138.5" y="149" font-size="8" font-weight="700" fill="white" font-family="sans-serif" text-anchor="middle">J</text>
+  <text x="154.5" y="149" font-size="8" font-weight="700" fill="white" font-family="sans-serif" text-anchor="middle">I</text>
+</svg>
