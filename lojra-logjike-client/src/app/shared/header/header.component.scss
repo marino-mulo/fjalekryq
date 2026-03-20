@@ -18,16 +18,28 @@
 .logo {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   text-decoration: none;
   color: var(--black);
 }
 
-.logo-header {
-  height: 120px;
+.logo-icon {
+  height: 80px;
   width: auto;
   flex-shrink: 0;
   display: block;
+}
+
+.logo-text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--black);
+}
+
+.logo-purple {
+  color: #A78BFA;
 }
 
 .header-left {
@@ -239,8 +251,12 @@
     padding: 12px 16px;
   }
 
-  .logo-header {
-    height: 80px;
+  .logo-icon {
+    height: 60px;
+  }
+
+  .logo-text {
+    font-size: 1.2rem;
   }
 
   .info-btn {
