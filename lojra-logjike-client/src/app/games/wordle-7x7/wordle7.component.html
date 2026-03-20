@@ -63,13 +63,13 @@
 
   @if (!isCompleted()) {
     <div class="bottom-controls">
-      <button class="control-btn reset-btn" [disabled]="game.swapCount() > 0 && !game.gameWon()" (click)="onReset()">
+      <button #resetBtn class="control-btn reset-btn" [disabled]="game.swapCount() > 0 && !game.gameWon()" (click)="onReset(); resetBtn.blur()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
         </svg>
         Fillo përsëri
       </button>
-      <button class="control-btn hint-btn" [class.cooling]="game.hintCooldown()" [disabled]="!game.canHint()" (click)="onHint()">
+      <button #hintBtn class="control-btn hint-btn" [class.cooling]="game.hintCooldown()" [disabled]="!game.canHint()" (click)="onHint(); hintBtn.blur()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 18h6"/><path d="M10 22h4"/>
           <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
