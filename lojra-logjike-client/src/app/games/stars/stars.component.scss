@@ -208,32 +208,11 @@
   box-shadow: 3px 3px 0 var(--black);
   -webkit-tap-highlight-color: transparent;
 
-  &:hover:not(:disabled) {
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0 var(--black);
-  }
-
-  &:active:not(:disabled) {
-    transform: translate(1px, 1px);
-    box-shadow: 1px 1px 0 var(--black);
-  }
-
-  &:focus {
-    outline: none;
-  }
-
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
     box-shadow: 2px 2px 0 #ccc;
     border-color: #ccc;
-  }
-
-  @media (hover: none) {
-    &:hover:not(:disabled) {
-      transform: none;
-      box-shadow: 3px 3px 0 var(--black);
-    }
   }
 }
 
