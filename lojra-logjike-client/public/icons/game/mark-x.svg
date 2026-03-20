@@ -1,4 +1,50 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <line x1="6" y1="6" x2="18" y2="18" stroke="#888" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="18" y1="6" x2="6" y2="18" stroke="#888" stroke-width="2.5" stroke-linecap="round"/>
+  <defs>
+    <style>
+      .icon {
+        opacity: 1;
+        transition: opacity 0.25s ease;
+      }
+
+      /* SHOW = draw lines */
+      .show .line {
+        stroke-dasharray: 20;
+        stroke-dashoffset: 20;
+        animation: draw 0.35s ease forwards;
+      }
+
+      .show .line2 {
+        animation-delay: 0.35s;
+      }
+
+      /* HIDE = simple fade out */
+      .hide {
+        opacity: 0;
+      }
+
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      .line {
+        fill: none;
+        stroke: #888;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+      }
+    </style>
+  </defs>
+
+  <!-- toggle show / hide here -->
+  <g class="icon show">
+    <line class="line"
+          x1="6" y1="6"
+          x2="18" y2="18"/>
+    
+    <line class="line line2"
+          x1="18" y1="6"
+          x2="6" y2="18"/>
+  </g>
 </svg>

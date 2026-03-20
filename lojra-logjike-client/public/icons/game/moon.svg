@@ -18,11 +18,11 @@
       @keyframes showAnim {
         0% {
           opacity: 0;
-          transform: scale(0.6) rotate(10deg);
+          transform: scale(0.4) rotate(20deg);
         }
         60% {
           opacity: 1;
-          transform: scale(1.08) rotate(48deg);
+          transform: scale(1.08) rotate(52deg);
         }
         100% {
           opacity: 1;

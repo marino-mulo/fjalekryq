@@ -11,22 +11,22 @@
 
       /* SHOW */
       .show {
-        animation: showAnim 0.55s ease-out forwards;
+        animation: showAnim 0.6s ease-out forwards;
       }
 
       /* HIDE */
       .hide {
-        animation: hideAnim 0.4s ease-in forwards;
+        animation: hideAnim 0.6s ease-in forwards;
       }
 
       @keyframes showAnim {
         0% {
           opacity: 0;
-          transform: scale(0.5) rotate(-18deg);
+          transform: scale(0.5) rotate(-40deg);
         }
         70% {
           opacity: 1;
-          transform: scale(1.06) rotate(8deg);
+          transform: scale(1.08) rotate(8deg);
         }
         100% {
           opacity: 1;
@@ -41,7 +41,7 @@
         }
         100% {
           opacity: 0;
-          transform: scale(0.5) rotate(-18deg);
+          transform: scale(0.5) rotate(-48deg);
         }
       }
     </style>
