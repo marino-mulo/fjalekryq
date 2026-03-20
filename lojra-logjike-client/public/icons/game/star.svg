@@ -11,12 +11,12 @@
 
       /* SHOW */
       .show {
-        animation: showAnim 0.6s ease-out forwards;
+        animation: showAnim 0.55s ease-out forwards;
       }
 
       /* HIDE */
       .hide {
-        animation: hideAnim 0.6s ease-in forwards;
+        animation: hideAnim 0.4s ease-in forwards;
       }
 
       @keyframes showAnim {

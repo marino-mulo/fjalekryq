@@ -12,7 +12,7 @@
 
       /* HIDE (reverse of show) */
       .hide {
-        animation: hideAnim 0.45s ease-in forwards;
+        animation: hideAnim 0.4s ease-in forwards;
       }
 
       @keyframes showAnim {
