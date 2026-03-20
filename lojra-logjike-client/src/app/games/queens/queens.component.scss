@@ -217,6 +217,10 @@
     box-shadow: 1px 1px 0 var(--black);
   }
 
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
+
   &:disabled {
     opacity: 0.4;
     cursor: not-allowed;
