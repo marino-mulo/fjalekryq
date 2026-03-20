@@ -177,7 +177,7 @@
     box-shadow: 1px 1px 0 var(--black);
   }
 
-  &:focus:not(:focus-visible) {
+  &:focus {
     outline: none;
   }
 
