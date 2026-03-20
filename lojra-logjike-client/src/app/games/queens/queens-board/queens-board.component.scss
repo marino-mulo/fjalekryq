@@ -69,6 +69,14 @@
 .mark-x {
   pointer-events: none;
   opacity: 0.7;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: mark-x-show 0.35s ease-out both;
+}
+
+@keyframes mark-x-show {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 0.7; transform: scale(1); }
 }
 
 /* ── Queen Icons ── */
@@ -76,32 +84,26 @@
   pointer-events: none;
   transform-origin: center;
   transform-box: fill-box;
-  animation: queen-place 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  animation: queen-show 0.15s ease-out both;
 }
 
-@keyframes queen-place {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes queen-show {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* ── Queen Hide Animation ── */
 .queen-hide {
-  animation: queen-remove 0.3s ease-in forwards !important;
+  animation: queen-remove 0.5s ease-in forwards !important;
 }
 
 @keyframes queen-remove {
   0% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: scale(0);
+    transform: scale(0.5) rotate(-16deg);
     opacity: 0;
   }
 }

@@ -69,6 +69,14 @@
 .mark-x {
   pointer-events: none;
   opacity: 0.7;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: mark-x-show 0.35s ease-out both;
+}
+
+@keyframes mark-x-show {
+  0% { opacity: 0; transform: scale(0.5); }
+  100% { opacity: 0.7; transform: scale(1); }
 }
 
 /* ── Star Icons ── */
@@ -76,32 +84,26 @@
   pointer-events: none;
   transform-origin: center;
   transform-box: fill-box;
-  animation: star-place 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  animation: star-show 0.15s ease-out both;
 }
 
-@keyframes star-place {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes star-show {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* ── Star Hide Animation ── */
 .star-hide {
-  animation: star-remove 0.3s ease-in forwards !important;
+  animation: star-remove 0.6s ease-in forwards !important;
 }
 
 @keyframes star-remove {
   0% {
-    transform: scale(1);
+    transform: scale(1) rotate(0deg);
     opacity: 1;
   }
   100% {
-    transform: scale(0);
+    transform: scale(0.5) rotate(-48deg);
     opacity: 0;
   }
 }

@@ -22,18 +22,12 @@
 .symbol-show {
   transform-origin: center;
   transform-box: fill-box;
-  animation: symbol-place 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+  animation: symbol-show 0.15s ease-out both;
 }
 
-@keyframes symbol-place {
-  0% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+@keyframes symbol-show {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* ── Symbol Hide Animation ── */
@@ -41,7 +35,7 @@
   pointer-events: none;
   transform-origin: center;
   transform-box: fill-box;
-  animation: symbol-remove 0.3s ease-in forwards;
+  animation: symbol-remove 0.6s ease-in forwards;
 }
 
 @keyframes symbol-remove {
@@ -50,7 +44,7 @@
     opacity: 1;
   }
   100% {
-    transform: scale(0);
+    transform: scale(0.4);
     opacity: 0;
   }
 }
