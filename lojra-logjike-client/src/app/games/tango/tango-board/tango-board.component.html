@@ -61,10 +61,22 @@
     }
   }
 
+  <!-- Hiding symbols (animated out) -->
+  @for (item of hidingSymbols; track item.key) {
+    <g class="symbol-hide"
+       [attr.transform-origin]="item.x + ' ' + item.y">
+      <image [attr.href]="item.type === 'sun' ? 'icons/game/sun.svg' : 'icons/game/moon.svg'"
+             [attr.x]="item.x - symbolRadius"
+             [attr.y]="item.y - symbolRadius"
+             [attr.width]="symbolRadius * 2" [attr.height]="symbolRadius * 2"/>
+    </g>
+  }
+
   <!-- Sun symbols -->
   @for (i of cells; track i) {
     @if (isSun(i)) {
-      <g [class.symbol-win]="game.gameWon()"
+      <g [class.symbol-show]="!isPrefilled(i)"
+         [class.symbol-win]="game.gameWon()"
          [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
          [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)">
         <image href="icons/game/sun.svg"
@@ -79,7 +91,8 @@
   <!-- Moon symbols -->
   @for (i of cells; track i) {
     @if (isMoon(i)) {
-      <g [class.symbol-win]="game.gameWon()"
+      <g [class.symbol-show]="!isPrefilled(i)"
+         [class.symbol-win]="game.gameWon()"
          [style.animation-delay]="game.gameWon() ? (winAnimDelay(i) + 'ms') : '0ms'"
          [attr.transform-origin]="cellCenterX(i) + ' ' + cellCenterY(i)">
         <image href="icons/game/moon.svg"

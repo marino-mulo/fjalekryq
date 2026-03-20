@@ -25,6 +25,10 @@ export class QueensBoardComponent {
     '#B3E0FF', '#B3B3FF', '#DAB3FF', '#FFB3E6', '#FFD6CC', '#C2F0C2'
   ];
 
+  // Hide animation tracking
+  hidingQueens: { key: number; x: number; y: number }[] = [];
+  private hidingCounter = 0;
+
   constructor() {
     effect(() => {
       const won = this.game.gameWon();
@@ -88,7 +92,20 @@ export class QueensBoardComponent {
       this.didDrag = false;
       return;
     }
+    if (this.isQueen(i)) this.addHidingQueen(i);
     this.game.toggleCell(this.cellRow(i), this.cellCol(i));
+  }
+
+  private addHidingQueen(i: number): void {
+    const entry = {
+      key: this.hidingCounter++,
+      x: this.queenX(i),
+      y: this.queenY(i)
+    };
+    this.hidingQueens.push(entry);
+    setTimeout(() => {
+      this.hidingQueens = this.hidingQueens.filter(h => h.key !== entry.key);
+    }, 300);
   }
 
   // Zone borders: thick lines between cells of different zones
@@ -209,6 +226,7 @@ export class QueensBoardComponent {
   onTouchEnd(): void {
     if (!this.dragging && this.touchStartCell !== -1) {
       // It was a tap, not a drag — use normal toggle cycle
+      if (this.isQueen(this.touchStartCell)) this.addHidingQueen(this.touchStartCell);
       this.game.toggleCell(this.cellRow(this.touchStartCell), this.cellCol(this.touchStartCell));
     }
     this.dragging = false;

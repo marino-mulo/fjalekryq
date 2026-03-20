@@ -90,6 +90,22 @@
   }
 }
 
+/* ── Star Hide Animation ── */
+.star-hide {
+  animation: star-remove 0.3s ease-in forwards !important;
+}
+
+@keyframes star-remove {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
 /* ── Win: dancing stars ── */
 .star-win {
   transform-origin: center;

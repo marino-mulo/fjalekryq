@@ -26,6 +26,10 @@ export class TangoBoardComponent {
   readonly size = 6;
   readonly symbolRadius = 18;
 
+  // Hide animation tracking
+  hidingSymbols: { key: number; type: string; x: number; y: number }[] = [];
+  private hidingCounter = 0;
+
   constructor() {
     effect(() => {
       const won = this.game.gameWon();
@@ -68,7 +72,25 @@ export class TangoBoardComponent {
   }
 
   onCellClick(i: number): void {
+    this.addHidingSymbol(i);
     this.game.toggleCell(this.cellRow(i), this.cellCol(i));
+  }
+
+  private addHidingSymbol(i: number): void {
+    const r = this.cellRow(i);
+    const c = this.cellCol(i);
+    const val = this.game.board()[r]?.[c];
+    if (val !== SUN && val !== MOON) return;
+    const entry = {
+      key: this.hidingCounter++,
+      type: val === SUN ? 'sun' : 'moon',
+      x: this.cellCenterX(i),
+      y: this.cellCenterY(i)
+    };
+    this.hidingSymbols.push(entry);
+    setTimeout(() => {
+      this.hidingSymbols = this.hidingSymbols.filter(h => h.key !== entry.key);
+    }, 300);
   }
 
   isHintCell(i: number): boolean {

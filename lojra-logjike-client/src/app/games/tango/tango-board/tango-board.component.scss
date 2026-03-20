@@ -15,6 +15,43 @@
   opacity: 0.7;
 }
 
+/* ── Symbol Show Animation ── */
+.symbol-show {
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: symbol-place 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+@keyframes symbol-place {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* ── Symbol Hide Animation ── */
+.symbol-hide {
+  pointer-events: none;
+  transform-origin: center;
+  transform-box: fill-box;
+  animation: symbol-remove 0.3s ease-in forwards;
+}
+
+@keyframes symbol-remove {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
 /* Win animation — overlay rect fades in green then out.
    Total cycle = 2.7s (0.7s active + 2s pause). */
 .cell-win-overlay {

@@ -90,6 +90,22 @@
   }
 }
 
+/* ── Queen Hide Animation ── */
+.queen-hide {
+  animation: queen-remove 0.3s ease-in forwards !important;
+}
+
+@keyframes queen-remove {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
 /* ── Win: dancing queens ── */
 .queen-win {
   transform-origin: center;

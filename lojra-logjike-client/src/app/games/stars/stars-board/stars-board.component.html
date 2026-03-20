@@ -57,6 +57,17 @@
         }
       }
 
+      <!-- Hiding stars (animated out) -->
+      @for (item of hidingStars; track item.key) {
+        <g class="star-icon star-hide"
+           [attr.transform-origin]="item.x + ' ' + item.y">
+          <image href="icons/game/star.svg"
+                 [attr.x]="item.x - starSize/2"
+                 [attr.y]="item.y - starSize/2"
+                 [attr.width]="starSize" [attr.height]="starSize"/>
+        </g>
+      }
+
       <!-- Star icons -->
       @for (i of cells; track i) {
         @if (isStar(i)) {

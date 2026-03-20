@@ -63,6 +63,17 @@
         }
       }
 
+      <!-- Hiding queens (animated out) -->
+      @for (item of hidingQueens; track item.key) {
+        <g class="queen-icon queen-hide"
+           [attr.transform-origin]="item.x + ' ' + item.y">
+          <image href="icons/game/crown.svg"
+                 [attr.x]="item.x - queenSize/2"
+                 [attr.y]="item.y - queenSize/2"
+                 [attr.width]="queenSize" [attr.height]="queenSize"/>
+        </g>
+      }
+
       <!-- Queen crowns -->
       @for (i of cells; track i) {
         @if (isQueen(i)) {

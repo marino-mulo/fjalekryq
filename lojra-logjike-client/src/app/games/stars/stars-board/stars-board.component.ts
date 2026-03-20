@@ -25,6 +25,10 @@ export class StarsBoardComponent {
     '#B3D4FF', '#C8B3FF', '#FFB3E6', '#FFB3B3', '#B3FFD6', '#F4FFB3', '#E6D4FF'
   ];
 
+  // Hide animation tracking
+  hidingStars: { key: number; x: number; y: number }[] = [];
+  private hidingCounter = 0;
+
   constructor() {
     effect(() => {
       const won = this.game.gameWon();
@@ -78,7 +82,20 @@ export class StarsBoardComponent {
 
   onCellClick(i: number): void {
     if (this.didDrag) { this.didDrag = false; return; }
+    if (this.isStar(i)) this.addHidingStar(i);
     this.game.toggleCell(this.cellRow(i), this.cellCol(i));
+  }
+
+  private addHidingStar(i: number): void {
+    const entry = {
+      key: this.hidingCounter++,
+      x: this.starX(i),
+      y: this.starY(i)
+    };
+    this.hidingStars.push(entry);
+    setTimeout(() => {
+      this.hidingStars = this.hidingStars.filter(h => h.key !== entry.key);
+    }, 300);
   }
 
   get zoneBorders(): ZoneBorder[] {
@@ -172,6 +189,7 @@ export class StarsBoardComponent {
 
   onTouchEnd(): void {
     if (!this.dragging && this.touchStartCell !== -1) {
+      if (this.isStar(this.touchStartCell)) this.addHidingStar(this.touchStartCell);
       this.game.toggleCell(this.cellRow(this.touchStartCell), this.cellCol(this.touchStartCell));
     }
     this.dragging = false;
