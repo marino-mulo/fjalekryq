@@ -108,7 +108,7 @@ export class StarsBoardComponent {
     return lines;
   }
 
-  get starSize(): number { return this.cellSize * 0.42; }
+  get starSize(): number { return this.cellSize * 0.55; }
   starX(i: number): number { return this.cellX(i) + this.cellSize / 2; }
   starY(i: number): number { return this.cellY(i) + this.cellSize / 2; }
 
