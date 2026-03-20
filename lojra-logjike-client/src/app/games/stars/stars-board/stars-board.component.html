@@ -46,14 +46,23 @@
               stroke="#1a1a1a" stroke-width="3" stroke-linecap="round"/>
       }
 
-      <!-- X marks -->
+      <!-- X marks (inline draw animation) -->
       @for (i of cells; track i) {
         @if (isMarkX(i)) {
-          <image href="icons/game/mark-x.svg"
-                 [attr.x]="cellX(i) + cellSize/2 - xSize/2"
-                 [attr.y]="cellY(i) + cellSize/2 - xSize/2"
-                 [attr.width]="xSize" [attr.height]="xSize"
-                 class="mark-x"/>
+          <g class="mark-x">
+            <line [attr.x1]="cellX(i) + cellSize/2 - xSize/4"
+                  [attr.y1]="cellY(i) + cellSize/2 - xSize/4"
+                  [attr.x2]="cellX(i) + cellSize/2 + xSize/4"
+                  [attr.y2]="cellY(i) + cellSize/2 + xSize/4"
+                  pathLength="1" class="mark-x-line"
+                  [attr.stroke-width]="xSize * 2.5 / 24"/>
+            <line [attr.x1]="cellX(i) + cellSize/2 + xSize/4"
+                  [attr.y1]="cellY(i) + cellSize/2 - xSize/4"
+                  [attr.x2]="cellX(i) + cellSize/2 - xSize/4"
+                  [attr.y2]="cellY(i) + cellSize/2 + xSize/4"
+                  pathLength="1" class="mark-x-line mark-x-line2"
+                  [attr.stroke-width]="xSize * 2.5 / 24"/>
+          </g>
         }
       }
 
