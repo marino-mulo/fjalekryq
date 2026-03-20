@@ -132,6 +132,9 @@
   color: #B91C1C;
   line-height: 1.4;
   animation: slideIn 0.3s ease-out;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 
   svg { flex-shrink: 0; }
 }
@@ -158,6 +161,9 @@
   font-weight: 600;
   color: #065f46;
   animation: fadeUp 0.2s ease;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes fadeUp {
@@ -270,6 +276,9 @@
   font-size: 0.85rem;
   font-weight: 600;
   animation: fadeUp 0.2s ease;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 
   &.check-correct {
     background: #F0FDF4;

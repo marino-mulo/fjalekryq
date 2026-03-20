@@ -129,6 +129,9 @@
   color: #B91C1C;
   line-height: 1.4;
   animation: conflictFadeIn 0.25s ease-out;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 
   svg {
     flex-shrink: 0;
@@ -158,6 +161,9 @@
   font-weight: 600;
   color: #9A3412;
   animation: hintFadeIn 0.2s ease;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 @keyframes hintFadeIn {
@@ -275,6 +281,9 @@
   font-size: 0.85rem;
   font-weight: 600;
   animation: hintFadeIn 0.2s ease;
+  width: 0;
+  min-width: 100%;
+  box-sizing: border-box;
 
   &.check-correct {
     background: #F0FDF4;
