@@ -84,12 +84,22 @@
   pointer-events: none;
   transform-origin: center;
   transform-box: fill-box;
-  animation: queen-show 0.15s ease-out both;
+  animation: queen-show 0.5s ease-out both;
 }
 
 @keyframes queen-show {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-16deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1) rotate(6deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
 }
 
 /* ── Queen Hide Animation ── */

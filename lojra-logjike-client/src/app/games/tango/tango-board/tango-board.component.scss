@@ -22,12 +22,22 @@
 .symbol-show {
   transform-origin: center;
   transform-box: fill-box;
-  animation: symbol-show 0.15s ease-out both;
+  animation: symbol-show 0.6s ease-out both;
 }
 
 @keyframes symbol-show {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ── Symbol Hide Animation ── */
