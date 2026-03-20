@@ -1,9 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.16"/>
-    </filter>
-  </defs>
+
 
   <!-- Board -->
   <rect x="4" y="4" width="56" height="56" rx="5" fill="#FFE4E6" stroke="#1a1a1a" stroke-width="2"/>
@@ -18,7 +14,7 @@
   <line x1="5" y1="46" x2="59" y2="46" stroke="#ffffff" stroke-width="1.5"/>
 
   <!-- Queen 1 -->
-  <g transform="translate(6.5 7.6) scale(0.34)" filter="url(#shadow)">
+  <g transform="translate(6.5 7.6) scale(0.34)">
     <g>
       <!-- Jump -->
       <animateTransform attributeName="transform"
@@ -45,7 +41,7 @@
   </g>
 
   <!-- Queen 2 -->
-  <g transform="translate(34.8 21.7) scale(0.34)" filter="url(#shadow)">
+  <g transform="translate(34.8 21.7) scale(0.34)">
     <g>
       <animateTransform attributeName="transform"
         type="translate"
@@ -70,7 +66,7 @@
   </g>
 
   <!-- Queen 3 -->
-  <g transform="translate(20.8 48.7) scale(0.34)" filter="url(#shadow)">
+  <g transform="translate(20.8 48.7) scale(0.34)">
     <g>
       <animateTransform attributeName="transform"
         type="translate"

@@ -4,38 +4,130 @@
       <stop offset="0" stop-color="#2563EB"/>
       <stop offset="1" stop-color="#60A5FA"/>
     </linearGradient>
+
     <linearGradient id="ribbonRight" x1="36" y1="6" x2="26" y2="30" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#60A5FA"/>
       <stop offset="1" stop-color="#93C5FD"/>
     </linearGradient>
+
     <linearGradient id="medalGrad" x1="18" y1="18" x2="46" y2="50" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FCD34D"/>
       <stop offset="0.55" stop-color="#F59E0B"/>
       <stop offset="1" stop-color="#EA580C"/>
     </linearGradient>
+
     <linearGradient id="innerRing" x1="22" y1="24" x2="40" y2="42" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FEF3C7"/>
       <stop offset="1" stop-color="#FDE68A"/>
     </linearGradient>
+
     <linearGradient id="starGrad" x1="26" y1="26" x2="38" y2="40" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#FFF7CC"/>
       <stop offset="1" stop-color="#FDE68A"/>
     </linearGradient>
+
+    <clipPath id="medalClip">
+      <circle cx="32" cy="38" r="16"/>
+    </clipPath>
+
+    <style>
+      .medalFloat {
+        animation: medalFloat 3s ease-in-out infinite;
+        transform-origin: 32px 32px;
+      }
+
+      .medalPulse {
+        animation: medalPulse 2.2s ease-in-out infinite;
+        transform-origin: 32px 38px;
+      }
+
+      .shineSweep {
+        animation: shineMove 2.8s linear infinite;
+      }
+
+      .starTwinkle {
+        animation: starTwinkle 1.8s ease-in-out infinite;
+        transform-origin: 32px 38px;
+      }
+
+      @keyframes medalFloat {
+        0%   { transform: translateY(0px) rotate(0deg); }
+        25%  { transform: translateY(-1.5px) rotate(-1deg); }
+        50%  { transform: translateY(-4px) rotate(0.8deg); }
+        75%  { transform: translateY(-1.5px) rotate(-0.6deg); }
+        100% { transform: translateY(0px) rotate(0deg); }
+      }
+
+      @keyframes medalPulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.025); }
+      }
+
+      @keyframes shineMove {
+        0%   { transform: translateX(-26px) rotate(18deg); opacity: 0; }
+        15%  { opacity: 0.0; }
+        35%  { opacity: 0.38; }
+        55%  { opacity: 0; }
+        100% { transform: translateX(34px) rotate(18deg); opacity: 0; }
+      }
+
+      @keyframes starTwinkle {
+        0%, 100% { transform: scale(1); opacity: 1; }
+        50%      { transform: scale(1.08); opacity: 0.92; }
+      }
+    </style>
   </defs>
 
-  <!-- Ribbon -->
-  <path d="M18 6L24 28H31L27 6Z" fill="url(#ribbonLeft)" stroke="#1D4ED8" stroke-width="1" stroke-linejoin="round"/>
-  <path d="M37 28H40L46 6L36.8 6Z" fill="url(#ribbonRight)" stroke="#60A5FA" stroke-width="1" stroke-linejoin="round"/>
+  <g class="medalFloat">
+    <!-- Ribbon -->
+    <path
+      d="M18 6L24 28H31L27 6Z"
+      fill="url(#ribbonLeft)"
+      stroke="#1D4ED8"
+      stroke-width="1"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M46 6L37 28H40L46 6Z"
+      fill="none"
+      opacity="0"
+    />
+    <path
+      d="M37 28H40L46 6L36.8 6Z"
+      fill="url(#ribbonRight)"
+      stroke="#60A5FA"
+      stroke-width="1"
+      stroke-linejoin="round"
+    />
 
-  <!-- Medal -->
-  <circle cx="32" cy="38" r="16" fill="url(#medalGrad)" stroke="#D97706" stroke-width="1.3"/>
-  <circle cx="32" cy="38" r="11.8" fill="none" stroke="url(#innerRing)" stroke-width="1.5" opacity="0.95"/>
+    <!-- Medal -->
+    <g class="medalPulse">
+      <circle cx="32" cy="38" r="16" fill="url(#medalGrad)" stroke="#D97706" stroke-width="1.3"/>
+      <circle cx="32" cy="38" r="11.8" fill="none" stroke="url(#innerRing)" stroke-width="1.5" opacity="0.95"/>
 
-  <!-- Highlight -->
-  <path d="M25 28.5C23.5 30.5 22.4 33.6 22.2 37" stroke="white" stroke-opacity="0.45" stroke-width="2.2" stroke-linecap="round"/>
+      <!-- Medal highlight -->
+      <path
+        d="M25 28.5C23.5 30.5 22.4 33.6 22.2 37"
+        stroke="white"
+        stroke-opacity="0.45"
+        stroke-width="2.2"
+        stroke-linecap="round"
+      />
 
-  <!-- Star -->
-  <path
-    d="M32 28.5L34.6 33.8L40.5 34.5L36.2 38.5L37.3 44.2L32 41.2L26.7 44.2L27.8 38.5L23.5 34.5L29.4 33.8Z"
-    fill="url(#starGrad)" stroke="#F59E0B" stroke-width="0.8" stroke-linejoin="round"/>
+      <!-- Shine -->
+      <g clip-path="url(#medalClip)">
+        <rect class="shineSweep" x="18" y="18" width="8" height="40" rx="4" fill="white" opacity="0.0"/>
+      </g>
+
+      <!-- Star -->
+      <path
+        class="starTwinkle"
+        d="M32 28.5L34.6 33.8L40.5 34.5L36.2 38.5L37.3 44.2L32 41.2L26.7 44.2L27.8 38.5L23.5 34.5L29.4 33.8Z"
+        fill="url(#starGrad)"
+        stroke="#F59E0B"
+        stroke-width="0.8"
+        stroke-linejoin="round"
+      />
+    </g>
+  </g>
 </svg>

@@ -413,6 +413,8 @@ export class SnakeBoardComponent {
 
   /** Size of the head SVG icon (slightly larger than body width for visual presence) */
   get headIconSize(): number { return this.snakeBodyWidth * 1.35; }
+  /** Size of the tail SVG icon */
+  get tailIconSize(): number { return this.snakeBodyWidth * 1.35; }
   /** Head color (always green end) */
   get headColor(): string { return this.lerpColor(0); }
   /** Tail color (always red end) */

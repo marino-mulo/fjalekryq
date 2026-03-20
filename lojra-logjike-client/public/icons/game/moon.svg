@@ -1,5 +1,49 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <g transform="rotate(40 12 12)">
+  <defs>
+    <style>
+      .icon {
+        transform-origin: 12px 12px;
+      }
+
+      /* SHOW */
+      .show {
+        animation: showAnim 0.55s ease-out forwards;
+      }
+
+      /* HIDE (reverse of show) */
+      .hide {
+        animation: hideAnim 0.45s ease-in forwards;
+      }
+
+      @keyframes showAnim {
+        0% {
+          opacity: 0;
+          transform: scale(0.6) rotate(10deg);
+        }
+        60% {
+          opacity: 1;
+          transform: scale(1.08) rotate(48deg);
+        }
+        100% {
+          opacity: 1;
+          transform: scale(1) rotate(40deg);
+        }
+      }
+
+      @keyframes hideAnim {
+        0% {
+          opacity: 1;
+          transform: scale(1) rotate(40deg);
+        }
+        100% {
+          opacity: 0;
+          transform: scale(0.6) rotate(10deg);
+        }
+      }
+    </style>
+  </defs>
+
+  <g class="icon show">
     <path d="M12,2.2 A9,9 0 0,1 10,21 A10.5,12.5 0 0,0 12,2.3"
           fill="#6366F1"
           stroke="#4338CA"

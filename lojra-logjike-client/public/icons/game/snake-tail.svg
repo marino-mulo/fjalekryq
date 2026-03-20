@@ -1,7 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <g transform="translate(12 13) rotate(-90) translate(-12 -12)">
-    <path d="M12,2 A10,10 0 0,0 12,22 Q33,12 12,2 Z"
-          fill="#ef4444" stroke="#b91c1c" stroke-width="0.8" stroke-linejoin="round"
+  <path d="M12,2 A10,10 0 0,0 12,22 Q33,12 12,2 Z"
+        fill="#ef4444" stroke="#b91c1c" stroke-width="0.8" stroke-linejoin="round"
         stroke-linecap="round"/>
-  </g>
 </svg>

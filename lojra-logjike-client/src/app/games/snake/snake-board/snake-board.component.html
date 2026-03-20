@@ -143,18 +143,18 @@
         }
       }
 
-      <!-- Tail (teardrop pointing away from body) -->
+      <!-- Tail (SVG icon, rotated to point away from body) -->
       @for (i of cells; track i) {
         @if (isTail(i)) {
-          <path
-            [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ') rotate(' + tailRotation + ')'"
-            [attr.d]="'M 0,' + (-tailR) +
-                      ' A ' + tailR + ',' + tailR + ' 0 0 0 0,' + tailR +
-                      ' Q ' + (tailR * 2.2) + ',0 0,' + (-tailR) + ' Z'"
-            [attr.fill]="tailColor"
-            class="tail-circle"
-            [class.snake-win]="game.gameWon()"
-            [style.animation-delay]="game.gameWon() ? (winAnimDelay(1) + 'ms') : '0ms'"/>
+          <g [attr.transform]="'translate(' + (cellX(i) + cellSize/2) + ',' + (cellY(i) + cellSize/2) + ') rotate(' + tailRotation + ')'"
+             class="tail-circle" [class.snake-win]="game.gameWon()"
+             [style.animation-delay]="game.gameWon() ? (winAnimDelay(1) + 'ms') : '0ms'">
+            <image href="icons/game/snake-tail.svg"
+                   [attr.x]="-tailIconSize / 2"
+                   [attr.y]="-tailIconSize / 2"
+                   [attr.width]="tailIconSize"
+                   [attr.height]="tailIconSize"/>
+          </g>
         }
       }
 
