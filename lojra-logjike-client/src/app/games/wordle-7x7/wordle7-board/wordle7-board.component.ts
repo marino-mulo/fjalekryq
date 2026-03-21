@@ -110,6 +110,10 @@ export class Wordle7BoardComponent {
     return this.getCellColor(row, col) === 'green';
   }
 
+  isHintSwapped(row: number, col: number): boolean {
+    return this.game.hintSwappedCells().some(c => c.row === row && c.col === col);
+  }
+
   onCellClick(row: number, col: number): void {
     if (this.game.gameWon()) return;
     if (this.isLocked(row, col)) return;

@@ -41,6 +41,15 @@
                 fill="none" stroke="#1a1a1a" stroke-width="3"
                 class="selection-ring"/>
         }
+
+        <!-- Hint swap highlight -->
+        @if (isHintSwapped(cell.row, cell.col)) {
+          <rect [attr.x]="cellX(cell.col) - 1.5" [attr.y]="cellY(cell.row) - 1.5"
+                [attr.width]="cellSize + 3" [attr.height]="cellSize + 3"
+                [attr.rx]="borderRadius + 1" [attr.ry]="borderRadius + 1"
+                fill="none" stroke="#F59E0B" stroke-width="3"
+                class="hint-swap-ring"/>
+        }
       }
     }
 

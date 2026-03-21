@@ -27,8 +27,10 @@ export class Wordle7GameService {
   readonly hintCooldown = signal(false);
   readonly hintCooldownRemaining = signal(0);
   readonly hintCount = signal(0);
+  readonly hintSwappedCells = signal<{ row: number; col: number }[]>([]);
   private hintCooldownInterval: ReturnType<typeof setInterval> | null = null;
   private hintMessageTimer: ReturnType<typeof setTimeout> | null = null;
+  private hintSwapTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly canHint = computed(() => !this.gameWon() && !this.hintCooldown());
 
@@ -400,6 +402,14 @@ export class Wordle7GameService {
     this.swapCount.update(v => v + 1);
     this.selectedCell.set(null);
 
+    // Highlight the two swapped cells
+    this.hintSwappedCells.set([target, sourceCell]);
+    if (this.hintSwapTimer) clearTimeout(this.hintSwapTimer);
+    this.hintSwapTimer = setTimeout(() => {
+      this.hintSwappedCells.set([]);
+      this.hintSwapTimer = null;
+    }, 2000);
+
     this.showHintMessage('Një shkronjë u vendos në vendin e duhur!');
     this.checkWin();
 
@@ -433,6 +443,7 @@ export class Wordle7GameService {
     this.hintMessage.set('');
     this.hintCooldown.set(false);
     this.hintCooldownRemaining.set(0);
+    this.hintSwappedCells.set([]);
     if (this.hintCooldownInterval) {
       clearInterval(this.hintCooldownInterval);
       this.hintCooldownInterval = null;
@@ -440,6 +451,10 @@ export class Wordle7GameService {
     if (this.hintMessageTimer) {
       clearTimeout(this.hintMessageTimer);
       this.hintMessageTimer = null;
+    }
+    if (this.hintSwapTimer) {
+      clearTimeout(this.hintSwapTimer);
+      this.hintSwapTimer = null;
     }
   }
 

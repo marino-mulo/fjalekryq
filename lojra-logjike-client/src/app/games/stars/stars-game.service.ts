@@ -187,50 +187,36 @@ export class StarsGameService {
 
     const n = this.size;
     const b = this.board();
-    const dirs = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
 
-    // Step 1: Correct mistakes (wrong star or blocked solution cell)
-    const corrections = this.correctMistakes(n, b);
-    if (corrections) {
-      this.history.push(b.map(r => [...r]));
-      this.historyLength.set(this.history.length);
-      this.board.set(corrections.board);
-      this.updateConflicts();
-      this.hintCells.set(corrections.cells);
-      this.hintMessage.set(corrections.message);
-      this.scheduleHintClear();
-      this.startHintCooldown();
-      return;
+    // Find a solution star that isn't placed yet
+    const unplaced: { row: number; col: number }[] = [];
+    for (let r = 0; r < n; r++) {
+      for (const c of this.solution[r]) {
+        if (b[r][c] !== STAR) {
+          unplaced.push({ row: r, col: c });
+        }
+      }
     }
 
-    // Step 2: Auto-X obvious cells (adjacent to stars, full rows/cols/zones)
-    const autoX = this.findAutoX(n, b, dirs);
-    if (autoX) {
-      this.history.push(b.map(r => [...r]));
-      this.historyLength.set(this.history.length);
-      this.board.set(autoX.board);
-      this.hintMessage.set(autoX.message);
-      this.scheduleHintClear();
-      this.startHintCooldown();
-      return;
-    }
+    if (unplaced.length === 0) return;
 
-    // Step 3: Forced placement — zone/row/col has exactly `needed` available cells
-    const forced = this.findForcedElimination(n, b, dirs);
-    if (forced) {
-      this.history.push(b.map(r => [...r]));
-      this.historyLength.set(this.history.length);
-      this.board.set(forced.board);
-      this.hintMessage.set(forced.message);
-      this.scheduleHintClear();
-      this.startHintCooldown();
-      return;
-    }
+    // Pick a random unplaced star
+    const target = unplaced[Math.floor(Math.random() * unplaced.length)];
 
-    // No hint found
-    this.hintMessage.set('Nuk gjeta ndihmë — provo të analizosh zonat me pak hapësirë.');
-    this.hintTimeout = setTimeout(() => this.hintMessage.set(''), 4000);
+    this.history.push(b.map(r => [...r]));
+    this.historyLength.set(this.history.length);
+
+    const nb = b.map(r => [...r]);
+    nb[target.row][target.col] = STAR;
+    this.autoFillXAroundStar(nb, target.row, target.col);
+    this.board.set(nb);
+    this.updateConflicts();
+
+    this.hintCells.set([target]);
+    this.hintMessage.set('1 yll u vendos në vendin e duhur!');
+    this.scheduleHintClear();
     this.startHintCooldown();
+    this.checkWin();
   }
 
   /** Auto-X cells adjacent to stars + cells in full rows/cols/zones */
