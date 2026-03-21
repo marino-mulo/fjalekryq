@@ -93,7 +93,7 @@
   pointer-events: none;
   transform-origin: center;
   transform-box: fill-box;
-  animation: star-show 0.6s ease-out both;
+  animation: star-show 0.05s ease-out both;
 }
 
 @keyframes star-show {

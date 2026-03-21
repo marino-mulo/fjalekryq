@@ -188,7 +188,30 @@ export class StarsGameService {
     const n = this.size;
     const b = this.board();
 
-    // Find a solution star that isn't placed yet
+    // Step 1: Check for wrong stars (stars not in solution) — remove one
+    for (let r = 0; r < n; r++) {
+      const solCols = new Set(this.solution[r]);
+      for (let c = 0; c < n; c++) {
+        if (b[r][c] === STAR && !solCols.has(c)) {
+          this.history.push(b.map(row => [...row]));
+          this.historyLength.set(this.history.length);
+
+          const nb = b.map(row => [...row]);
+          nb[r][c] = EMPTY;
+          this.recalcAutoX(nb);
+          this.board.set(nb);
+          this.updateConflicts();
+
+          this.hintCells.set([{ row: r, col: c }]);
+          this.hintMessage.set('1 yll i gabuar u hoq!');
+          this.scheduleHintClear();
+          this.startHintCooldown();
+          return;
+        }
+      }
+    }
+
+    // Step 2: No wrong stars — place a correct star
     const unplaced: { row: number; col: number }[] = [];
     for (let r = 0; r < n; r++) {
       for (const c of this.solution[r]) {
@@ -582,7 +605,7 @@ export class StarsGameService {
 
   private startHintCooldown(): void {
     this.hintCooldown.set(true);
-    this.hintCooldownRemaining.set(5);
+    this.hintCooldownRemaining.set(10);
     this.hintCooldownInterval = setInterval(() => {
       const r = this.hintCooldownRemaining() - 1;
       this.hintCooldownRemaining.set(r);
