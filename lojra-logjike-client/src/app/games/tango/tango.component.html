@@ -157,9 +157,27 @@
         <div class="info-cycle-icons">
           <span class="cycle-cell cycle-empty"></span>
           <span class="cycle-arrow">&#8594;</span>
-          <span class="cycle-cell"><img src="icons/game/sun.svg" class="cycle-icon" alt="Diell"></span>
+          <span class="cycle-cell">
+            <svg class="cycle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>.info-sun{transform-origin:12px 12px;animation:infoSunPop .55s .15s ease-out both}@keyframes infoSunPop{0%{opacity:0;transform:scale(.4)}60%{opacity:1;transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}</style>
+              </defs>
+              <g class="info-sun">
+                <circle cx="12" cy="12" r="7.5" fill="#FF8C00" stroke="#B45309" stroke-width="1"/>
+              </g>
+            </svg>
+          </span>
           <span class="cycle-arrow">&#8594;</span>
-          <span class="cycle-cell"><img src="icons/game/moon.svg" class="cycle-icon" alt="Hënë"></span>
+          <span class="cycle-cell">
+            <svg class="cycle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>.info-moon{transform-origin:12px 12px;animation:infoMoonPop .55s .25s ease-out both}@keyframes infoMoonPop{0%{opacity:0;transform:scale(.4) rotate(20deg)}60%{opacity:1;transform:scale(1.08) rotate(52deg)}100%{opacity:1;transform:scale(1) rotate(40deg)}}</style>
+              </defs>
+              <g class="info-moon">
+                <path d="M12,2.2 A9,9 0 0,1 10,21 A10.5,12.5 0 0,0 12,2.3" fill="#6366F1" stroke="#4338CA" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/>
+              </g>
+            </svg>
+          </span>
           <span class="cycle-arrow">&#8594;</span>
           <span class="cycle-cell cycle-empty"></span>
         </div>

@@ -157,7 +157,18 @@
           <span class="cycle-arrow">&#8594;</span>
           <span class="cycle-cell"><img src="icons/game/mark-x.svg" class="cycle-icon" alt="X"></span>
           <span class="cycle-arrow">&#8594;</span>
-          <span class="cycle-cell"><img src="icons/game/star.svg" class="cycle-icon" alt="Yll"></span>
+          <span class="cycle-cell">
+            <svg class="cycle-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="infoStarGrad" x1="0" y1="1" x2="0.5" y2="1"><stop offset="20%" stop-color="#ffd484"/><stop offset="100%" stop-color="#ff7c02"/></linearGradient>
+                <style>.info-star{transform-origin:12px 12px;animation:infoStarPop .55s .15s ease-out both}@keyframes infoStarPop{0%{opacity:0;transform:scale(.2) rotate(-68deg)}70%{opacity:1;transform:scale(1.3) rotate(8deg)}100%{opacity:1;transform:scale(1) rotate(0)}}</style>
+              </defs>
+              <g class="info-star">
+                <polygon points="12,2.8 14.85,8.55 21.2,9.5 16.6,13.95 17.7,20.35 12,17.35 6.3,20.35 7.4,13.95 2.8,9.5 9.15,8.55"
+                  fill="url(#infoStarGrad)" stroke="#000" stroke-width="0.45" stroke-linejoin="round" stroke-linecap="round"/>
+              </g>
+            </svg>
+          </span>
           <span class="cycle-arrow">&#8594;</span>
           <span class="cycle-cell cycle-empty"></span>
         </div>
