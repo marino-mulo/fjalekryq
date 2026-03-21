@@ -1,10 +1,45 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <defs>
     <linearGradient id="starGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FCD34D"/>
-      <stop offset="100%" stop-color="#F59E0B"/>
+        <stop offset="20%" stop-color="#ffd484"/>
+      <stop offset="100%" stop-color="#ff7c02"/>
     </linearGradient>
 
+    <style>
+      .icon {
+        opacity: 1;
+        transition: opacity 0.25s ease;
+      }
+
+      /* SHOW = draw lines */
+      .show .line {
+        stroke-dasharray: 20;
+        stroke-dashoffset: 20;
+        animation: draw 0.35s ease forwards;
+      }
+
+      .show .line2 {
+        animation-delay: 0.35s;
+      }
+
+      /* HIDE = simple fade out */
+      .hide {
+        opacity: 0;
+      }
+
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+
+      .line {
+        fill: none;
+        stroke: #888;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+      }
+    </style>
   </defs>
 
   <rect x="4" y="4" width="56" height="56" rx="10" fill="#FEF3C7" stroke="#1a1a1a" stroke-width="1.4"/>
@@ -50,12 +85,27 @@
   </g>
 
   <!-- X top right -->
+  <g class="icon show">
+    <line class="line" x1="42" y1="16" x2="48" y2="22"/>
+    <line class="line line2" x1="48" y1="16" x2="42" y2="22"/>
+  </g>
+  <!-- X bottom left -->
+  <g class="icon show">
+    <line class="line" x1="16" y1="42" x2="22" y2="48"/>
+    <line class="line line2" x1="22" y1="42" x2="16" y2="48"/>
+  </g>
+  <!-- X bottom right -->
+   <g class="icon show">
+    <line class="line" x1="42" y1="42" x2="48" y2="48"/>
+    <line class="line line2" x1="48" y1="42" x2="42" y2="48"/>
+  </g>
+  <!-- X top right -->
   <g stroke="#9CA3AF" stroke-width="1.7" stroke-linecap="round">
     <line x1="42" y1="16" x2="48" y2="22"/>
     <line x1="48" y1="16" x2="42" y2="22"/>
     <animate attributeName="opacity"
       values="0;0;1;1;0"
-      keyTimes="0;0.22;0.22;0.82;1"
+      keyTimes="0;0.32;0.52;0.82;1"
       dur="2.2s"
       repeatCount="indefinite"/>
   </g>
@@ -66,7 +116,7 @@
     <line x1="22" y1="42" x2="16" y2="48"/>
     <animate attributeName="opacity"
       values="0;0;1;1;0"
-      keyTimes="0;0.22;0.22;0.82;1"
+      keyTimes="0;0.22;0.52;0.82;1"
       dur="2.2s"
       repeatCount="indefinite"/>
   </g>
@@ -77,7 +127,7 @@
     <line x1="48" y1="42" x2="42" y2="48"/>
     <animate attributeName="opacity"
       values="0;0;1;1;0"
-      keyTimes="0;0.22;0.22;0.82;1"
+      keyTimes="0;0.22;0.52;0.82;1"
       dur="2.2s"
       repeatCount="indefinite"/>
   </g>
