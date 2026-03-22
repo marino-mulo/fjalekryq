@@ -8,89 +8,81 @@ public static class Wordle7Dictionary
 {
     private static readonly string[] Words3 =
     [
-    "AJO","ARI","ATO","ATY","BIE","BIR","BLE","BLU","BËJ","DAL",
-    "DET","DHE","DIL","DUA","ERA","FIK","FLE","FOL","GAZ",
-    "GJI","GJU","GOL","GRA","HAJ","IKE","IKI",
-    "JET","KJO","LOT","LUG","LËR","MAJ","MAL",
-    "MIK","MOS","MUA","NGA","NIS","NJË","NUK","ORA",
-    "ORË","OSE","PAK","PIJ","POR","PUS","QAJ","QAN","QEN",
-    "QET","RRI","SAJ","SHI","SOT",
-    "TEL","TIJ","TOP","TRE","UJK","UJË","URI",
-    "VAJ","VET","VIT","YLL","ZOG","ZOT","ÇAJ","ÇUN","ÇUP"
+    "AJO","ATO","ATY","BIE","BIR","BLU","BËJ","DAL",
+    "DHE","DIL","DUA","ERA","FLE","FOL","GAZ",
+    "GJI","GOL","GRA","IKI",
+    "JET","KJO","LOT","MAJ","MAL",
+    "MOS","MUA","NGA","NJË","NUK","ORA","LEK",
+    "ORË","OSE","PAK","PIJ","POR","QAJ","RRI","SHI","SOT",
+    "TOP","TRE","UJK","UJË","VAJ","VET","VIT","YLL","ZOG","ZOT","ÇAJ","ÇUN","ÇUP"
     ];
 
     private static readonly string[] Words4 =
     [
-    "ARKË","ARRË","BAZA","BAZË",
-    "BOTË","BUKË","CIPË",
-    "DERË","DIKU","DITË","DJEP","DORË","DUAJ","EMRA",
-    "EMËR","EPIK","FARË","FUND","FURI","FYEJ","FYER",
-    "GOCA","GAFË","GJAK","GJEL","GOJA","GOJE","GREK","GURË","HAPU",
-    "HËNA","HËNË","INAT","JAVË","JEMI","JETË","KAFE","KAPE",
+    "ARKA","ARRË","BAZË","DETI","HËNA","FIKU",
+    "BOTA","BUKË","CIPË","BABI","BLEJ","LUGA","MIKU",
+    "DERË","DIKU","DITË","DJEP","DORË",
+    "EMËR","EPIK","FARË","FUND","FURI",
+    "GOCA","GAFË","GOJA","GREK","GURË","HAPU",
+    "HËNA","INAT","JAVË","JEMI","JETË","KAFE","KAPE",
     "KRAH","KRYQ","KUFI","KURS","KËND","LULE",
-    "LUMË","LUTA","LËRE","MAMI","MEZI","MIRË","MISH","MURE",
-    "NATË","NGRE","NXIS","NYJA","NYJË","NËNË","ORAR","PARA","PATA",
-    "PEMA","PENA","PICA","PIKË","PISH","PORT","PRAS","PULË","PUNË",
-    "RETË","RIKA","SHAP","SKAJ","KOVË","SOBË",
-    "TAKË","TETA","THEM","TOKA","TOKË","TRUP","ULEM","UNIK","VALË",
-    "VERË","VIDË","VJEÇ","XIXA","ZANË","ZYRA","ÇAST","ÇIKE",
-    "ÇMIM","ÇUNA","VAZO","MARS","MJEK","ROJE",
+    "LUMI","LËRE","MAMI","MEZI","MISH","MURE",
+    "NATA","NGRE","NXIS","NYJA","NËNË","ORAR","PARA",
+    "PEMA","PENA","PICA","PIKË","PISH","PORT","PRAS","PULA","PUNA","SKAJ","KOVA","SOBA",
+    "TETA","THEM","TOKA","TRUP","ULEM","UNIK","VALË",
+    "VERA","VIDA","VJEÇ","XIXA","ZANA","ZYRA","ÇAST","ÇIKE",
+    "ÇMIM","ÇUNA","VAZO","MARS","MJEK","ROJE","PUSI","QENI","KALI"
     ];
 
     private static readonly string[] Words5 =
     [
-    "AKUJT","BABAI","BLETË","BUKUR","DARKË","DERRA",
+    "AKULL","BLETA","BUKUR","DARKË","DERRA","FYELL","GJELI","GJAKU",
     "DJALË","DOSJA","DREKË","DRITË","DRURË","DUAJE","DUHEJ","DYSHO","EDUKO",
-    "ERËRA","FLETË","FRUTË","FSHAT","FUSHË","GATIM",
-    "HANIN","HARAM","HASEJ","HEQËS","HOLLË","HYRJA",
-    "HËNËZ","KISHA","KISHE","KRUAN","KUOTË","KURTH","KUSUR",
-    "KËMBË","LEHIM","LIBËR","LUAJË","LUFTË","MIELL","MILJE",
-    "MJEKË","MOLLË","MOTËR","MPREH","NDAJU","NDJEJ","PESHK",
-    "PESHO","PJEKË","PLAKË","PLEPA","PYJET","QENIN",
-    "RRUGË","SHKAK","SKAJË","TETOR","THIKË","TOKËS","TRIKO","TAKSA",
-    "VAJZË","ZEMËR","ZJEVE","PAKET","ZYSHË","KAPSE","JANAR","PRILL","GUSHT","TETOR","NUMËR","FJALË",
-    "MJEKE","MJEKU","PILOT","AKTOR","NOTER","POLIC"
+    "ERËRA","FLETË","FRUTA","FUSHË","GATIM","HARAM","HOLLË","HYRJA","KISHA","KRUAJ","KUOTË","KURTH","KUSUR",
+    "KËMBË","LIBËR","LUAJË","LUFTË","MIELL","MILJE","VLLAI",
+    "MOLLË","MOTËR","MPREH","NDAJU","NDJEJ","PESHK","VENDI",
+    "PESHA","PJEKË","PLAKË","PLEPA","PYJET","MACJA",
+    "RRUGË","SHKAK","SKAJË","TETOR","THIKË","TRIKO","TAKSA",
+    "VAJZË","ZEMËR","PAKET","ZYSHË","KAPSE","JANAR","PRILL","GUSHT","TETOR","NUMËR","FJALË",
+    "MJEKU","PILOT","AKTOR","NOTER","POLIC"
     ];
 
     private static readonly string[] Words6 =
     [
-    "AJROSË","BABAIT","BISEDË","DALLIM","DETARË","FITORE","FLUTUR","FËMIJË",
-    "GJUAJE","GOMARË","KAFENE","KLINIK","KRIHJE","KUJDES",
-    "KËSULË","MBLIDH","MBYLLI","NGRICË","PAGUAJ","QENUSH",
-    "SHISHE","SHTËPI","SHËTIS","STIMUL","SHKENCË","ÇAKMAK","MAKINË","MOTORR",
-    "VENDET","VITALE","VRAPOJ","VËLLAI","XHINSE","LAPTOP","SHKURT","KORRIK","NËNTOR","MËSUES",
+    "AJROSË","BISEDË","DALLIM","DETARË","FITORE","FLUTUR","FËMIJË",
+    "GJUAJE","GOMARË","KLINIK","KRIHJE","KUJDES","HËNGRA","ABUZIM","AKUZIM",
+    "KËSULË","MBLIDH","MBYLLI","NGRICË","PAGUAJ","QENUSH","FSHATI","BIZNES","LEXUES",
+    "SHISHE","SHTËPI","SHËTIS","SHKENCË","ÇAKMAK","MAKINË","MOTORR","EDUKIM",
+    "VITALE","VRAPOJ","VËLLAI","XHINSE","LAPTOP","SHKURT","KORRIK","NËNTOR","MËSUES",
     "ARTIST","BERBER","BIOLOG","KIRURG","PIKTOR","SHITËS","SHOFER","TEKNIK","USHTAR"
     ];
 
     private static readonly string[] Words7 =
     [
-        "ARSIMIM","ANIMOVA","ANKORUA","ARKIVAT","ARTIKUJ","DRITARE","FILLIMI","KUJTIME","KËNAQJE",
-        "LIBRARI","LËVIZNI","MBARTEN","MONOLOG","MËSUESE","NGJITJA","NJOHURI","PIKTURË","INTERES",
-        "SHKOLLË","SHPIFJA","SHPRESA","SHTËPIA","VAJOSJE","NDËRTES","PALLATE","CELULAR","TAVULL",
-        "QERSHOR","SHTATOR","DHJETOR","DENTIST","MJEKËSI","FARMACI","AUTOBUS","TRADITA",
+        "ARSIMIM","ANIMOVA","ANKORUA","ARKIVAT","ARTIKUJ","DRITARE","FILLIMI","KUJTIME","KËNAQJE","ANALIZË",
+        "LIBRARI","LËVIZNI","MBARTEN","MONOLOG","MËSUESE","NGJITJA","NJOHURI","PIKTURË","INTERES","ARTISTË",
+        "SHKOLLË","SHPIFJE","SHPRESA","VAJOSJE","NDËRTES","PALLATE","CELULAR","TAVULL","BUJQËSI","GJAHTAR",
+        "QERSHOR","SHTATOR","DHJETOR","DENTIST","MJEKËSI","FARMACI","AUTOBUS","TRADITA","DËSHMOR","VEPRIME","SHËRBIM",
         "AGRONOM","ARBITËR","BLEGTOR","DREJTOR","GAZETAR","KËPUCAR","MEKANIK","MURATOR","PEDAGOG","PUNËTOR","PYLLTAR","SALDUES"
-
     ];
 
     private static readonly string[] Words8 =
     [
-        "ABUZIME","AKUZUAR","ANALIZË","ARMIQËSI","ARTISTË","BASHKIMI","BESIMTAR","BIBLOTEK",
-        "BIZNESI","BUJQËSIA","DËSHMORI","DREJTËSI","DRITARET","FAMILJAR","EDUKIMI",
-        "FITIMTAR","GJENERATA","GJITHMONË","GJUHËTAR","HISTORIA","HORIZONT","INSTITUT",
-        "JETËSORE","KAPITULL","KËNGËTAR","KËSHILLË","KRYESORE","LARGESIA","LEXUESIT",
-        "LLOGARIA","MËSIMORE","PËRPARIM",
-        "PUNËTORËT","QYTETARI","QYTETARE","SHËRBIMI","SHKOLLARË",
-        "SHPËTIMI","TRADITËS","UDHËHEQË","VEPRIMET","VËLLAZËRI","ZGJIDHJE","KAMARIER","PASTRUES","BIÇIKLET","ARKITEKT",
+        "ARMIQËSI","BASHKIMI","BESIMTAR","BIBLOTEK",
+        "DREJTËSI","FAMILJAR",
+        "FITIMTAR","HISTORIA","INSTITUT",
+        "JETËSORE","KAPITULL","KËNGËTAR","KËSHILLË","KRYESORE","LARGËSIA",
+        "LLOGARIA","MËSIMORE","PËRPARIM","STIMULIM",
+        "QYTETARI","SHKOLLARË",
+        "SHPËTIMI","TRADITËS","UDHËHEQË","VËLLAZËRI","ZGJIDHJE","KAMARIER","PASTRUES","BIÇIKLET","ARKITEKT",
         "BANAKIER","EDUKATOR","FIZIKANT","FOTOGRAF","LABORANT","MENAXHER","MUZIKANT","OPERATOR","PARUKIER","PSIKOLOG","REGJISOR","STUDIUES"
     ];
 
     private static readonly string[] Words9 =
     [
         "AKTIVITET","ANALIZUAR","DREJTËSIA","DREJTORIA",
-        "HISTORIAN","KAPITULLI","KRYESORET","KULTURORE","LLOGARITË",
-        "NDËRTESAT","PUNËTORËT","KOMPJUTER",
-        "QYTETARËT","SHËRBIMET",
-        "UDHËHEQJE","ZGJIDHJET","LAVATRIÇE","TELEVIZOR",
+        "HISTORIAN","KAPITULLI","KULTURORE","LLOGARITË",
+        "KOMPJUTER","HORIZONTI","GJENERATA","GJITHMONË","UDHËHEQJE","LAVATRIÇE","TELEVIZOR",
         "INXHINIER","SEKRETARE","ESTETISTE","FARMACIST",
         "FINANCIAR","HIDRAULIK","KUZHINIER","PASTRUESE","VETERINER"
     ];
@@ -98,7 +90,7 @@ public static class Wordle7Dictionary
     private static readonly string[] Words10 =
     [
         "FRIGORIFER","PROGRAMUES","MAGAZINIER","SHKENCËTAR","FUTBOLLIST","SHPËTIMTAR","SHTETËRORË",
-        "BIBLIOTEKA","FAMILJARËT","GJENERATAT","GJUHËTARET","KËNGËTARËT","KËSHILLTAR","ORGANIZATA","VEPRIMTARI","INFERMIER"
+        "BIBLIOTEKA","FAMILJARËT","KËSHILLTAR","ORGANIZATA","VEPRIMTARI","INFERMIER"
     ];
 
     private static readonly string[] Words11 =
