@@ -16,7 +16,6 @@ public class PuzzleGenerationHostedService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Small delay on startup to let the web server initialize first
         await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
@@ -46,26 +45,20 @@ public class PuzzleGenerationHostedService : BackgroundService
     {
         var nextMonday = GetNextMondayKey();
 
-        // Check if all 42 puzzles already exist
         var allExist = true;
-        string[] games = ["snake", "zip", "queens", "stars", "tango", "wordle7"];
 
-        foreach (var game in games)
+        for (var day = 0; day < 7; day++)
         {
-            for (var day = 0; day < 7; day++)
+            var puzzle = PuzzleFileStore.LoadPuzzle<object>(nextMonday, "wordle7", day);
+            if (puzzle == null)
             {
-                var puzzle = PuzzleFileStore.LoadPuzzle<object>(nextMonday, game, day);
-                if (puzzle == null)
-                {
-                    allExist = false;
-                    break;
-                }
+                allExist = false;
+                break;
             }
-            if (!allExist) break;
         }
 
         if (allExist)
-            return; // Nothing to do
+            return;
 
         _logger.LogInformation("Sunday auto-generation: generating puzzles for week {WeekKey}...", nextMonday);
 
@@ -74,10 +67,6 @@ public class PuzzleGenerationHostedService : BackgroundService
         _logger.LogInformation("Puzzle generation complete for week {WeekKey}", nextMonday);
     }
 
-    /// <summary>
-    /// Get the next Monday's date as "YYYY-MM-DD".
-    /// On Sunday this returns tomorrow (the coming Monday).
-    /// </summary>
     private static string GetNextMondayKey()
     {
         var now = DateTime.Now;
