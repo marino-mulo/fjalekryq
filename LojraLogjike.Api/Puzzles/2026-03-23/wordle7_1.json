@@ -1,0 +1,132 @@
+{
+  "gridSize": 7,
+  "solution": [
+    [
+      "I",
+      "K",
+      "I",
+      "X",
+      "Q",
+      "E",
+      "T"
+    ],
+    [
+      "X",
+      "R",
+      "X",
+      "X",
+      "X",
+      "X",
+      "O"
+    ],
+    [
+      "X",
+      "A",
+      "X",
+      "X",
+      "Y",
+      "X",
+      "K"
+    ],
+    [
+      "S",
+      "H",
+      "K",
+      "O",
+      "L",
+      "L",
+      "\u00CB"
+    ],
+    [
+      "K",
+      "X",
+      "R",
+      "X",
+      "L",
+      "X",
+      "S"
+    ],
+    [
+      "A",
+      "T",
+      "Y",
+      "X",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "J",
+      "X",
+      "Q",
+      "E",
+      "N",
+      "I",
+      "N"
+    ]
+  ],
+  "words": [
+    {
+      "word": "SHKOLL\u00CB",
+      "row": 3,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KRYQ",
+      "row": 3,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "QET",
+      "row": 0,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ATY",
+      "row": 5,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "YLL",
+      "row": 2,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "QENIN",
+      "row": 6,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KRAH",
+      "row": 0,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "IKI",
+      "row": 0,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "SKAJ",
+      "row": 3,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "TOK\u00CBS",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 1,
+  "dayName": "E Mart\u00EB"
+}

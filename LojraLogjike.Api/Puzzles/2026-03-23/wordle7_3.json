@@ -1,0 +1,155 @@
+{
+  "gridSize": 8,
+  "solution": [
+    [
+      "X",
+      "Z",
+      "O",
+      "G",
+      "X",
+      "U",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "R",
+      "O",
+      "J",
+      "E",
+      "X"
+    ],
+    [
+      "\u00C7",
+      "U",
+      "N",
+      "A",
+      "X",
+      "K",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "J",
+      "X",
+      "X",
+      "X",
+      "X",
+      "O",
+      "X"
+    ],
+    [
+      "M",
+      "\u00CB",
+      "S",
+      "I",
+      "M",
+      "O",
+      "R",
+      "E"
+    ],
+    [
+      "X",
+      "X",
+      "H",
+      "X",
+      "I",
+      "X",
+      "A",
+      "X"
+    ],
+    [
+      "X",
+      "L",
+      "I",
+      "B",
+      "R",
+      "A",
+      "R",
+      "I"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "\u00CB",
+      "X",
+      "X",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "M\u00CBSIMORE",
+      "row": 4,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ORAR",
+      "row": 3,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "LIBRARI",
+      "row": 6,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "UJ\u00CB",
+      "row": 2,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "\u00C7UNA",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MIR\u00CB",
+      "row": 4,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "GRA",
+      "row": 0,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "SHI",
+      "row": 4,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "ROJE",
+      "row": 1,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "UJK",
+      "row": 0,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZOG",
+      "row": 0,
+      "col": 1,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 3,
+  "dayName": "E Enjte"
+}

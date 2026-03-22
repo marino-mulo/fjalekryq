@@ -1,0 +1,237 @@
+{
+  "gridSize": 10,
+  "solution": [
+    [
+      "T",
+      "O",
+      "P",
+      "X",
+      "D",
+      "H",
+      "E",
+      "X",
+      "X",
+      "U"
+    ],
+    [
+      "R",
+      "X",
+      "U",
+      "X",
+      "E",
+      "X",
+      "X",
+      "Q",
+      "A",
+      "N"
+    ],
+    [
+      "E",
+      "X",
+      "S",
+      "O",
+      "T",
+      "X",
+      "X",
+      "E",
+      "X",
+      "I"
+    ],
+    [
+      "X",
+      "M",
+      "X",
+      "P",
+      "X",
+      "V",
+      "E",
+      "T",
+      "X",
+      "K"
+    ],
+    [
+      "X",
+      "J",
+      "X",
+      "E",
+      "X",
+      "I",
+      "X",
+      "X",
+      "T",
+      "X"
+    ],
+    [
+      "S",
+      "E",
+      "K",
+      "R",
+      "E",
+      "T",
+      "A",
+      "R",
+      "E",
+      "X"
+    ],
+    [
+      "X",
+      "K",
+      "X",
+      "A",
+      "X",
+      "X",
+      "X",
+      "X",
+      "T",
+      "X"
+    ],
+    [
+      "X",
+      "E",
+      "X",
+      "T",
+      "X",
+      "N",
+      "X",
+      "Z",
+      "O",
+      "T"
+    ],
+    [
+      "X",
+      "X",
+      "P",
+      "O",
+      "L",
+      "I",
+      "C",
+      "X",
+      "R",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "R",
+      "X",
+      "S",
+      "X",
+      "X",
+      "X",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "SEKRETARE",
+      "row": 5,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VIT",
+      "row": 3,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "TETOR",
+      "row": 4,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "MJEKE",
+      "row": 3,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "OPERATOR",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "POLIC",
+      "row": 8,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "NIS",
+      "row": 7,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZOT",
+      "row": 7,
+      "col": 7,
+      "direction": "horizontal"
+    },
+    {
+      "word": "SOT",
+      "row": 2,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VET",
+      "row": 3,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QET",
+      "row": 1,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "DET",
+      "row": 0,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "DHE",
+      "row": 0,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PUS",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "TOP",
+      "row": 0,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QAN",
+      "row": 1,
+      "col": 7,
+      "direction": "horizontal"
+    },
+    {
+      "word": "TRE",
+      "row": 0,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "UNIK",
+      "row": 0,
+      "col": 9,
+      "direction": "vertical"
+    }
+  ],
+  "dayIndex": 6,
+  "dayName": "E Diel"
+}

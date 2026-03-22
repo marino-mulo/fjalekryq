@@ -1,0 +1,155 @@
+{
+  "gridSize": 8,
+  "solution": [
+    [
+      "D",
+      "A",
+      "L",
+      "X",
+      "X",
+      "M",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "R",
+      "X",
+      "T",
+      "R",
+      "U",
+      "P",
+      "X"
+    ],
+    [
+      "M",
+      "I",
+      "S",
+      "H",
+      "X",
+      "R",
+      "X",
+      "X"
+    ],
+    [
+      "J",
+      "X",
+      "X",
+      "I",
+      "X",
+      "A",
+      "X",
+      "E"
+    ],
+    [
+      "E",
+      "D",
+      "U",
+      "K",
+      "A",
+      "T",
+      "O",
+      "R"
+    ],
+    [
+      "K",
+      "X",
+      "X",
+      "\u00CB",
+      "X",
+      "O",
+      "R",
+      "\u00CB"
+    ],
+    [
+      "\u00CB",
+      "X",
+      "X",
+      "X",
+      "O",
+      "R",
+      "A",
+      "R"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "A"
+    ]
+  ],
+  "words": [
+    {
+      "word": "EDUKATOR",
+      "row": 4,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MJEK\u00CB",
+      "row": 2,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "MURATOR",
+      "row": 0,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRUP",
+      "row": 1,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "THIK\u00CB",
+      "row": 1,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "ER\u00CBRA",
+      "row": 3,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "ORAR",
+      "row": 6,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MISH",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ARI",
+      "row": 0,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "DAL",
+      "row": 0,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "OR\u00CB",
+      "row": 5,
+      "col": 5,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 2,
+  "dayName": "E M\u00EBrkur\u00EB"
+}

@@ -1,0 +1,198 @@
+{
+  "gridSize": 9,
+  "solution": [
+    [
+      "X",
+      "H",
+      "A",
+      "S",
+      "E",
+      "J",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "R",
+      "X",
+      "D",
+      "X",
+      "X",
+      "X",
+      "P"
+    ],
+    [
+      "G",
+      "J",
+      "I",
+      "X",
+      "U",
+      "X",
+      "S",
+      "X",
+      "O"
+    ],
+    [
+      "A",
+      "X",
+      "X",
+      "X",
+      "K",
+      "X",
+      "H",
+      "X",
+      "R"
+    ],
+    [
+      "F",
+      "A",
+      "R",
+      "M",
+      "A",
+      "C",
+      "I",
+      "S",
+      "T"
+    ],
+    [
+      "\u00CB",
+      "X",
+      "X",
+      "X",
+      "T",
+      "X",
+      "X",
+      "A",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "J",
+      "X",
+      "O",
+      "X",
+      "U",
+      "J",
+      "K"
+    ],
+    [
+      "X",
+      "X",
+      "E",
+      "M",
+      "R",
+      "A",
+      "X",
+      "X",
+      "J"
+    ],
+    [
+      "Q",
+      "E",
+      "T",
+      "X",
+      "X",
+      "X",
+      "A",
+      "J",
+      "O"
+    ]
+  ],
+  "words": [
+    {
+      "word": "FARMACIST",
+      "row": 4,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PORT",
+      "row": 1,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "EDUKATOR",
+      "row": 0,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "EMRA",
+      "row": 7,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GAF\u00CB",
+      "row": 2,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "HASEJ",
+      "row": 0,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ARI",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "SHI",
+      "row": 2,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "JET",
+      "row": 6,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "SAJ",
+      "row": 4,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "GJI",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QET",
+      "row": 8,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "UJK",
+      "row": 6,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KJO",
+      "row": 6,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "AJO",
+      "row": 8,
+      "col": 6,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 5,
+  "dayName": "E Shtun\u00EB"
+}

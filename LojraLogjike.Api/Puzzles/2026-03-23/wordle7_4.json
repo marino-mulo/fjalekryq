@@ -1,0 +1,192 @@
+{
+  "gridSize": 9,
+  "solution": [
+    [
+      "X",
+      "X",
+      "T",
+      "R",
+      "U",
+      "P",
+      "X",
+      "X",
+      "I"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "R",
+      "X",
+      "B",
+      "X",
+      "K"
+    ],
+    [
+      "K",
+      "X",
+      "X",
+      "V",
+      "I",
+      "T",
+      "A",
+      "L",
+      "E"
+    ],
+    [
+      "A",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "Z",
+      "X",
+      "X"
+    ],
+    [
+      "F",
+      "I",
+      "T",
+      "I",
+      "M",
+      "T",
+      "A",
+      "R",
+      "X"
+    ],
+    [
+      "E",
+      "X",
+      "I",
+      "K",
+      "I",
+      "X",
+      "X",
+      "R",
+      "X"
+    ],
+    [
+      "X",
+      "M",
+      "J",
+      "E",
+      "K",
+      "\u00CB",
+      "S",
+      "I",
+      "X"
+    ],
+    [
+      "X",
+      "O",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "X",
+      "S",
+      "H",
+      "I",
+      "T",
+      "\u00CB",
+      "S",
+      "X",
+      "X"
+    ]
+  ],
+  "words": [
+    {
+      "word": "FITIMTAR",
+      "row": 4,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BAZA",
+      "row": 1,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "TIJ",
+      "row": 4,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "VITALE",
+      "row": 2,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MJEK\u00CBSI",
+      "row": 6,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MOS",
+      "row": 6,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "SHIT\u00CBS",
+      "row": 8,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "IKE",
+      "row": 0,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "KAFE",
+      "row": 2,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "URI",
+      "row": 0,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRUP",
+      "row": 0,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "RRI",
+      "row": 4,
+      "col": 7,
+      "direction": "vertical"
+    },
+    {
+      "word": "MIK",
+      "row": 4,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "IKI",
+      "row": 5,
+      "col": 2,
+      "direction": "horizontal"
+    }
+  ],
+  "dayIndex": 4,
+  "dayName": "E Premte"
+}
