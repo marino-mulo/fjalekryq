@@ -120,7 +120,7 @@ public static class Wordle7Generator
             int nWords = placed.Count;
             int nLetters = CountLetters(grid);
 
-            if (nWords >= minWords && nLetters >= minLetters && !HasIsolatedLetters(grid, size) && CheckConnectivity(placed))
+            if (nWords >= minWords && nLetters >= minLetters && !HasIsolatedLetters(grid, size) && CheckConnectivity(grid, size))
             {
                 // Clean placed words: remove any whose run doesn't match the actual grid
                 var cleanPlaced = CleanPlacedWords(grid, placed, size);
@@ -312,57 +312,52 @@ public static class Wordle7Generator
         return false;
     }
 
-    private static bool CheckConnectivity(List<(string word, int row, int col, string dir)> placed)
+    /// <summary>
+    /// Grid-based connectivity check: flood-fill from the first filled cell
+    /// and verify that ALL filled cells are reached. This catches words that
+    /// are spatially disconnected even if they individually share cells with
+    /// some other word in the placed list.
+    /// </summary>
+    private static bool CheckConnectivity(string[][] grid, int size)
     {
-        if (placed.Count <= 1) return true;
+        // Find first filled cell
+        int startR = -1, startC = -1;
+        for (int r = 0; r < size && startR < 0; r++)
+            for (int c = 0; c < size && startR < 0; c++)
+                if (grid[r][c] != "X") { startR = r; startC = c; }
 
-        var cellsPerWord = new List<HashSet<(int, int)>>();
-        foreach (var (w, r, c, d) in placed)
-        {
-            var cells = new HashSet<(int, int)>();
-            for (int i = 0; i < w.Length; i++)
-            {
-                int rr = r + (d == "vertical" ? i : 0);
-                int cc = c + (d == "horizontal" ? i : 0);
-                cells.Add((rr, cc));
-            }
-            cellsPerWord.Add(cells);
-        }
+        if (startR < 0) return true; // empty grid
 
-        // Build adjacency graph: words are connected if they share any cell
-        var adj = new Dictionary<int, HashSet<int>>();
-        for (int i = 0; i < placed.Count; i++)
-            adj[i] = [];
+        // BFS flood fill from first filled cell (4-directional)
+        var visited = new HashSet<(int, int)> { (startR, startC) };
+        var queue = new Queue<(int, int)>();
+        queue.Enqueue((startR, startC));
+        int[] dr = [-1, 1, 0, 0];
+        int[] dc = [0, 0, -1, 1];
 
-        for (int i = 0; i < placed.Count; i++)
-        {
-            for (int j = i + 1; j < placed.Count; j++)
-            {
-                if (cellsPerWord[i].Overlaps(cellsPerWord[j]))
-                {
-                    adj[i].Add(j);
-                    adj[j].Add(i);
-                }
-            }
-        }
-
-        // BFS from word 0
-        var visited = new HashSet<int> { 0 };
-        var queue = new Queue<int>();
-        queue.Enqueue(0);
         while (queue.Count > 0)
         {
-            int n = queue.Dequeue();
-            foreach (int nb in adj[n])
+            var (cr, cc) = queue.Dequeue();
+            for (int d = 0; d < 4; d++)
             {
-                if (!visited.Contains(nb))
+                int nr = cr + dr[d];
+                int nc = cc + dc[d];
+                if (nr >= 0 && nr < size && nc >= 0 && nc < size
+                    && grid[nr][nc] != "X" && !visited.Contains((nr, nc)))
                 {
-                    visited.Add(nb);
-                    queue.Enqueue(nb);
+                    visited.Add((nr, nc));
+                    queue.Enqueue((nr, nc));
                 }
             }
         }
-        return visited.Count == placed.Count;
+
+        // Count total filled cells
+        int totalFilled = 0;
+        for (int r = 0; r < size; r++)
+            for (int c = 0; c < size; c++)
+                if (grid[r][c] != "X") totalFilled++;
+
+        return visited.Count == totalFilled;
     }
 
     /// <summary>

@@ -2,117 +2,123 @@
   "gridSize": 7,
   "solution": [
     [
+      "M",
+      "X",
+      "X",
+      "X",
       "\u00C7",
-      "X",
-      "D",
-      "I",
-      "L",
-      "X",
-      "X"
+      "U",
+      "P"
     ],
     [
-      "U",
-      "X",
-      "U",
-      "X",
-      "U",
-      "X",
-      "S"
-    ],
-    [
-      "A",
-      "X",
-      "A",
-      "X",
-      "F",
-      "X",
-      "K"
-    ],
-    [
-      "N",
-      "G",
       "J",
-      "I",
-      "T",
-      "J",
-      "A"
-    ],
-    [
-      "X",
-      "R",
-      "X",
-      "X",
+      "A",
+      "V",
       "\u00CB",
+      "X",
+      "X",
+      "Y"
+    ],
+    [
+      "E",
+      "X",
+      "A",
+      "X",
+      "X",
       "X",
       "J"
     ],
     [
-      "P",
-      "A",
+      "K",
+      "U",
+      "J",
       "T",
+      "I",
+      "M",
+      "E"
+    ],
+    [
+      "U",
+      "X",
+      "Z",
+      "X",
+      "N",
+      "X",
+      "T"
+    ],
+    [
+      "X",
+      "H",
+      "\u00CB",
+      "N",
       "A",
       "X",
-      "X",
-      "\u00CB"
+      "X"
     ],
     [
       "X",
       "X",
       "X",
       "X",
-      "X",
-      "X",
-      "X"
+      "T",
+      "O",
+      "P"
     ]
   ],
   "words": [
     {
-      "word": "NGJITJA",
+      "word": "KUJTIME",
       "row": 3,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "DUAJ",
+      "word": "MJEKU",
       "row": 0,
-      "col": 2,
+      "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "LUFT\u00CB",
-      "row": 0,
+      "word": "INAT",
+      "row": 3,
       "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "GRA",
-      "row": 3,
-      "col": 1,
-      "direction": "vertical"
-    },
-    {
-      "word": "DIL",
-      "row": 0,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "PATA",
-      "row": 5,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "\u00C7UAN",
-      "row": 0,
-      "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "SKAJ\u00CB",
+      "word": "VAJZ\u00CB",
       "row": 1,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "TOP",
+      "row": 6,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PYJET",
+      "row": 0,
       "col": 6,
       "direction": "vertical"
+    },
+    {
+      "word": "H\u00CBNA",
+      "row": 5,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "\u00C7UP",
+      "row": 0,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "JAV\u00CB",
+      "row": 1,
+      "col": 0,
+      "direction": "horizontal"
     }
   ],
   "dayIndex": 0,

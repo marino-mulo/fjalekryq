@@ -2,234 +2,234 @@
   "gridSize": 10,
   "solution": [
     [
-      "T",
-      "O",
-      "P",
-      "X",
-      "D",
-      "H",
-      "E",
       "X",
       "X",
-      "U"
-    ],
-    [
-      "R",
       "X",
+      "X",
+      "X",
+      "B",
       "U",
-      "X",
-      "E",
-      "X",
-      "X",
-      "Q",
-      "A",
-      "N"
+      "K",
+      "U",
+      "R"
     ],
     [
-      "E",
-      "X",
-      "S",
-      "O",
-      "T",
-      "X",
-      "X",
-      "E",
-      "X",
-      "I"
-    ],
-    [
+      "\u00C7",
+      "U",
+      "P",
       "X",
       "M",
       "X",
-      "P",
       "X",
-      "V",
-      "E",
+      "X",
+      "X",
+      "O"
+    ],
+    [
+      "U",
+      "X",
+      "A",
       "T",
+      "O",
       "X",
-      "K"
+      "H",
+      "X",
+      "X",
+      "J"
+    ],
+    [
+      "N",
+      "U",
+      "K",
+      "X",
+      "S",
+      "H",
+      "I",
+      "S",
+      "H",
+      "E"
     ],
     [
       "X",
       "J",
       "X",
-      "E",
-      "X",
-      "I",
+      "B",
       "X",
       "X",
-      "T",
-      "X"
-    ],
-    [
       "S",
-      "E",
-      "K",
-      "R",
-      "E",
-      "T",
-      "A",
-      "R",
-      "E",
+      "X",
+      "X",
       "X"
     ],
     [
-      "X",
-      "K",
-      "X",
       "A",
-      "X",
-      "X",
-      "X",
-      "X",
+      "K",
+      "T",
+      "I",
+      "V",
+      "I",
+      "T",
+      "E",
       "T",
       "X"
     ],
     [
+      "R",
+      "X",
       "X",
       "E",
+      "X",
+      "X",
+      "O",
+      "X",
+      "X",
+      "D"
+    ],
+    [
+      "R",
       "X",
       "T",
       "X",
       "N",
       "X",
-      "Z",
-      "O",
-      "T"
+      "R",
+      "X",
+      "X",
+      "E"
     ],
     [
+      "\u00CB",
       "X",
-      "X",
-      "P",
-      "O",
-      "L",
+      "R",
+      "E",
+      "G",
+      "J",
       "I",
-      "C",
-      "X",
-      "R",
-      "X"
+      "S",
+      "O",
+      "R"
     ],
     [
       "X",
       "X",
+      "E",
       "X",
-      "R",
+      "A",
       "X",
-      "S",
+      "A",
       "X",
       "X",
-      "X",
-      "X"
+      "\u00CB"
     ]
   ],
   "words": [
     {
-      "word": "SEKRETARE",
+      "word": "AKTIVITET",
       "row": 5,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "VIT",
-      "row": 3,
-      "col": 5,
-      "direction": "vertical"
-    },
-    {
-      "word": "TETOR",
-      "row": 4,
-      "col": 8,
-      "direction": "vertical"
-    },
-    {
-      "word": "MJEKE",
+      "word": "UJK",
       "row": 3,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "OPERATOR",
+      "word": "HISTORIA",
       "row": 2,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "BIE",
+      "row": 4,
       "col": 3,
       "direction": "vertical"
     },
     {
-      "word": "POLIC",
+      "word": "REGJISOR",
       "row": 8,
       "col": 2,
       "direction": "horizontal"
     },
     {
-      "word": "NIS",
-      "row": 7,
-      "col": 5,
-      "direction": "vertical"
-    },
-    {
-      "word": "ZOT",
-      "row": 7,
-      "col": 7,
+      "word": "SHISHE",
+      "row": 3,
+      "col": 4,
       "direction": "horizontal"
     },
     {
-      "word": "SOT",
+      "word": "DER\u00CB",
+      "row": 6,
+      "col": 9,
+      "direction": "vertical"
+    },
+    {
+      "word": "ROJE",
+      "row": 0,
+      "col": 9,
+      "direction": "vertical"
+    },
+    {
+      "word": "BUKUR",
+      "row": 0,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ARR\u00CB",
+      "row": 5,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "NUK",
+      "row": 3,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "\u00C7UN",
+      "row": 1,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "MOS",
+      "row": 1,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "PAK",
+      "row": 1,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "TRE",
+      "row": 7,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "ATO",
       "row": 2,
       "col": 2,
       "direction": "horizontal"
     },
     {
-      "word": "VET",
-      "row": 3,
-      "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "QET",
-      "row": 1,
-      "col": 7,
-      "direction": "vertical"
-    },
-    {
-      "word": "DET",
-      "row": 0,
+      "word": "NGA",
+      "row": 7,
       "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "DHE",
-      "row": 0,
-      "col": 4,
-      "direction": "horizontal"
-    },
-    {
-      "word": "PUS",
-      "row": 0,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "TOP",
-      "row": 0,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "QAN",
+      "word": "\u00C7UP",
       "row": 1,
-      "col": 7,
-      "direction": "horizontal"
-    },
-    {
-      "word": "TRE",
-      "row": 0,
       "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "UNIK",
-      "row": 0,
-      "col": 9,
-      "direction": "vertical"
+      "direction": "horizontal"
     }
   ],
   "dayIndex": 6,

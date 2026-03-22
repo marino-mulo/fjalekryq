@@ -2,38 +2,18 @@
   "gridSize": 8,
   "solution": [
     [
-      "X",
-      "Z",
-      "O",
-      "G",
-      "X",
-      "U",
-      "X",
-      "X"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "R",
-      "O",
-      "J",
+      "D",
+      "H",
       "E",
-      "X"
-    ],
-    [
-      "\u00C7",
-      "U",
-      "N",
+      "X",
+      "G",
       "A",
-      "X",
-      "K",
-      "X",
+      "Z",
       "X"
     ],
     [
+      "U",
       "X",
-      "J",
       "X",
       "X",
       "X",
@@ -42,111 +22,143 @@
       "X"
     ],
     [
-      "M",
-      "\u00CB",
+      "A",
+      "T",
+      "Y",
+      "X",
       "S",
-      "I",
-      "M",
       "O",
-      "R",
-      "E"
+      "T",
+      "X"
     ],
     [
+      "X",
+      "R",
       "X",
       "X",
       "H",
       "X",
-      "I",
       "X",
-      "A",
-      "X"
+      "G"
     ],
     [
+      "R",
+      "E",
+      "G",
+      "J",
+      "I",
+      "S",
+      "O",
+      "R"
+    ],
+    [
+      "R",
+      "X",
+      "O",
+      "X",
+      "S",
+      "X",
+      "X",
+      "A"
+    ],
+    [
+      "I",
       "X",
       "L",
-      "I",
-      "B",
-      "R",
-      "A",
-      "R",
-      "I"
+      "X",
+      "H",
+      "X",
+      "X",
+      "X"
     ],
     [
       "X",
       "X",
       "X",
       "X",
-      "\u00CB",
-      "X",
-      "X",
-      "X"
+      "E",
+      "P",
+      "I",
+      "K"
     ]
   ],
   "words": [
     {
-      "word": "M\u00CBSIMORE",
+      "word": "REGJISOR",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "ORAR",
-      "row": 3,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "LIBRARI",
-      "row": 6,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "UJ\u00CB",
+      "word": "TRE",
       "row": 2,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "\u00C7UNA",
-      "row": 2,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MIR\u00CB",
-      "row": 4,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "GRA",
-      "row": 0,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "SHI",
+      "word": "GOL",
       "row": 4,
       "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "ROJE",
-      "row": 1,
-      "col": 3,
-      "direction": "horizontal"
-    },
-    {
-      "word": "UJK",
-      "row": 0,
-      "col": 5,
+      "word": "GRA",
+      "row": 3,
+      "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "ZOG",
+      "word": "SHISHE",
+      "row": 2,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "EPIK",
+      "row": 7,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ATY",
+      "row": 2,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "SOT",
+      "row": 2,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "RRI",
+      "row": 4,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "DUA",
       "row": 0,
-      "col": 1,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "ZOT",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "DHE",
+      "row": 0,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GAZ",
+      "row": 0,
+      "col": 4,
       "direction": "horizontal"
     }
   ],

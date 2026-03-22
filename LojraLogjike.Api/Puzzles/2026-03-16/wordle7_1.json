@@ -3,43 +3,43 @@
   "solution": [
     [
       "X",
-      "V",
       "X",
       "X",
-      "Y",
-      "L",
-      "L"
+      "X",
+      "X",
+      "X",
+      "\u00C7"
     ],
     [
-      "Q",
-      "A",
-      "N",
+      "O",
+      "S",
+      "E",
       "X",
-      "X",
-      "X",
-      "\u00CB"
+      "R",
+      "R",
+      "I"
     ],
     [
       "X",
-      "L",
-      "X",
-      "L",
-      "X",
-      "X",
-      "R"
-    ],
-    [
       "K",
-      "\u00CB",
-      "N",
+      "X",
+      "T",
+      "X",
+      "X",
+      "K"
+    ],
+    [
+      "V",
       "A",
-      "Q",
+      "J",
+      "O",
+      "S",
       "J",
       "E"
     ],
     [
-      "U",
       "X",
+      "J",
       "X",
       "K",
       "X",
@@ -47,18 +47,18 @@
       "X"
     ],
     [
-      "F",
-      "X",
-      "X",
+      "H",
       "\u00CB",
+      "N",
+      "A",
       "X",
       "T",
       "X"
     ],
     [
-      "I",
-      "K",
-      "I",
+      "X",
+      "X",
+      "X",
       "X",
       "B",
       "\u00CB",
@@ -67,50 +67,38 @@
   ],
   "words": [
     {
-      "word": "K\u00CBNAQJE",
+      "word": "VAJOSJE",
       "row": 3,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "KUFI",
-      "row": 3,
-      "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "VAL\u00CB",
-      "row": 0,
-      "col": 1,
-      "direction": "vertical"
-    },
-    {
-      "word": "L\u00CBRE",
+      "word": "\u00C7IKE",
       "row": 0,
       "col": 6,
       "direction": "vertical"
     },
     {
-      "word": "LAK\u00CB",
+      "word": "TOKA",
       "row": 2,
       "col": 3,
       "direction": "vertical"
     },
     {
-      "word": "QAN",
+      "word": "SKAJ\u00CB",
+      "row": 1,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "OSE",
       "row": 1,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "IKI",
-      "row": 6,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "YLL",
-      "row": 0,
+      "word": "RRI",
+      "row": 1,
       "col": 4,
       "direction": "horizontal"
     },
@@ -119,6 +107,12 @@
       "row": 3,
       "col": 5,
       "direction": "vertical"
+    },
+    {
+      "word": "H\u00CBNA",
+      "row": 5,
+      "col": 0,
+      "direction": "horizontal"
     },
     {
       "word": "B\u00CBJ",

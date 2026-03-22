@@ -2,194 +2,194 @@
   "gridSize": 9,
   "solution": [
     [
+      "M",
       "X",
-      "H",
-      "A",
-      "S",
-      "E",
+      "X",
+      "P",
+      "X",
+      "X",
+      "B",
+      "I",
+      "R"
+    ],
+    [
+      "P",
+      "O",
+      "L",
+      "I",
+      "C",
+      "X",
+      "L",
+      "X",
+      "R"
+    ],
+    [
+      "R",
+      "X",
+      "X",
       "J",
       "X",
+      "K",
+      "U",
+      "F",
+      "I"
+    ],
+    [
+      "E",
       "X",
+      "X",
+      "X",
+      "T",
+      "X",
+      "X",
+      "J",
       "X"
     ],
     [
-      "X",
-      "X",
-      "R",
-      "X",
-      "D",
-      "X",
-      "X",
-      "X",
-      "P"
-    ],
-    [
-      "G",
-      "J",
+      "H",
       "I",
-      "X",
-      "U",
-      "X",
       "S",
-      "X",
-      "O"
+      "T",
+      "O",
+      "R",
+      "I",
+      "A",
+      "N"
     ],
     [
-      "A",
+      "X",
       "X",
       "X",
       "X",
       "K",
       "X",
-      "H",
       "X",
-      "R"
+      "L",
+      "X"
     ],
     [
-      "F",
+      "P",
       "A",
-      "R",
-      "M",
+      "G",
+      "U",
       "A",
-      "C",
-      "I",
-      "S",
-      "T"
-    ],
-    [
+      "J",
+      "X",
       "\u00CB",
-      "X",
-      "X",
-      "X",
-      "T",
-      "X",
-      "X",
-      "A",
       "X"
     ],
     [
       "X",
-      "X",
       "J",
       "X",
+      "X",
+      "X",
+      "E",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "P",
       "O",
-      "X",
-      "U",
-      "J",
-      "K"
-    ],
-    [
-      "X",
-      "X",
-      "E",
-      "M",
       "R",
-      "A",
-      "X",
-      "X",
-      "J"
-    ],
-    [
-      "Q",
-      "E",
       "T",
       "X",
-      "X",
-      "X",
-      "A",
-      "J",
-      "O"
+      "T",
+      "O",
+      "P",
+      "X"
     ]
   ],
   "words": [
     {
-      "word": "FARMACIST",
+      "word": "HISTORIAN",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "PORT",
-      "row": 1,
-      "col": 8,
+      "word": "FJAL\u00CB",
+      "row": 2,
+      "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "EDUKATOR",
-      "row": 0,
+      "word": "TOKA",
+      "row": 3,
       "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "EMRA",
-      "row": 7,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "GAF\u00CB",
-      "row": 2,
+      "word": "MPREH",
+      "row": 0,
       "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "HASEJ",
-      "row": 0,
-      "col": 1,
+      "word": "POLIC",
+      "row": 1,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "ARI",
-      "row": 0,
-      "col": 2,
+      "word": "PAGUAJ",
+      "row": 6,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KUFI",
+      "row": 2,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "AJO",
+      "row": 6,
+      "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "SHI",
-      "row": 2,
+      "word": "PIJ",
+      "row": 0,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "RRI",
+      "row": 0,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "BIR",
+      "row": 0,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PORT",
+      "row": 8,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BLU",
+      "row": 0,
       "col": 6,
       "direction": "vertical"
     },
     {
       "word": "JET",
       "row": 6,
-      "col": 2,
+      "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "SAJ",
-      "row": 4,
-      "col": 7,
-      "direction": "vertical"
-    },
-    {
-      "word": "GJI",
-      "row": 2,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "QET",
+      "word": "TOP",
       "row": 8,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "UJK",
-      "row": 6,
-      "col": 6,
-      "direction": "horizontal"
-    },
-    {
-      "word": "KJO",
-      "row": 6,
-      "col": 8,
-      "direction": "vertical"
-    },
-    {
-      "word": "AJO",
-      "row": 8,
-      "col": 6,
+      "col": 5,
       "direction": "horizontal"
     }
   ],

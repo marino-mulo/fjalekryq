@@ -2,129 +2,123 @@
   "gridSize": 7,
   "solution": [
     [
-      "I",
-      "K",
-      "I",
       "X",
-      "Q",
-      "E",
-      "T"
-    ],
-    [
-      "X",
-      "R",
+      "V",
       "X",
       "X",
-      "X",
-      "X",
-      "O"
-    ],
-    [
-      "X",
-      "A",
-      "X",
-      "X",
-      "Y",
-      "X",
-      "K"
-    ],
-    [
-      "S",
-      "H",
-      "K",
-      "O",
-      "L",
-      "L",
-      "\u00CB"
-    ],
-    [
-      "K",
-      "X",
-      "R",
-      "X",
-      "L",
-      "X",
-      "S"
-    ],
-    [
-      "A",
-      "T",
-      "Y",
-      "X",
-      "X",
+      "P",
       "X",
       "X"
     ],
     [
-      "J",
-      "X",
-      "Q",
-      "E",
-      "N",
+      "L",
       "I",
-      "N"
+      "B",
+      "\u00CB",
+      "R",
+      "X",
+      "D"
+    ],
+    [
+      "X",
+      "T",
+      "X",
+      "X",
+      "A",
+      "X",
+      "H"
+    ],
+    [
+      "V",
+      "A",
+      "J",
+      "O",
+      "S",
+      "J",
+      "E"
+    ],
+    [
+      "X",
+      "L",
+      "X",
+      "R",
+      "X",
+      "A",
+      "X"
+    ],
+    [
+      "D",
+      "E",
+      "R",
+      "\u00CB",
+      "X",
+      "V",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "B",
+      "\u00CB",
+      "J"
     ]
   ],
   "words": [
     {
-      "word": "SHKOLL\u00CB",
+      "word": "VAJOSJE",
       "row": 3,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "KRYQ",
-      "row": 3,
-      "col": 2,
+      "word": "DHE",
+      "row": 1,
+      "col": 6,
       "direction": "vertical"
     },
     {
-      "word": "QET",
-      "row": 0,
-      "col": 4,
-      "direction": "horizontal"
-    },
-    {
-      "word": "ATY",
-      "row": 5,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "YLL",
-      "row": 2,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "QENIN",
-      "row": 6,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "KRAH",
+      "word": "VITALE",
       "row": 0,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "IKI",
-      "row": 0,
+      "word": "LIB\u00CBR",
+      "row": 1,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "SKAJ",
+      "word": "OR\u00CB",
       "row": 3,
-      "col": 0,
+      "col": 3,
       "direction": "vertical"
     },
     {
-      "word": "TOK\u00CBS",
-      "row": 0,
-      "col": 6,
+      "word": "JAV\u00CB",
+      "row": 3,
+      "col": 5,
       "direction": "vertical"
+    },
+    {
+      "word": "B\u00CBJ",
+      "row": 6,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PRAS",
+      "row": 0,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "DER\u00CB",
+      "row": 5,
+      "col": 0,
+      "direction": "horizontal"
     }
   ],
   "dayIndex": 1,

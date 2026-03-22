@@ -2,245 +2,221 @@
   "gridSize": 10,
   "solution": [
     [
-      "X",
-      "X",
-      "X",
-      "L",
-      "U",
-      "T",
+      "J",
       "A",
+      "V",
+      "\u00CB",
+      "X",
+      "X",
+      "D",
+      "J",
+      "E",
+      "P"
+    ],
+    [
+      "X",
+      "X",
+      "I",
+      "X",
+      "D",
+      "X",
+      "X",
       "X",
       "X",
       "U"
     ],
     [
-      "M",
-      "I",
-      "R",
-      "\u00CB",
-      "X",
-      "X",
-      "X",
-      "P",
-      "I",
-      "J"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "R",
-      "X",
-      "B",
-      "X",
-      "L",
-      "X",
-      "\u00CB"
-    ],
-    [
-      "Q",
-      "A",
-      "J",
-      "X",
-      "B",
-      "A",
-      "B",
-      "A",
-      "I",
-      "X"
-    ],
-    [
-      "X",
-      "T",
-      "X",
-      "X",
-      "X",
-      "Z",
-      "X",
       "K",
       "X",
-      "X"
-    ],
-    [
-      "Q",
-      "Y",
-      "T",
-      "E",
-      "T",
-      "A",
+      "D",
+      "O",
       "R",
       "\u00CB",
+      "X",
+      "Q",
+      "X",
+      "L"
+    ],
+    [
+      "\u00CB",
+      "X",
+      "A",
+      "X",
+      "E",
+      "X",
       "T",
+      "E",
+      "T",
+      "A"
+    ],
+    [
+      "N",
+      "X",
+      "X",
+      "X",
+      "J",
+      "X",
+      "X",
+      "N",
+      "X",
       "X"
     ],
     [
+      "D",
+      "R",
       "E",
+      "J",
+      "T",
+      "\u00CB",
+      "S",
+      "I",
+      "A",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
       "X",
       "O",
       "X",
       "X",
       "X",
-      "X",
-      "X",
-      "I",
+      "T",
       "X"
     ],
     [
-      "N",
-      "X",
-      "K",
-      "U",
-      "F",
-      "I",
-      "X",
-      "G",
-      "J",
-      "I"
-    ],
-    [
-      "X",
-      "X",
+      "M",
+      "O",
+      "T",
       "\u00CB",
+      "R",
+      "X",
+      "K",
+      "R",
+      "Y",
+      "Q"
+    ],
+    [
+      "X",
+      "X",
+      "X",
       "X",
       "I",
       "X",
-      "X",
       "J",
       "X",
-      "X"
+      "X",
+      "A"
     ],
     [
-      "P",
       "E",
-      "S",
-      "H",
-      "K",
-      "X",
-      "P",
+      "D",
       "U",
-      "S",
-      "X"
+      "K",
+      "A",
+      "T",
+      "O",
+      "R",
+      "X",
+      "J"
     ]
   ],
   "words": [
     {
-      "word": "QYTETAR\u00CBT",
+      "word": "DREJT\u00CBSIA",
       "row": 5,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "BAZA",
-      "row": 2,
-      "col": 5,
+      "word": "DREJTORIA",
+      "row": 1,
+      "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "PLAK\u00CB",
-      "row": 1,
+      "word": "EDUKATOR",
+      "row": 9,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "MOT\u00CBR",
+      "row": 7,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DOR\u00CB",
+      "row": 2,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "QENI",
+      "row": 2,
       "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "BABAI",
-      "row": 3,
-      "col": 4,
+      "word": "KJO",
+      "row": 7,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "KRYQ",
+      "row": 7,
+      "col": 6,
       "direction": "horizontal"
     },
     {
-      "word": "TIJ",
+      "word": "ATY",
       "row": 5,
       "col": 8,
       "direction": "vertical"
     },
     {
-      "word": "TOK\u00CBS",
-      "row": 5,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "KUFI",
-      "row": 7,
-      "col": 2,
+      "word": "TETA",
+      "row": 3,
+      "col": 6,
       "direction": "horizontal"
     },
     {
-      "word": "GJI",
-      "row": 7,
-      "col": 7,
-      "direction": "horizontal"
-    },
-    {
-      "word": "PESHK",
-      "row": 9,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "QEN",
-      "row": 5,
-      "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "PIJ",
-      "row": 1,
-      "col": 7,
-      "direction": "horizontal"
-    },
-    {
-      "word": "UJ\u00CB",
+      "word": "PULA",
       "row": 0,
       "col": 9,
       "direction": "vertical"
     },
     {
-      "word": "GJU",
-      "row": 7,
-      "col": 7,
+      "word": "VIDA",
+      "row": 0,
+      "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "PUS",
-      "row": 9,
-      "col": 6,
-      "direction": "horizontal"
-    },
-    {
-      "word": "FIK",
-      "row": 7,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "ATY",
-      "row": 3,
-      "col": 1,
+      "word": "K\u00CBND",
+      "row": 2,
+      "col": 0,
       "direction": "vertical"
     },
     {
       "word": "QAJ",
-      "row": 3,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MIR\u00CB",
-      "row": 1,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "L\u00CBR",
-      "row": 0,
-      "col": 3,
+      "row": 7,
+      "col": 9,
       "direction": "vertical"
     },
     {
-      "word": "LUTA",
+      "word": "DJEP",
       "row": 0,
-      "col": 3,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "JAV\u00CB",
+      "row": 0,
+      "col": 0,
       "direction": "horizontal"
     }
   ],

@@ -4,149 +4,155 @@
     [
       "L",
       "U",
-      "T",
-      "A",
-      "X",
-      "X",
-      "X",
-      "X"
-    ],
-    [
-      "O",
-      "X",
-      "O",
-      "X",
-      "G",
-      "A",
-      "F",
-      "\u00CB"
-    ],
-    [
-      "T",
-      "X",
-      "P",
+      "M",
       "I",
-      "J",
+      "X",
+      "O",
+      "S",
+      "E"
+    ],
+    [
+      "X",
+      "X",
+      "O",
+      "X",
+      "D",
+      "X",
+      "H",
+      "X"
+    ],
+    [
+      "X",
+      "F",
+      "S",
+      "H",
+      "A",
+      "T",
+      "I",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "X",
+      "R",
       "X",
       "X",
       "X"
     ],
     [
-      "X",
-      "P",
-      "X",
+      "B",
+      "I",
+      "\u00C7",
+      "I",
+      "K",
+      "L",
+      "E",
+      "T"
+    ],
+    [
+      "A",
       "X",
       "U",
       "X",
-      "X",
-      "S"
-    ],
-    [
-      "L",
-      "L",
-      "O",
-      "G",
-      "A",
-      "R",
-      "I",
-      "A"
-    ],
-    [
-      "X",
-      "E",
-      "X",
-      "X",
-      "J",
-      "X",
-      "X",
-      "J"
-    ],
-    [
-      "X",
-      "P",
-      "X",
-      "X",
-      "E",
-      "R",
-      "A",
-      "X"
-    ],
-    [
-      "L",
-      "A",
-      "K",
       "\u00CB",
       "X",
-      "X",
-      "X",
+      "M",
       "X"
+    ],
+    [
+      "Z",
+      "A",
+      "N",
+      "A",
+      "X",
+      "X",
+      "\u00CB",
+      "X"
+    ],
+    [
+      "\u00CB",
+      "X",
+      "A",
+      "X",
+      "Z",
+      "Y",
+      "R",
+      "A"
     ]
   ],
   "words": [
     {
-      "word": "LLOGARIA",
+      "word": "BI\u00C7IKLET",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "GJUAJE",
+      "word": "DARK\u00CB",
       "row": 1,
       "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "SAJ",
-      "row": 3,
-      "col": 7,
-      "direction": "vertical"
-    },
-    {
-      "word": "PLEPA",
-      "row": 3,
-      "col": 1,
-      "direction": "vertical"
-    },
-    {
-      "word": "LAK\u00CB",
-      "row": 7,
+      "word": "BAZ\u00CB",
+      "row": 4,
       "col": 0,
-      "direction": "horizontal"
+      "direction": "vertical"
     },
     {
-      "word": "PIJ",
+      "word": "EM\u00CBR",
+      "row": 4,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "FSHATI",
       "row": 2,
-      "col": 2,
+      "col": 1,
       "direction": "horizontal"
     },
     {
-      "word": "TOP",
-      "row": 0,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "LUTA",
-      "row": 0,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "GAF\u00CB",
-      "row": 1,
+      "word": "ZYRA",
+      "row": 7,
       "col": 4,
       "direction": "horizontal"
     },
     {
-      "word": "LOT",
+      "word": "SHI",
       "row": 0,
-      "col": 0,
+      "col": 6,
       "direction": "vertical"
     },
     {
-      "word": "ERA",
+      "word": "OSE",
+      "row": 0,
+      "col": 5,
+      "direction": "horizontal"
+    },
+    {
+      "word": "ZANA",
       "row": 6,
-      "col": 4,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "\u00C7UNA",
+      "row": 4,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "MOS",
+      "row": 0,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "LUMI",
+      "row": 0,
+      "col": 0,
       "direction": "horizontal"
     }
   ],

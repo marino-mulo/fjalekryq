@@ -2,128 +2,128 @@
   "gridSize": 7,
   "solution": [
     [
+      "E",
+      "P",
+      "I",
+      "K",
       "X",
       "X",
-      "X",
-      "X",
-      "X",
-      "D",
-      "X"
+      "M"
     ],
     [
-      "Q",
-      "E",
-      "T",
       "X",
-      "D",
       "U",
-      "A"
+      "X",
+      "X",
+      "B",
+      "L",
+      "U"
     ],
     [
+      "X",
+      "L",
+      "X",
+      "M",
+      "X",
+      "X",
+      "R"
+    ],
+    [
+      "V",
       "A",
+      "J",
+      "O",
+      "S",
+      "J",
+      "E"
+    ],
+    [
+      "E",
       "X",
-      "I",
       "X",
+      "S",
       "X",
-      "A",
+      "E",
       "X"
     ],
     [
-      "N",
-      "G",
-      "J",
-      "I",
       "T",
-      "J",
-      "A"
-    ],
-    [
-      "X",
       "R",
-      "X",
-      "K",
-      "X",
-      "X",
-      "R"
-    ],
-    [
-      "Q",
       "E",
-      "N",
-      "I",
-      "N",
       "X",
-      "R"
+      "A",
+      "T",
+      "O"
     ],
     [
       "X",
-      "K",
       "X",
       "X",
       "X",
       "X",
-      "\u00CB"
+      "\u00CB",
+      "X"
     ]
   ],
   "words": [
     {
-      "word": "NGJITJA",
+      "word": "VAJOSJE",
       "row": 3,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "DUAJ",
+      "word": "PULA",
       "row": 0,
-      "col": 5,
-      "direction": "vertical"
-    },
-    {
-      "word": "GREK",
-      "row": 3,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "QENIN",
-      "row": 5,
+      "word": "EPIK",
+      "row": 0,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "DUA",
+      "word": "MURE",
+      "row": 0,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "MOS",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "BLU",
       "row": 1,
       "col": 4,
       "direction": "horizontal"
     },
     {
-      "word": "TIJ",
-      "row": 1,
-      "col": 2,
-      "direction": "vertical"
-    },
-    {
-      "word": "QAN",
-      "row": 1,
+      "word": "VET",
+      "row": 3,
       "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "ARR\u00CB",
-      "row": 3,
-      "col": 6,
-      "direction": "vertical"
-    },
-    {
-      "word": "IKI",
-      "row": 3,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "QET",
-      "row": 1,
+      "word": "TRE",
+      "row": 5,
       "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "JET\u00CB",
+      "row": 3,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "ATO",
+      "row": 5,
+      "col": 4,
       "direction": "horizontal"
     }
   ],

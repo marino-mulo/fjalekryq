@@ -3,193 +3,181 @@
   "solution": [
     [
       "X",
-      "M",
-      "O",
-      "S",
       "X",
+      "D",
       "A",
-      "D",
-      "E",
-      "T"
-    ],
-    [
-      "X",
-      "J",
-      "X",
-      "X",
-      "X",
-      "X",
-      "X",
-      "X",
-      "E"
-    ],
-    [
-      "D",
-      "E",
-      "T",
-      "X",
-      "X",
-      "X",
-      "S",
-      "O",
-      "T"
-    ],
-    [
-      "X",
-      "K",
-      "X",
-      "X",
-      "T",
-      "X",
-      "K",
-      "X",
-      "A"
-    ],
-    [
-      "P",
-      "\u00CB",
       "R",
-      "V",
-      "O",
-      "J",
-      "A",
-      "T",
+      "K",
+      "\u00CB",
+      "X",
       "X"
     ],
     [
-      "O",
-      "X",
-      "R",
       "X",
       "P",
       "X",
-      "J",
       "X",
-      "V"
+      "X",
+      "L",
+      "X",
+      "X",
+      "X"
     ],
     [
-      "R",
       "X",
-      "U",
+      "A",
       "X",
+      "F",
       "X",
-      "H",
-      "\u00CB",
+      "I",
+      "K",
+      "I",
+      "X"
+    ],
+    [
+      "X",
+      "K",
+      "X",
+      "L",
+      "X",
       "N",
+      "X",
+      "X",
+      "O"
+    ],
+    [
+      "V",
+      "E",
+      "T",
+      "E",
+      "R",
+      "I",
+      "N",
+      "E",
+      "R"
+    ],
+    [
+      "X",
+      "T",
+      "X",
+      "T",
+      "X",
+      "K",
+      "X",
+      "X",
       "A"
     ],
     [
-      "T",
-      "X",
-      "G",
       "X",
       "X",
+      "B",
+      "\u00CB",
+      "J",
+      "X",
+      "B",
+      "I",
+      "R"
+    ],
+    [
+      "Y",
+      "L",
+      "L",
       "X",
       "X",
       "X",
-      "L"
+      "I",
+      "X",
+      "X"
     ],
     [
       "X",
-      "L",
-      "\u00CB",
-      "R",
-      "E",
       "X",
-      "N",
+      "U",
+      "X",
+      "M",
       "J",
-      "\u00CB"
+      "E",
+      "K",
+      "U"
     ]
   ],
   "words": [
     {
-      "word": "P\u00CBRVOJAT",
+      "word": "VETERINER",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "SKAJ\u00CB",
-      "row": 2,
-      "col": 6,
+      "word": "KLINIK",
+      "row": 0,
+      "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "MJEK\u00CB",
+      "word": "DARK\u00CB",
       "row": 0,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "PAKET",
+      "row": 1,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "TOP",
-      "row": 3,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "MOS",
-      "row": 0,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "DET",
+      "word": "IKI",
       "row": 2,
-      "col": 0,
-      "direction": "horizontal"
-    },
-    {
-      "word": "PORT",
-      "row": 4,
-      "col": 0,
-      "direction": "vertical"
-    },
-    {
-      "word": "SOT",
-      "row": 2,
-      "col": 6,
-      "direction": "horizontal"
-    },
-    {
-      "word": "TETA",
-      "row": 0,
-      "col": 8,
-      "direction": "vertical"
-    },
-    {
-      "word": "ADET",
-      "row": 0,
       "col": 5,
       "direction": "horizontal"
     },
     {
-      "word": "RRUG\u00CB",
-      "row": 4,
+      "word": "FLET\u00CB",
+      "row": 2,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "ORAR",
+      "row": 3,
+      "col": 8,
+      "direction": "vertical"
+    },
+    {
+      "word": "BIR",
+      "row": 6,
+      "col": 6,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BIE",
+      "row": 6,
+      "col": 6,
+      "direction": "vertical"
+    },
+    {
+      "word": "MJEKU",
+      "row": 8,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "B\u00CBJ",
+      "row": 6,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BLU",
+      "row": 6,
       "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "H\u00CBNA",
-      "row": 6,
-      "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "L\u00CBRE",
-      "row": 8,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "VAL\u00CB",
-      "row": 5,
-      "col": 8,
-      "direction": "vertical"
-    },
-    {
-      "word": "NJ\u00CB",
-      "row": 8,
-      "col": 6,
+      "word": "YLL",
+      "row": 7,
+      "col": 0,
       "direction": "horizontal"
     }
   ],

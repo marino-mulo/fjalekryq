@@ -2,158 +2,170 @@
   "gridSize": 8,
   "solution": [
     [
+      "B",
+      "X",
+      "B",
+      "I",
       "S",
-      "X",
-      "X",
-      "Y",
-      "X",
-      "N",
-      "G",
-      "A"
+      "E",
+      "D",
+      "\u00CB"
     ],
     [
-      "H",
-      "O",
-      "L",
-      "L",
-      "\u00CB",
+      "I",
+      "K",
+      "I",
       "X",
-      "J",
+      "H",
+      "X",
+      "U",
       "X"
     ],
     [
-      "K",
+      "R",
       "X",
-      "X",
-      "L",
-      "X",
-      "L",
-      "U",
-      "G"
-    ],
-    [
       "E",
       "X",
+      "I",
+      "N",
+      "A",
+      "T"
+    ],
+    [
+      "X",
+      "L",
+      "X",
+      "V",
+      "X",
+      "G",
+      "X",
+      "E"
+    ],
+    [
       "F",
+      "I",
+      "Z",
+      "I",
+      "K",
+      "A",
+      "N",
+      "T"
+    ],
+    [
       "X",
-      "D",
+      "B",
+      "X",
+      "T",
       "X",
       "X",
+      "X",
+      "O"
+    ],
+    [
+      "X",
+      "\u00CB",
+      "X",
+      "X",
+      "E",
+      "M",
+      "\u00CB",
       "R"
     ],
     [
-      "N",
-      "J",
-      "O",
-      "H",
-      "U",
+      "G",
       "R",
-      "I",
-      "A"
-    ],
-    [
-      "C",
-      "X",
-      "L",
-      "X",
       "A",
       "X",
-      "N",
-      "X"
-    ],
-    [
-      "\u00CB",
       "X",
       "X",
       "X",
-      "J",
-      "X",
-      "A",
-      "X"
-    ],
-    [
-      "S",
-      "X",
-      "I",
-      "K",
-      "E",
-      "X",
-      "T",
       "X"
     ]
   ],
   "words": [
     {
-      "word": "NJOHURIA",
+      "word": "FIZIKANT",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "GRA",
+      "word": "LIB\u00CBR",
+      "row": 3,
+      "col": 1,
+      "direction": "vertical"
+    },
+    {
+      "word": "VIT",
+      "row": 3,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "TETOR",
       "row": 2,
       "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "FOL",
-      "row": 3,
-      "col": 2,
+      "word": "NGA",
+      "row": 2,
+      "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "SHKENC\u00CBS",
-      "row": 0,
+      "word": "EM\u00CBR",
+      "row": 6,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GRA",
+      "row": 7,
       "col": 0,
-      "direction": "vertical"
+      "direction": "horizontal"
     },
     {
       "word": "INAT",
-      "row": 4,
+      "row": 2,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "DUA",
+      "row": 0,
       "col": 6,
       "direction": "vertical"
     },
     {
-      "word": "DUAJE",
-      "row": 3,
-      "col": 4,
+      "word": "BISED\u00CB",
+      "row": 0,
+      "col": 2,
+      "direction": "horizontal"
+    },
+    {
+      "word": "BIE",
+      "row": 0,
+      "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "HOLL\u00CB",
+      "word": "IKI",
       "row": 1,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "YLL",
+      "word": "SHI",
       "row": 0,
-      "col": 3,
+      "col": 4,
       "direction": "vertical"
     },
     {
-      "word": "LUG",
-      "row": 2,
-      "col": 5,
-      "direction": "horizontal"
-    },
-    {
-      "word": "IKE",
-      "row": 7,
-      "col": 2,
-      "direction": "horizontal"
-    },
-    {
-      "word": "GJU",
+      "word": "BIR",
       "row": 0,
-      "col": 6,
+      "col": 0,
       "direction": "vertical"
-    },
-    {
-      "word": "NGA",
-      "row": 0,
-      "col": 5,
-      "direction": "horizontal"
     }
   ],
   "dayIndex": 3,

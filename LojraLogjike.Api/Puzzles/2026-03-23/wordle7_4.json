@@ -3,188 +3,194 @@
   "solution": [
     [
       "X",
-      "X",
-      "T",
-      "R",
+      "\u00C7",
       "U",
       "P",
       "X",
-      "X",
-      "I"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "X",
-      "R",
-      "X",
-      "B",
-      "X",
-      "K"
-    ],
-    [
-      "K",
-      "X",
-      "X",
-      "V",
-      "I",
-      "T",
+      "D",
+      "U",
       "A",
+      "X"
+    ],
+    [
+      "X",
+      "X",
+      "X",
+      "O",
+      "X",
+      "A",
+      "X",
+      "X",
+      "X"
+    ],
+    [
+      "G",
+      "X",
+      "P",
+      "R",
+      "I",
       "L",
-      "E"
+      "L",
+      "X",
+      "X"
     ],
     [
       "A",
       "X",
+      "I",
       "X",
       "X",
       "X",
       "X",
+      "D",
+      "X"
+    ],
+    [
       "Z",
-      "X",
-      "X"
-    ],
-    [
-      "F",
+      "G",
+      "J",
       "I",
-      "T",
-      "I",
-      "M",
-      "T",
-      "A",
-      "R",
-      "X"
-    ],
-    [
-      "E",
-      "X",
-      "I",
-      "K",
-      "I",
-      "X",
-      "X",
-      "R",
-      "X"
-    ],
-    [
-      "X",
-      "M",
+      "D",
+      "H",
       "J",
       "E",
-      "K",
-      "\u00CB",
-      "S",
-      "I",
       "X"
     ],
     [
       "X",
+      "R",
+      "X",
+      "X",
+      "X",
+      "\u00CB",
+      "X",
+      "T",
+      "X"
+    ],
+    [
+      "Z",
+      "A",
+      "N",
+      "A",
+      "X",
+      "N",
+      "X",
+      "I",
+      "X"
+    ],
+    [
       "O",
       "X",
       "X",
       "X",
-      "X",
-      "X",
+      "V",
+      "A",
+      "J",
       "X",
       "X"
     ],
     [
-      "X",
-      "S",
-      "H",
-      "I",
-      "T",
+      "G",
+      "U",
+      "R",
       "\u00CB",
-      "S",
+      "X",
+      "X",
+      "X",
       "X",
       "X"
     ]
   ],
   "words": [
     {
-      "word": "FITIMTAR",
+      "word": "ZGJIDHJE",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "BAZA",
-      "row": 1,
-      "col": 6,
+      "word": "GRA",
+      "row": 4,
+      "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "TIJ",
-      "row": 4,
+      "word": "PIJ",
+      "row": 2,
       "col": 2,
       "direction": "vertical"
     },
     {
-      "word": "VITALE",
-      "row": 2,
-      "col": 3,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MJEK\u00CBSI",
+      "word": "ZANA",
       "row": 6,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "MOS",
-      "row": 6,
-      "col": 1,
-      "direction": "vertical"
-    },
-    {
-      "word": "SHIT\u00CBS",
-      "row": 8,
-      "col": 1,
-      "direction": "horizontal"
-    },
-    {
-      "word": "IKE",
-      "row": 0,
-      "col": 8,
-      "direction": "vertical"
-    },
-    {
-      "word": "KAFE",
-      "row": 2,
       "col": 0,
-      "direction": "vertical"
+      "direction": "horizontal"
     },
     {
-      "word": "URI",
-      "row": 0,
-      "col": 4,
-      "direction": "vertical"
-    },
-    {
-      "word": "TRUP",
-      "row": 0,
+      "word": "PRILL",
+      "row": 2,
       "col": 2,
       "direction": "horizontal"
     },
     {
-      "word": "RRI",
-      "row": 4,
+      "word": "DETI",
+      "row": 3,
       "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "MIK",
-      "row": 4,
-      "col": 4,
+      "word": "DAL",
+      "row": 0,
+      "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "IKI",
-      "row": 5,
-      "col": 2,
+      "word": "H\u00CBNA",
+      "row": 4,
+      "col": 5,
+      "direction": "vertical"
+    },
+    {
+      "word": "DUA",
+      "row": 0,
+      "col": 5,
       "direction": "horizontal"
+    },
+    {
+      "word": "ZOG",
+      "row": 6,
+      "col": 0,
+      "direction": "vertical"
+    },
+    {
+      "word": "POR",
+      "row": 0,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "GUR\u00CB",
+      "row": 8,
+      "col": 0,
+      "direction": "horizontal"
+    },
+    {
+      "word": "\u00C7UP",
+      "row": 0,
+      "col": 1,
+      "direction": "horizontal"
+    },
+    {
+      "word": "VAJ",
+      "row": 7,
+      "col": 4,
+      "direction": "horizontal"
+    },
+    {
+      "word": "GAZ",
+      "row": 2,
+      "col": 0,
+      "direction": "vertical"
     }
   ],
   "dayIndex": 4,

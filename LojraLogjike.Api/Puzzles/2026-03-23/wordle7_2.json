@@ -2,151 +2,163 @@
   "gridSize": 8,
   "solution": [
     [
-      "D",
-      "A",
-      "L",
-      "X",
-      "X",
-      "M",
-      "X",
-      "X"
-    ],
-    [
-      "X",
-      "R",
-      "X",
-      "T",
-      "R",
-      "U",
-      "P",
-      "X"
-    ],
-    [
-      "M",
       "I",
-      "S",
-      "H",
+      "K",
+      "I",
       "X",
-      "R",
+      "X",
+      "X",
       "X",
       "X"
     ],
     [
+      "X",
+      "J",
+      "X",
+      "V",
+      "X",
+      "P",
+      "X",
+      "X"
+    ],
+    [
+      "G",
+      "O",
+      "J",
+      "A",
+      "X",
+      "E",
+      "R",
+      "A"
+    ],
+    [
+      "O",
+      "X",
+      "X",
+      "Z",
+      "X",
+      "N",
+      "X",
+      "K"
+    ],
+    [
+      "L",
+      "A",
+      "B",
+      "O",
+      "R",
+      "A",
+      "N",
+      "T"
+    ],
+    [
+      "X",
+      "X",
+      "\u00CB",
+      "X",
+      "O",
+      "X",
+      "X",
+      "O"
+    ],
+    [
+      "V",
+      "A",
+      "J",
+      "X",
       "J",
       "X",
       "X",
-      "I",
-      "X",
-      "A",
-      "X",
-      "E"
+      "R"
     ],
     [
+      "X",
+      "X",
+      "X",
+      "J",
       "E",
-      "D",
-      "U",
-      "K",
-      "A",
-      "T",
-      "O",
-      "R"
-    ],
-    [
-      "K",
-      "X",
-      "X",
-      "\u00CB",
-      "X",
-      "O",
-      "R",
-      "\u00CB"
-    ],
-    [
-      "\u00CB",
-      "X",
-      "X",
-      "X",
-      "O",
-      "R",
-      "A",
-      "R"
-    ],
-    [
-      "X",
-      "X",
-      "X",
-      "X",
-      "X",
-      "X",
-      "X",
-      "A"
+      "M",
+      "I",
+      "X"
     ]
   ],
   "words": [
     {
-      "word": "EDUKATOR",
+      "word": "LABORANT",
       "row": 4,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "MJEK\u00CB",
+      "word": "GOL",
       "row": 2,
       "col": 0,
       "direction": "vertical"
     },
     {
-      "word": "MURATOR",
-      "row": 0,
+      "word": "B\u00CBJ",
+      "row": 4,
+      "col": 2,
+      "direction": "vertical"
+    },
+    {
+      "word": "PENA",
+      "row": 1,
       "col": 5,
       "direction": "vertical"
     },
     {
-      "word": "TRUP",
-      "row": 1,
-      "col": 3,
-      "direction": "horizontal"
-    },
-    {
-      "word": "THIK\u00CB",
-      "row": 1,
-      "col": 3,
-      "direction": "vertical"
-    },
-    {
-      "word": "ER\u00CBRA",
-      "row": 3,
+      "word": "AKTOR",
+      "row": 2,
       "col": 7,
       "direction": "vertical"
     },
     {
-      "word": "ORAR",
+      "word": "VAZO",
+      "row": 1,
+      "col": 3,
+      "direction": "vertical"
+    },
+    {
+      "word": "VAJ",
       "row": 6,
-      "col": 4,
+      "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "MISH",
+      "word": "ROJE",
+      "row": 4,
+      "col": 4,
+      "direction": "vertical"
+    },
+    {
+      "word": "GOJA",
       "row": 2,
       "col": 0,
       "direction": "horizontal"
     },
     {
-      "word": "ARI",
+      "word": "JEMI",
+      "row": 7,
+      "col": 3,
+      "direction": "horizontal"
+    },
+    {
+      "word": "KJO",
       "row": 0,
       "col": 1,
       "direction": "vertical"
     },
     {
-      "word": "DAL",
-      "row": 0,
-      "col": 0,
+      "word": "ERA",
+      "row": 2,
+      "col": 5,
       "direction": "horizontal"
     },
     {
-      "word": "OR\u00CB",
-      "row": 5,
-      "col": 5,
+      "word": "IKI",
+      "row": 0,
+      "col": 0,
       "direction": "horizontal"
     }
   ],
