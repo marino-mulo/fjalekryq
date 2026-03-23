@@ -23,6 +23,7 @@ COPY --from=frontend-build /app/client/dist/lojra-logjike-client/browser/ ./wwwr
 
 # Railway injects PORT env var at runtime
 ENV PORT=8080
+ENV ASPNETCORE_ENVIRONMENT=Production
 EXPOSE 8080
 
 # Use shell form so $PORT is resolved at runtime
