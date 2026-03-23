@@ -1,5 +1,15 @@
-/* ── Games Grid ── */
-.games-section {
+/* ── Game Section ── */
+.game-section {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0 32px;
+}
+
+/* ── About Section ── */
+.about-section {
+  background: var(--cream-dark);
+  border-top: var(--border);
+  border-bottom: var(--border);
   padding: 56px 24px;
 }
 
@@ -15,129 +25,6 @@
   text-align: center;
   margin-bottom: 36px;
   color: var(--black);
-}
-
-.games-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
-/* ── Game Tile ── */
-.game-tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-radius: 20px;
-  border: var(--border);
-  color: var(--black);
-  box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
-  overflow: hidden;
-  text-align: center;
-
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 6px 8px 0px var(--black);
-  }
-
-  &:active {
-    transform: translateY(0);
-    box-shadow: 2px 2px 0px var(--black);
-  }
-}
-
-/* Icon sits at top, fixed 180px size */
-.game-tile-icon {
-  width: 180px;
-  height: 180px;
-  object-fit: contain;
-  display: block;
-  margin: 16px auto 0;
-}
-
-.game-tile-content {
-  padding: 16px 20px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-}
-
-.game-tile-title {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 900;
-  margin-bottom: 4px;
-  color: var(--black);
-}
-
-.game-tile-desc {
-  font-size: 0.88rem;
-  color: #555;
-  line-height: 1.4;
-  margin-bottom: 14px;
-  flex: 1;
-}
-
-/* ── Play Button ── */
-.game-tile-btn {
-  display: inline-block;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 700;
-  text-decoration: none;
-  color: var(--black);
-  padding: 8px 28px;
-  border-radius: var(--radius);
-  border: var(--border);
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.15s, box-shadow 0.15s;
-
-  &:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0px var(--black);
-  }
-}
-
-.game-tile-btn--purple { background: var(--white); }
-.game-tile-btn--yellow { background: var(--white); }
-.game-tile-btn--coral { background: var(--white); }
-.game-tile-btn--green { background: var(--white); }
-.game-tile-btn--orange { background: var(--white); }
-.game-tile-btn--teal { background: var(--white); }
-
-/* ── Tile Color Variants ── */
-.game-tile--purple {
-  background: var(--purple-light);
-}
-
-.game-tile--yellow {
-  background: var(--yellow-light);
-}
-
-.game-tile--coral {
-  background: var(--coral-light);
-}
-
-.game-tile--green {
-  background: var(--green-light);
-}
-
-.game-tile--orange {
-  background: var(--orange-light);
-}
-
-.game-tile--teal {
-  background: var(--teal-light);
-}
-
-/* ── About Section ── */
-.about-section {
-  background: var(--cream-dark);
-  border-top: var(--border);
-  border-bottom: var(--border);
-  padding: 56px 24px;
 }
 
 .info-grid {
@@ -163,10 +50,6 @@
   height: 56px;
   border-radius: 50%;
   margin: 0 auto 12px;
-
-  &--yellow { background: var(--yellow-light); }
-  &--green { background: var(--green-light); }
-  &--purple { background: var(--purple-light); }
 }
 
 .info-title {
@@ -183,32 +66,8 @@
   line-height: 1.5;
 }
 
-
 /* ── Responsive ── */
 @media (max-width: 768px) {
-  .games-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
-
-  .game-tile-content {
-    padding: 12px 14px 16px;
-  }
-
-  .game-tile-title {
-    font-size: 1.1rem;
-  }
-
-  .game-tile-desc {
-    font-size: 0.82rem;
-  }
-
-  .game-tile-icon {
-    width: 140px;
-    height: 140px;
-    margin-top: 12px;
-  }
-
   .info-grid {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -216,38 +75,12 @@
 }
 
 @media (max-width: 480px) {
-  .games-section,
+  .game-section {
+    padding: 8px 0 16px;
+  }
+
   .about-section {
     padding: 36px 16px;
-  }
-
-  .games-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .game-tile-icon {
-    width: 100%;
-    height: auto;
-    margin-top: 8px;
-  }
-
-  .game-tile-content {
-    padding: 10px 12px 14px;
-  }
-
-  .game-tile-title {
-    font-size: 1rem;
-  }
-
-  .game-tile-desc {
-    font-size: 0.8rem;
-    margin-bottom: 10px;
-  }
-
-  .game-tile-btn {
-    padding: 6px 20px;
-    font-size: 0.85rem;
   }
 
   .info-grid {
