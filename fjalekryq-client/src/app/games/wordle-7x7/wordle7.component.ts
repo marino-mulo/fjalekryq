@@ -33,6 +33,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   isLoading = signal(false);
   private lastHash: string | undefined;
 
+  // New puzzle cooldown (10 seconds)
+  newPuzzleCooldown = signal(0);
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+
   private readonly ICONS = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
   private pickPraise(): string {
@@ -58,6 +62,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.destroy();
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
+    this.clearCooldown();
   }
 
   private loadRandomPuzzle(): void {
@@ -76,6 +81,28 @@ export class Wordle7Component implements OnInit, OnDestroy {
   playAnother(): void {
     this.puzzleNumber.update(n => n + 1);
     this.loadRandomPuzzle();
+    this.startCooldown();
+  }
+
+  private startCooldown(): void {
+    this.clearCooldown();
+    this.newPuzzleCooldown.set(10);
+    this.cooldownTimer = setInterval(() => {
+      const remaining = this.newPuzzleCooldown() - 1;
+      if (remaining <= 0) {
+        this.newPuzzleCooldown.set(0);
+        this.clearCooldown();
+      } else {
+        this.newPuzzleCooldown.set(remaining);
+      }
+    }, 1000);
+  }
+
+  private clearCooldown(): void {
+    if (this.cooldownTimer) {
+      clearInterval(this.cooldownTimer);
+      this.cooldownTimer = null;
+    }
   }
 
   onWin(): void {
@@ -84,11 +111,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.completedSwaps.set(swaps);
     this.completedPraise.set(this.pickPraise());
     this.completedIcon.set(this.pickIcon());
-  }
-
-  onReset(): void {
-    if (this.isCompleted()) return;
-    this.game.resetPuzzle();
   }
 
   onHint(): void {
