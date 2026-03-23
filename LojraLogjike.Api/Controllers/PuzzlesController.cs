@@ -20,4 +20,12 @@ public class PuzzlesController : ControllerBase
         var puzzle = Wordle7PuzzleData.GetPuzzleByDay(dayIndex);
         return Ok(puzzle);
     }
+
+    [HttpGet("wordle7/random")]
+    public IActionResult GetRandomWordle7()
+    {
+        var seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
+        var puzzle = Wordle7Generator.GenerateRandom(seed);
+        return Ok(puzzle);
+    }
 }

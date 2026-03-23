@@ -10,4 +10,8 @@ export class PuzzleService {
   getWordle7ByDay(dayIndex: number): Observable<Wordle7Puzzle> {
     return this.http.get<Wordle7Puzzle>(`/api/puzzles/wordle7/${dayIndex}`);
   }
+
+  getRandomWordle7(): Observable<Wordle7Puzzle> {
+    return this.http.get<Wordle7Puzzle>('/api/puzzles/wordle7/random');
+  }
 }

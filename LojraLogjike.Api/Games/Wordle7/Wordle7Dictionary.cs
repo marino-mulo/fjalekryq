@@ -113,13 +113,15 @@ public static class Wordle7Dictionary
     private static readonly string[] SmallPool;  // For 7x7 (Mon-Tue)
     private static readonly string[] MediumPool; // For 8x8 (Wed-Thu)
     private static readonly string[] LargePool;  // For 9x9+ (Fri-Sun)
+    private static readonly string[] FullPool;   // All words 3-13 letters
 
     static Wordle7Dictionary()
     {
         SmallPool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7];
         MediumPool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8];
         LargePool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8, .. Words9];
-        AllWordsSet = new HashSet<string>(LargePool);
+        FullPool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8, .. Words9, .. Words10, .. Words11, .. Words12, .. Words13];
+        AllWordsSet = new HashSet<string>(FullPool);
     }
 
     public static string[] GetPool(string size) => size switch
@@ -127,7 +129,8 @@ public static class Wordle7Dictionary
         "small" => (string[])SmallPool.Clone(),
         "medium" => (string[])MediumPool.Clone(),
         "large" => (string[])LargePool.Clone(),
-        _ => (string[])LargePool.Clone()
+        "full" => (string[])FullPool.Clone(),
+        _ => (string[])FullPool.Clone()
     };
 
     /// <summary>
@@ -138,6 +141,9 @@ public static class Wordle7Dictionary
         7 => (string[])Words7.Clone(),
         8 => (string[])Words8.Clone(),
         9 => (string[])Words9.Clone(),
+        10 => (string[])Words10.Clone(),
+        11 => (string[])Words11.Clone(),
+        13 => (string[])Words13.Clone(),
         _ => []
     };
 

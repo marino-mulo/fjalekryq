@@ -121,6 +121,26 @@
   display: block;
 }
 
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #888;
+}
+
+.play-another-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
 /* ══════════════════════════════════════
    Hint Message
    ══════════════════════════════════════ */

@@ -21,6 +21,17 @@ public static class Wordle7Generator
         (10, 16, 45, 1500, "large"),   // Sunday
     ];
 
+    // Configurations for random puzzle generation (uses full word pool)
+    private static readonly (int size, int minWords, int minLetters, int attempts, int featuredLen)[] RandomConfigs =
+    [
+        (7,  8,  20, 800,  7),
+        (8,  10, 28, 1000, 8),
+        (9,  13, 35, 1200, 9),
+        (10, 14, 40, 1500, 10),
+        (11, 15, 45, 1500, 11),
+        (13, 16, 50, 2000, 13),
+    ];
+
     /// <summary>
     /// Generate a crossword puzzle for a given seed and day.
     /// </summary>
@@ -51,6 +62,47 @@ public static class Wordle7Generator
             Words = result.Value.words,
             DayIndex = dayIndex,
             DayName = dayName
+        };
+    }
+
+    /// <summary>
+    /// Generate a random puzzle using the full word pool (3-13 letters).
+    /// Picks a random grid size configuration each time.
+    /// </summary>
+    public static Wordle7Puzzle GenerateRandom(int seed)
+    {
+        var rng = new Random(seed);
+        var cfgIndex = rng.Next(RandomConfigs.Length);
+        var cfg = RandomConfigs[cfgIndex];
+
+        var result = GeneratePuzzle(rng, cfg.size, cfg.minWords, cfg.minLetters, cfg.attempts, "full", cfg.featuredLen);
+
+        if (result == null)
+        {
+            // Fallback with relaxed requirements
+            result = GeneratePuzzle(rng, cfg.size,
+                Math.Max(3, cfg.minWords - 3),
+                Math.Max(12, cfg.minLetters - 10),
+                cfg.attempts * 2, "full", cfg.featuredLen);
+        }
+
+        // If still null, try a smaller grid
+        if (result == null)
+        {
+            var fallbackCfg = RandomConfigs[0];
+            result = GeneratePuzzle(rng, fallbackCfg.size, 5, 15, 1500, "full", 7);
+        }
+
+        if (result == null)
+            throw new InvalidOperationException("Failed to generate random Wordle7 puzzle");
+
+        return new Wordle7Puzzle
+        {
+            GridSize = cfg.size,
+            Solution = result.Value.grid,
+            Words = result.Value.words,
+            DayIndex = -1,
+            DayName = "Lojë e lirë"
         };
     }
 

@@ -1,24 +1,9 @@
-import { Component, OnInit, OnDestroy, inject, signal, HostListener, isDevMode } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, OnInit, OnDestroy, inject, signal, HostListener } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
 import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
-import { GameHeaderService, DayBarItem } from '../../core/services/game-header.service';
-
-interface WeekDay {
-  index: number;
-  name: string;
-  letter: string;
-  slug: string;
-}
-
-interface SavedResult {
-  time: number;
-  swaps: number;
-  date: string;
-  grid?: string[][];
-}
+import { GameHeaderService } from '../../core/services/game-header.service';
 
 interface SavedProgress {
   grid: string[][];
@@ -26,8 +11,6 @@ interface SavedProgress {
   swapCount: number;
   date: string;
 }
-
-const DAY_SLUGS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 
 @Component({
   selector: 'app-wordle7',
@@ -39,18 +22,12 @@ const DAY_SLUGS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'satu
 })
 export class Wordle7Component implements OnInit, OnDestroy {
   private puzzleService = inject(PuzzleService);
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private gameHeader = inject(GameHeaderService);
   game = inject(Wordle7GameService);
 
   private subs: Subscription[] = [];
 
-  dayLabel = '';
-  showModal = false;
   showInfo = false;
-  selectedDay = signal(-1);
-  todayIndex = -1;
 
   // Completion state
   completedTime = signal(0);
@@ -58,6 +35,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   isCompleted = signal(false);
   completedPraise = signal('Bravo!');
   completedIcon = signal('icons/rewards/rocket.svg');
+
+  // Puzzle counter
+  puzzleNumber = signal(1);
+  isLoading = signal(false);
 
   private readonly ICONS = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
@@ -71,43 +52,17 @@ export class Wordle7Component implements OnInit, OnDestroy {
   // Pause state
   showPause = false;
 
-  weekDays: WeekDay[] = [
-    { index: 0, name: 'E Hënë', letter: 'H', slug: 'monday' },
-    { index: 1, name: 'E Martë', letter: 'M', slug: 'tuesday' },
-    { index: 2, name: 'E Mërkurë', letter: 'M', slug: 'wednesday' },
-    { index: 3, name: 'E Enjte', letter: 'E', slug: 'thursday' },
-    { index: 4, name: 'E Premte', letter: 'P', slug: 'friday' },
-    { index: 5, name: 'E Shtunë', letter: 'Sh', slug: 'saturday' },
-    { index: 6, name: 'E Diel', letter: 'D', slug: 'sunday' },
-  ];
-
   ngOnInit(): void {
-    this.todayIndex = this.getTodayIndex();
     this.gameHeader.enterGame();
     this.gameHeader.gameColor.set('#22C55E');
+    // Hide the day bar since we no longer use day-based navigation
+    this.gameHeader.dayBarVisible.set(false);
 
     this.subs.push(
       this.gameHeader.infoClicked$.subscribe(() => this.openInfo()),
-      this.gameHeader.daySelected$.subscribe(idx => this.navigateToDay(idx)),
     );
 
-    this.subs.push(this.route.paramMap.subscribe(params => {
-      const daySlug = params.get('day');
-
-      if (!daySlug) {
-        this.router.navigate(['/games/wordle-7x7', DAY_SLUGS[this.todayIndex]], { replaceUrl: true });
-        return;
-      }
-
-      const dayIndex = DAY_SLUGS.indexOf(daySlug.toLowerCase());
-
-      if (dayIndex === -1 || (!isDevMode() && dayIndex > this.todayIndex)) {
-        this.router.navigate(['/games/wordle-7x7', DAY_SLUGS[this.todayIndex]], { replaceUrl: true });
-        return;
-      }
-
-      this.loadPuzzle(dayIndex);
-    }));
+    this.loadRandomPuzzle();
   }
 
   ngOnDestroy(): void {
@@ -117,49 +72,13 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
   }
 
-  private getTodayIndex(): number {
-    const jsDay = new Date().getDay();
-    return jsDay === 0 ? 6 : jsDay - 1;
+  private get progressKey(): string {
+    return `wordle7_progress_current`;
   }
 
-  private getWeekKey(): string {
-    const now = new Date();
-    const monday = new Date(now);
-    const day = now.getDay();
-    const diff = day === 0 ? -6 : 1 - day;
-    monday.setDate(now.getDate() + diff);
-    return `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, '0')}-${String(monday.getDate()).padStart(2, '0')}`;
-  }
-
-  private storageKey(dayIndex: number): string {
-    return `wordle7_${this.getWeekKey()}_${dayIndex}`;
-  }
-
-  private progressKey(dayIndex: number): string {
-    return `wordle7_progress_${this.getWeekKey()}_${dayIndex}`;
-  }
-
-  private getSavedResult(dayIndex: number): SavedResult | null {
+  private getSavedProgress(): SavedProgress | null {
     try {
-      const raw = localStorage.getItem(this.storageKey(dayIndex));
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  }
-
-  private saveResult(dayIndex: number, time: number, swaps: number, grid: string[][]): void {
-    const result: SavedResult = { time, swaps, date: new Date().toISOString(), grid };
-    localStorage.setItem(this.storageKey(dayIndex), JSON.stringify(result));
-  }
-
-  isDayCompleted(dayIndex: number): boolean {
-    return this.getSavedResult(dayIndex) !== null;
-  }
-
-  private getSavedProgress(dayIndex: number): SavedProgress | null {
-    try {
-      const raw = localStorage.getItem(this.progressKey(dayIndex));
+      const raw = localStorage.getItem(this.progressKey);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -167,8 +86,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   private saveProgress(): void {
-    const dayIndex = this.selectedDay();
-    if (dayIndex < 0) return;
     const snapshot = this.game.getProgressSnapshot();
     if (!snapshot) return;
     const progress: SavedProgress = {
@@ -177,81 +94,42 @@ export class Wordle7Component implements OnInit, OnDestroy {
       swapCount: snapshot.swapCount,
       date: new Date().toISOString(),
     };
-    localStorage.setItem(this.progressKey(dayIndex), JSON.stringify(progress));
+    localStorage.setItem(this.progressKey, JSON.stringify(progress));
   }
 
-  private clearProgress(dayIndex: number): void {
-    localStorage.removeItem(this.progressKey(dayIndex));
+  private clearProgress(): void {
+    localStorage.removeItem(this.progressKey);
   }
 
-  private loadPuzzle(dayIndex: number): void {
-    this.saveProgress(); // save current day progress before switching
-    this.selectedDay.set(dayIndex);
-    this.showModal = false;
+  private loadRandomPuzzle(): void {
+    this.isLoading.set(true);
+    this.isCompleted.set(false);
+    this.completedTime.set(0);
+    this.completedSwaps.set(0);
     this.showPause = false;
     this.game.destroy();
 
-    // Update day bar immediately so header reflects the new day
-    this.updateDayBar();
-
-    const saved = this.getSavedResult(dayIndex);
-
-    this.puzzleService.getWordle7ByDay(dayIndex).subscribe(puzzle => {
-      this.dayLabel = puzzle.dayName;
+    this.puzzleService.getRandomWordle7().subscribe(puzzle => {
       this.game.initPuzzle(puzzle);
-
-      if (saved) {
-        this.clearProgress(dayIndex);
-        this.isCompleted.set(true);
-        this.completedTime.set(saved.time);
-        this.completedSwaps.set(saved.swaps ?? 0);
-        this.completedPraise.set(this.pickPraise());
-        this.completedIcon.set(this.pickIcon());
-        this.game.destroy();
-        this.game.timerSeconds.set(saved.time);
-
-        if (saved.grid && saved.grid.length > 0) {
-          this.game.restoreCompleted(saved.grid, saved.swaps ?? 0);
-        }
-      } else {
-        const progress = this.getSavedProgress(dayIndex);
-        if (progress && progress.grid.length > 0) {
-          this.game.restorePaused(progress.grid, progress.timerSeconds, progress.swapCount);
-          this.isCompleted.set(false);
-          this.completedTime.set(0);
-          this.completedSwaps.set(0);
-          this.showPause = true;
-        } else {
-          this.isCompleted.set(false);
-          this.completedTime.set(0);
-          this.completedSwaps.set(0);
-        }
-      }
-
-      this.updateDayBar();
+      this.isLoading.set(false);
     });
   }
 
-  navigateToDay(dayIndex: number): void {
-    this.router.navigate(['/games/wordle-7x7', DAY_SLUGS[dayIndex]]);
-  }
-
-  isDayAccessible(dayIndex: number): boolean {
-    return isDevMode() || dayIndex <= this.todayIndex;
+  playAnother(): void {
+    this.clearProgress();
+    this.puzzleNumber.update(n => n + 1);
+    this.loadRandomPuzzle();
   }
 
   onWin(): void {
-    const dayIndex = this.selectedDay();
     const time = this.game.timerSeconds();
     const swaps = this.game.swapCount();
-    const winningGrid = this.game.grid().map(row => [...row]);
-    this.saveResult(dayIndex, time, swaps, winningGrid);
     this.isCompleted.set(true);
     this.completedTime.set(time);
     this.completedSwaps.set(swaps);
     this.completedPraise.set(this.pickPraise());
-        this.completedIcon.set(this.pickIcon());
-    this.clearProgress(dayIndex);
+    this.completedIcon.set(this.pickIcon());
+    this.clearProgress();
   }
 
   @HostListener('document:visibilitychange')
@@ -287,9 +165,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
   onReset(): void {
     if (this.isCompleted()) return;
-    const dayIndex = this.selectedDay();
-    this.clearProgress(dayIndex);
-    this.showModal = false;
+    this.clearProgress();
     this.game.resetPuzzle();
   }
 
@@ -297,42 +173,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.hint();
   }
 
-  closeModal(): void { this.showModal = false; }
   openInfo(): void { this.showInfo = true; }
   closeInfo(): void { this.showInfo = false; }
-
-  private updateDayBar(): void {
-    const items: DayBarItem[] = this.weekDays.map(d => ({
-      index: d.index,
-      letter: d.letter,
-      name: d.name,
-      accessible: isDevMode() || d.index <= this.todayIndex,
-      completed: this.isDayCompleted(d.index),
-      isToday: d.index === this.todayIndex,
-    }));
-    this.gameHeader.setDayBar(items, this.selectedDay());
-  }
-
-  hasPreviousDay(): boolean {
-    const current = this.selectedDay();
-    if (current <= 0) return false;
-    for (let i = current - 1; i >= 0; i--) {
-      if (this.isDayAccessible(i) && !this.isDayCompleted(i)) return true;
-    }
-    return current > 0;
-  }
-
-  playPreviousDay(): void {
-    const current = this.selectedDay();
-    this.showModal = false;
-    for (let i = current - 1; i >= 0; i--) {
-      if (this.isDayAccessible(i) && !this.isDayCompleted(i)) {
-        this.navigateToDay(i);
-        return;
-      }
-    }
-    if (current > 0) {
-      this.navigateToDay(current - 1);
-    }
-  }
 }
