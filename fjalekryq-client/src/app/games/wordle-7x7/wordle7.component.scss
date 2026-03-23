@@ -113,6 +113,21 @@
   50% { opacity: 1; }
 }
 
+.loading-bar-track {
+  width: 180px;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.loading-bar-fill {
+  height: 100%;
+  background: #22C55E;
+  border-radius: 3px;
+  transition: width 0.15s ease;
+}
+
 .play-another-btn {
   display: inline-flex;
   align-items: center;

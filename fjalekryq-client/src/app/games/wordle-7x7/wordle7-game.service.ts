@@ -3,12 +3,22 @@ import { Wordle7Puzzle, WordEntry } from '../../core/models/wordle7-puzzle.model
 
 export type CellColor = 'green' | 'yellow' | 'grey';
 
+interface SavedGameState {
+  puzzle: Wordle7Puzzle;
+  grid: string[][];
+  swapCount: number;
+  hintCount: number;
+}
+
+const STORAGE_KEY = 'wordle7_saved_game';
+
 @Injectable()
 export class Wordle7GameService {
   // Puzzle data
   private solutionGrid: string[][] = [];
   private wordList: WordEntry[] = [];
   private gridSize = 7;
+  private currentPuzzle: Wordle7Puzzle | null = null;
 
   // Pre-computed: which words pass through each cell (built once per puzzle)
   private cellToWords: Map<string, number[]> = new Map();
@@ -106,6 +116,7 @@ export class Wordle7GameService {
   getSolution(): string[][] { return this.solutionGrid; }
 
   initPuzzle(puzzle: Wordle7Puzzle): void {
+    this.currentPuzzle = puzzle;
     this.gridSize = puzzle.gridSize ?? 7;
     this.solutionGrid = puzzle.solution.map(r => [...r]);
     this.wordList = puzzle.words;
@@ -117,6 +128,52 @@ export class Wordle7GameService {
 
     const scrambled = this.scrambleGrid(this.solutionGrid);
     this.grid.set(scrambled);
+    this.saveState();
+  }
+
+  /** Restore a saved game state (grid + counts) without re-scrambling */
+  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number): void {
+    this.currentPuzzle = puzzle;
+    this.gridSize = puzzle.gridSize ?? 7;
+    this.solutionGrid = puzzle.solution.map(r => [...r]);
+    this.wordList = puzzle.words;
+    this.gameWon.set(false);
+    this.selectedCell.set(null);
+    this.swapCount.set(swapCount);
+    this.clearHintState();
+    this.hintCount.set(hintCount);
+    this.buildCellToWords();
+    this.grid.set(grid);
+  }
+
+  /** Save current game state to localStorage */
+  private saveState(): void {
+    if (!this.currentPuzzle || this.gameWon()) return;
+    const state: SavedGameState = {
+      puzzle: this.currentPuzzle,
+      grid: this.grid().map(r => [...r]),
+      swapCount: this.swapCount(),
+      hintCount: this.hintCount(),
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch { /* quota exceeded – ignore */ }
+  }
+
+  /** Load saved game state from localStorage */
+  static loadSavedState(): SavedGameState | null {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw) as SavedGameState;
+    } catch {
+      return null;
+    }
+  }
+
+  /** Clear saved game state */
+  static clearSavedState(): void {
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   }
 
   /** Build lookup: cell key -> word indices that pass through it */
@@ -206,6 +263,7 @@ export class Wordle7GameService {
     this.swapCount.update(v => v + 1);
 
     this.checkWin();
+    this.saveState();
   }
 
   /** Check if grid matches solution */
@@ -218,6 +276,7 @@ export class Wordle7GameService {
       }
     }
     this.gameWon.set(true);
+    Wordle7GameService.clearSavedState();
   }
 
   /** Reset the puzzle: re-scramble letters */
@@ -302,6 +361,7 @@ export class Wordle7GameService {
 
     this.showHintMessage('Një shkronjë u vendos në vendin e duhur!');
     this.checkWin();
+    this.saveState();
 
     // 10-second cooldown
     this.hintCooldown.set(true);

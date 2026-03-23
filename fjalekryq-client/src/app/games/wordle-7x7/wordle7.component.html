@@ -2,7 +2,10 @@
 @if (isLoading()) {
   <div class="loading-overlay">
     <div class="loading-spinner"></div>
-    <span class="loading-text">Duke ngarkuar...</span>
+    <span class="loading-text">Duke ngarkuar... {{ loadingPercent() }}%</span>
+    <div class="loading-bar-track">
+      <div class="loading-bar-fill" [style.width.%]="loadingPercent()"></div>
+    </div>
   </div>
 }
 

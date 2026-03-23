@@ -31,7 +31,9 @@ export class Wordle7Component implements OnInit, OnDestroy {
   // Puzzle tracking
   puzzleNumber = signal(1);
   isLoading = signal(false);
+  loadingPercent = signal(0);
   private lastHash: string | undefined;
+  private loadingInterval: ReturnType<typeof setInterval> | null = null;
 
   // New puzzle cooldown (10 seconds)
   newPuzzleCooldown = signal(0);
@@ -55,7 +57,14 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.gameHeader.infoClicked$.subscribe(() => this.openInfo()),
     );
 
-    this.loadRandomPuzzle();
+    // Try to restore a saved game first
+    const saved = Wordle7GameService.loadSavedState();
+    if (saved) {
+      this.lastHash = saved.puzzle.hash;
+      this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount);
+    } else {
+      this.loadRandomPuzzle();
+    }
   }
 
   ngOnDestroy(): void {
@@ -63,6 +72,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
     this.clearCooldown();
+    this.stopLoadingProgress();
   }
 
   private loadRandomPuzzle(): void {
@@ -70,15 +80,46 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.isCompleted.set(false);
     this.completedSwaps.set(0);
     this.game.destroy();
+    Wordle7GameService.clearSavedState();
+
+    this.startLoadingProgress();
 
     this.puzzleService.getRandomWordle7(this.lastHash).subscribe(puzzle => {
       this.lastHash = puzzle.hash;
-      this.game.initPuzzle(puzzle);
-      this.isLoading.set(false);
+      this.loadingPercent.set(100);
+      this.stopLoadingProgress();
+
+      // Brief pause at 100% so user sees it complete
+      setTimeout(() => {
+        this.game.initPuzzle(puzzle);
+        this.isLoading.set(false);
+        this.loadingPercent.set(0);
+      }, 300);
     });
   }
 
+  private startLoadingProgress(): void {
+    this.stopLoadingProgress();
+    this.loadingPercent.set(0);
+    let current = 0;
+    this.loadingInterval = setInterval(() => {
+      // Simulate progress: fast at start, slows down approaching 90%
+      const remaining = 90 - current;
+      const increment = Math.max(0.5, remaining * 0.08);
+      current = Math.min(90, current + increment);
+      this.loadingPercent.set(Math.round(current));
+    }, 100);
+  }
+
+  private stopLoadingProgress(): void {
+    if (this.loadingInterval) {
+      clearInterval(this.loadingInterval);
+      this.loadingInterval = null;
+    }
+  }
+
   playAnother(): void {
+    Wordle7GameService.clearSavedState();
     this.puzzleNumber.update(n => n + 1);
     this.loadRandomPuzzle();
     this.startCooldown();
