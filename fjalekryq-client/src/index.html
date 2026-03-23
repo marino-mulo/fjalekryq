@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="sq">
+<head>
+  <meta charset="utf-8">
+  <title>Fjalekryq</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <app-root>
+    <style>
+      .app-loading {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFF8F0;
+      }
+      .app-loading img {
+        width: 480px;
+        height: 480px;
+        max-width: 80vw;
+        max-height: 80vw;
+        opacity: 0;
+        transform: scale(0);
+        animation: pre-grow 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+                   pre-float 2.5s ease-in-out 0.8s infinite;
+      }
+      @keyframes pre-grow {
+        to { opacity: 1; transform: scale(1); }
+      }
+      @keyframes pre-float {
+        0%, 100% { transform: scale(1) translateY(0); }
+        50% { transform: scale(1.03) translateY(-6px); }
+      }
+    </style>
+    <div class="app-loading">
+      <img src="logo.svg" alt="Fjalekryq">
+    </div>
+  </app-root>
+</body>
+</html>

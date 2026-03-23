@@ -1,6 +1,0 @@
-@LojraLogjike.Api_HostAddress = http://localhost:5116
-
-GET {{LojraLogjike.Api_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###

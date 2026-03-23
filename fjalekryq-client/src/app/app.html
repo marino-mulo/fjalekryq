@@ -1,0 +1,13 @@
+@if (showSplash()) {
+  <div class="splash" [class.fading]="splashFading()">
+    <div class="splash-center">
+      <img src="logo.svg" alt="Fjalekryq" class="splash-logo">
+    </div>
+  </div>
+}
+
+<app-header />
+<main class="page-content">
+  <router-outlet />
+</main>
+<app-footer />

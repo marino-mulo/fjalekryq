@@ -4,7 +4,7 @@
     {
       "name": "dev",
       "runtimeExecutable": "cmd.exe",
-      "runtimeArgs": ["/c", "cd lojra-logjike-client && npx ng serve --port 4200"],
+      "runtimeArgs": ["/c", "cd fjalekryq-client && npx ng serve --port 4200"],
       "port": 4200
     }
   ]

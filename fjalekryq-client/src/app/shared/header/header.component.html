@@ -1,0 +1,75 @@
+<header class="site-header">
+  <div class="header-inner">
+    <div class="header-left">
+      <a routerLink="/" class="logo">
+        <img class="logo-icon" src="logo-header.svg" alt="Fjalekryq">
+        <span class="logo-text">Fjale<span class="logo-purple">kryq</span></span>
+      </a>
+      @if (devMode) {
+        <button class="dev-reset-btn" (click)="clearStorage()" title="Pastro localStorage">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          DEV
+        </button>
+      }
+    </div>
+    @if (gameHeader.isGamePage()) {
+      <nav class="header-nav">
+        @if (gameHeader.dayBarVisible()) {
+          <button #dayBtn class="header-day-btn" (click)="toggleDayModal()">
+            <img src="icons/ui/calendar.svg" width="16" height="16" alt="">
+            {{ gameHeader.selectedDayName() }}
+            <img class="chevron" src="icons/ui/chevron.svg" width="12" height="12" alt="">
+          </button>
+        }
+        <button class="info-btn" (click)="onInfo()">
+          <img src="icons/ui/info.svg" width="14" height="14" alt="">
+          Si luhet
+        </button>
+        <!-- TODO: Uncomment when email subscription is needed
+        <button class="icon-btn" (click)="onSettings()">
+          <img src="icons/ui/envelope.svg" width="16" height="16" alt="">
+        </button>
+        -->
+      </nav>
+    } @else {
+      <nav class="header-nav">
+        <a href="https://instagram.com/fjalekryq.al" target="_blank" rel="noopener" class="header-social" title="Instagram">
+          <img src="icons/ui/instagram.svg" width="20" height="20" alt="Instagram">
+        </a>
+        <a href="https://tiktok.com/@fjalekryq" target="_blank" rel="noopener" class="header-social" title="TikTok">
+          <img src="icons/ui/tiktok.svg" width="20" height="20" alt="TikTok">
+        </a>
+      </nav>
+    }
+  </div>
+</header>
+
+<!-- ── Day Selector Modal (outside header to avoid stacking context) ── -->
+@if (showDayModal) {
+  <div class="day-modal-overlay" (click)="showDayModal = false"></div>
+  <div class="day-modal" [style.top.px]="modalTop" [style.right.px]="modalRight" (click)="$event.stopPropagation()">
+    @for (item of gameHeader.dayBarItems(); track item.index) {
+      <button
+        class="day-modal-item"
+        [class.selected]="item.index === gameHeader.dayBarSelectedIndex()"
+        [class.completed]="item.completed && item.index !== gameHeader.dayBarSelectedIndex()"
+        [class.today]="item.isToday && item.index !== gameHeader.dayBarSelectedIndex()"
+        [class.locked]="!item.accessible"
+        [disabled]="!item.accessible"
+        [style.background]="item.index === gameHeader.dayBarSelectedIndex() ? gameHeader.gameColor() : null"
+        (click)="selectDay(item.index)">
+        <span class="day-modal-name">{{ item.name }}</span>
+        @if (item.completed && item.index !== gameHeader.dayBarSelectedIndex()) {
+          <img class="day-modal-check" src="icons/ui/check.svg" width="16" height="16" alt="">
+        }
+        @if (item.isToday) {
+          <span class="day-modal-today-badge">Sot</span>
+        }
+      </button>
+    }
+  </div>
+}
+
+<!-- TODO: Uncomment when email subscription is needed
+<app-settings-modal [isOpen]="showSettings" (closed)="closeSettings()" />
+-->
