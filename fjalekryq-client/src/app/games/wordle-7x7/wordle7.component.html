@@ -1,9 +1,8 @@
 <!-- Game Content (board-width container) -->
 <div class="game-content">
-  <!-- Top Strip: Name + Swaps -->
+  <!-- Top Strip: Swaps -->
   <div class="top-strip">
     <div></div>
-    <span class="game-name">Fjalëkryq</span>
     @if (!isCompleted()) {
       <div class="swap-counter">
         <span class="swap-count">{{ game.swapCount() }}</span>
