@@ -26,8 +26,7 @@ export class Wordle7BoardComponent {
   constructor() {
     effect(() => {
       const won = this.game.gameWon();
-      const restored = this.game.isRestored();
-      if (won && !this.previousWonState && !this.winEmitted && !restored) {
+      if (won && !this.previousWonState && !this.winEmitted) {
         this.winEmitted = true;
         setTimeout(() => this.win.emit(), 600);
       } else if (!won) {

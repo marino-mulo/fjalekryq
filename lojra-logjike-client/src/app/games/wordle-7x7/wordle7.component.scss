@@ -1,15 +1,11 @@
 /* ══════════════════════════════════════
-   Top Strip: Timer + Name + Swaps
+   Top Strip: Name + Swaps
    ══════════════════════════════════════ */
 :host {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 16px 16px 32px;
-}
-
-.invisible {
-  visibility: hidden;
 }
 
 .top-strip {
@@ -20,56 +16,6 @@
   width: 100%;
   margin-bottom: 12px;
   min-height: 32px;
-}
-
-.game-timer {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  font-weight: 700;
-  background: var(--white);
-  border: 1.5px solid #e2e2e2;
-  border-radius: 8px;
-  padding: 4px 12px;
-  color: #666;
-  letter-spacing: 1px;
-  cursor: pointer;
-  user-select: none;
-  transition: background 0.15s;
-
-  svg {
-    display: block;
-    flex-shrink: 0;
-  }
-
-  &:hover {
-    background: #f5f5f5;
-  }
-
-}
-
-.first-solve-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #15803d;
-  background: #F0FDF4;
-  border: 1.5px solid #86efac;
-  border-radius: 8px;
-  padding: 3px 14px;
-  margin: -4px auto 12px;
-  width: fit-content;
-
-  svg {
-    display: block;
-    flex-shrink: 0;
-  }
 }
 
 .game-name {
@@ -233,78 +179,6 @@
 }
 
 /* ══════════════════════════════════════
-   Pause Modal
-   ══════════════════════════════════════ */
-.pause-modal {
-  padding: 40px 36px;
-  text-align: center;
-  position: relative;
-  min-width: 320px;
-}
-
-.pause-date {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #888;
-  margin: 0 0 8px;
-}
-
-.pause-title {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 2.2rem;
-  color: var(--black);
-  margin: 0 0 16px;
-  letter-spacing: -1px;
-}
-
-.pause-time {
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #666;
-  margin: 0 0 28px;
-}
-
-.pause-resume-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 0.95rem;
-}
-
-/* ══════════════════════════════════════
-   Clear / Pastro Button (top-right)
-   ══════════════════════════════════════ */
-.clear-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 5px 14px;
-  border-radius: 8px;
-  border: 1.5px solid #e2e2e2;
-  background: var(--white);
-  color: #666;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover {
-    background: #F0FDF4;
-    border-color: #16a34a;
-    color: var(--black);
-  }
-
-  &:active {
-    transform: translateY(1px);
-  }
-}
-
-/* ══════════════════════════════════════
    Completed Card (below board)
    ══════════════════════════════════════ */
 .completed-card {
@@ -331,7 +205,6 @@
 .completed-card-icon {
   width: 28px;
   height: 28px;
-  
 }
 
 .completed-card-label {
@@ -347,36 +220,6 @@
   font-size: 0.82rem;
   font-weight: 600;
   color: #4ade80;
-}
-
-/* ══════════════════════════════════════
-   Win Modal
-   ══════════════════════════════════════ */
-.win-modal {
-  padding: 36px 32px;
-  position: relative;
-}
-
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: #aaa;
-  cursor: pointer;
-  transition: all 0.15s;
-
-  &:hover {
-    background: #f5f5f5;
-    color: #666;
-  }
 }
 
 /* Info Modal */
@@ -449,38 +292,6 @@
   > span { display: block; margin-bottom: 10px; }
 }
 
-.info-cycle-icons {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cycle-cell {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1.5px solid #ccc;
-  border-radius: 6px;
-  font-size: 1.1rem;
-  background: #fff;
-}
-
-.cycle-empty { background: #fafafa; }
-.cycle-arrow { color: #bbb; font-size: 1rem; }
-
-.cycle-icon {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
-}
-
-.cycle-snake-cell {
-  background: #22C55E;
-  border-color: #16A34A;
-}
-
 .info-colors {
   display: flex;
   flex-direction: column;
@@ -511,17 +322,13 @@
   display: block;
   margin: 0 auto;
 }
+
 /* ══════════════════════════════════════
    Responsive
    ══════════════════════════════════════ */
 @media (max-width: 480px) {
   :host {
     padding: 12px 16px 24px;
-  }
-
-  .game-timer {
-    font-size: 0.8rem;
-    padding: 3px 10px;
   }
 
   .game-name {
@@ -553,15 +360,6 @@
   .hint-message {
     font-size: 0.8rem;
     padding: 8px 14px;
-  }
-
-  .pause-modal {
-    min-width: 280px;
-    padding: 32px 24px;
-  }
-
-  .pause-title {
-    font-size: 1.8rem;
   }
 
   .info-modal {

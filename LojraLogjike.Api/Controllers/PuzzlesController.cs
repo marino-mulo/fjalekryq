@@ -7,25 +7,26 @@ namespace LojraLogjike.Api.Controllers;
 [Route("api/[controller]")]
 public class PuzzlesController : ControllerBase
 {
-    [HttpGet("wordle7/today")]
-    public IActionResult GetTodayWordle7()
-    {
-        var puzzle = Wordle7PuzzleData.GetTodayPuzzle();
-        return Ok(puzzle);
-    }
-
-    [HttpGet("wordle7/{dayIndex:int}")]
-    public IActionResult GetWordle7ByDay(int dayIndex)
-    {
-        var puzzle = Wordle7PuzzleData.GetPuzzleByDay(dayIndex);
-        return Ok(puzzle);
-    }
-
     [HttpGet("wordle7/random")]
-    public IActionResult GetRandomWordle7()
+    public IActionResult GetRandomWordle7([FromQuery] string? excludeHash = null)
     {
-        var seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
-        var puzzle = Wordle7Generator.GenerateRandom(seed);
-        return Ok(puzzle);
+        const int maxRetries = 10;
+        for (int i = 0; i < maxRetries; i++)
+        {
+            var seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode() ^ i;
+            var puzzle = Wordle7Generator.GenerateRandom(seed);
+            var hash = Wordle7Generator.ComputePuzzleHash(puzzle.Solution);
+
+            if (excludeHash == null || hash != excludeHash)
+            {
+                return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash });
+            }
+        }
+
+        // Fallback: return whatever we get
+        var fallbackSeed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
+        var fallback = Wordle7Generator.GenerateRandom(fallbackSeed);
+        var fallbackHash = Wordle7Generator.ComputePuzzleHash(fallback.Solution);
+        return Ok(new { fallback.GridSize, fallback.Solution, fallback.Words, Hash = fallbackHash });
     }
 }

@@ -7,11 +7,11 @@ import { Wordle7Puzzle } from '../models/wordle7-puzzle.model';
 export class PuzzleService {
   private http = inject(HttpClient);
 
-  getWordle7ByDay(dayIndex: number): Observable<Wordle7Puzzle> {
-    return this.http.get<Wordle7Puzzle>(`/api/puzzles/wordle7/${dayIndex}`);
-  }
-
-  getRandomWordle7(): Observable<Wordle7Puzzle> {
-    return this.http.get<Wordle7Puzzle>('/api/puzzles/wordle7/random');
+  getRandomWordle7(excludeHash?: string): Observable<Wordle7Puzzle> {
+    let url = '/api/puzzles/wordle7/random';
+    if (excludeHash) {
+      url += `?excludeHash=${encodeURIComponent(excludeHash)}`;
+    }
+    return this.http.get<Wordle7Puzzle>(url);
   }
 }

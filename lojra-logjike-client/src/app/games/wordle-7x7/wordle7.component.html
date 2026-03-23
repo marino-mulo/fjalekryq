@@ -1,17 +1,8 @@
 <!-- Game Content (board-width container) -->
 <div class="game-content">
-  <!-- Top Strip: Timer + Name + Swaps/Pastro -->
+  <!-- Top Strip: Name + Swaps -->
   <div class="top-strip">
-    @if (!isCompleted()) {
-      <div class="game-timer" (click)="pauseGame()" title="Pauzë">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-          <rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>
-        </svg>
-        <span>{{ game.formatTimeClock(game.timerSeconds()) }}</span>
-      </div>
-    } @else {
-      <div></div>
-    }
+    <div></div>
     <span class="game-name">Fjalëkryq</span>
     @if (!isCompleted()) {
       <div class="swap-counter">
@@ -44,7 +35,7 @@
           <img [src]="completedIcon()" class="completed-card-icon" alt="">
         </div>
       }
-      <span class="completed-card-time">{{ completedSwaps() }} {{ completedSwaps() === 1 ? 'shkëmbim' : 'shkëmbime' }} &middot; {{ game.formatTime(completedTime()) }}@if (game.hintCount() > 0) { me {{ game.hintCount() }} {{ game.hintCount() === 1 ? 'ndihmë' : 'ndihma' }}}</span>
+      <span class="completed-card-time">{{ completedSwaps() }} {{ completedSwaps() === 1 ? 'shkëmbim' : 'shkëmbime' }}@if (game.hintCount() > 0) { me {{ game.hintCount() }} {{ game.hintCount() === 1 ? 'ndihmë' : 'ndihma' }}}</span>
       <button class="btn btn--primary play-another-btn" (click)="playAnother()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
@@ -86,23 +77,6 @@
     </div>
   }
 </div>
-
-<!-- Pause Modal -->
-@if (showPause) {
-  <div class="modal-overlay active">
-    <div class="modal pause-modal" (click)="$event.stopPropagation()">
-      <p class="pause-date">{{ getTodayDateLabel() }}</p>
-      <h2 class="pause-title">Loja në pauzë</h2>
-      <p class="pause-time">Ke kaluar {{ game.formatTime(game.timerSeconds()) }}</p>
-      <button class="btn btn--primary pause-resume-btn" (click)="resumeGame()">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="6 3 20 12 6 21 6 3"/>
-        </svg>
-        Vazhdo
-      </button>
-    </div>
-  </div>
-}
 
 <!-- Info Modal -->
 @if (showInfo) {

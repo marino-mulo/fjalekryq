@@ -9,6 +9,5 @@ export interface Wordle7Puzzle {
   gridSize: number;
   solution: string[][];
   words: WordEntry[];
-  dayIndex: number;
-  dayName: string;
+  hash: string;
 }

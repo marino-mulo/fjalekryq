@@ -5,8 +5,6 @@ public class Wordle7Puzzle
     public int GridSize { get; set; } = 7;
     public string[][] Solution { get; set; } = [];
     public WordEntry[] Words { get; set; } = [];
-    public int DayIndex { get; set; }
-    public string DayName { get; set; } = string.Empty;
 }
 
 public class WordEntry

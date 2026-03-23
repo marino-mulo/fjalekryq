@@ -7,20 +7,6 @@ namespace LojraLogjike.Api.Games.Wordle7;
 /// </summary>
 public static class Wordle7Generator
 {
-    // Featured big-word length per day: Mon-Tue=7, Wed-Thu-Fri=8, Sat-Sun=9
-    private static readonly int[] FeaturedWordLength = [7, 7, 8, 8, 8, 9, 9];
-
-    private static readonly (int size, int minWords, int minLetters, int attempts, string pool)[] DayConfigs =
-    [
-        (7,  8,  20, 800,  "small"),   // Monday
-        (7,  9,  22, 800,  "small"),   // Tuesday
-        (8,  10, 28, 1000, "medium"),  // Wednesday
-        (8,  11, 30, 1000, "medium"),  // Thursday
-        (9,  13, 35, 1200, "large"),   // Friday
-        (9,  14, 38, 1200, "large"),   // Saturday
-        (10, 16, 45, 1500, "large"),   // Sunday
-    ];
-
     // Configurations for random puzzle generation (uses full word pool)
     private static readonly (int size, int minWords, int minLetters, int attempts, int featuredLen)[] RandomConfigs =
     [
@@ -31,39 +17,6 @@ public static class Wordle7Generator
         (11, 15, 45, 1500, 11),
         (13, 16, 50, 2000, 13),
     ];
-
-    /// <summary>
-    /// Generate a crossword puzzle for a given seed and day.
-    /// </summary>
-    public static Wordle7Puzzle Generate(int seed, int dayIndex, string dayName)
-    {
-        var cfg = DayConfigs[Math.Clamp(dayIndex, 0, 6)];
-        int featuredLen = FeaturedWordLength[Math.Clamp(dayIndex, 0, 6)];
-        var rng = new Random(seed);
-
-        var result = GeneratePuzzle(rng, cfg.size, cfg.minWords, cfg.minLetters, cfg.attempts, cfg.pool, featuredLen);
-
-        if (result == null)
-        {
-            // Fallback with relaxed requirements
-            result = GeneratePuzzle(rng, cfg.size,
-                Math.Max(3, cfg.minWords - 3),
-                Math.Max(12, cfg.minLetters - 10),
-                cfg.attempts * 2, cfg.pool, featuredLen);
-        }
-
-        if (result == null)
-            throw new InvalidOperationException($"Failed to generate Wordle7 puzzle for day {dayIndex}");
-
-        return new Wordle7Puzzle
-        {
-            GridSize = cfg.size,
-            Solution = result.Value.grid,
-            Words = result.Value.words,
-            DayIndex = dayIndex,
-            DayName = dayName
-        };
-    }
 
     /// <summary>
     /// Generate a random puzzle using the full word pool (3-13 letters).
@@ -101,9 +54,16 @@ public static class Wordle7Generator
             GridSize = cfg.size,
             Solution = result.Value.grid,
             Words = result.Value.words,
-            DayIndex = -1,
-            DayName = "Lojë e lirë"
         };
+    }
+
+    /// <summary>
+    /// Compute a simple hash of the solution grid for deduplication.
+    /// </summary>
+    public static string ComputePuzzleHash(string[][] solution)
+    {
+        var flat = string.Join("|", solution.Select(r => string.Join(",", r)));
+        return flat.GetHashCode(StringComparison.Ordinal).ToString("x8");
     }
 
     private static (string[][] grid, WordEntry[] words)? GeneratePuzzle(

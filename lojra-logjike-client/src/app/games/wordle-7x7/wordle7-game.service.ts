@@ -17,9 +17,6 @@ export class Wordle7GameService {
   readonly grid = signal<string[][]>([]);
   readonly selectedCell = signal<{ row: number; col: number } | null>(null);
   readonly gameWon = signal(false);
-  readonly timerSeconds = signal(0);
-  readonly timerDisabled = signal(false);
-  readonly isRestored = signal(false);
   readonly swapCount = signal(0);
 
   // Hint state
@@ -104,9 +101,6 @@ export class Wordle7GameService {
     return colors;
   });
 
-  private timerInterval: ReturnType<typeof setInterval> | null = null;
-  private timerStarted = false;
-
   // Getters
   getWords(): WordEntry[] { return this.wordList; }
   getSolution(): string[][] { return this.solutionGrid; }
@@ -116,17 +110,13 @@ export class Wordle7GameService {
     this.solutionGrid = puzzle.solution.map(r => [...r]);
     this.wordList = puzzle.words;
     this.gameWon.set(false);
-    this.timerDisabled.set(false);
-    this.isRestored.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
     this.clearHintState();
     this.buildCellToWords();
 
-    this.timerStarted = false;
     const scrambled = this.scrambleGrid(this.solutionGrid);
     this.grid.set(scrambled);
-    // Timer does NOT start here — it starts on the first swap
   }
 
   /** Build lookup: cell key -> word indices that pass through it */
@@ -208,12 +198,6 @@ export class Wordle7GameService {
 
   /** Swap two cells */
   private swapCells(r1: number, c1: number, r2: number, c2: number): void {
-    // Start timer on first swap
-    if (!this.timerStarted) {
-      this.timerStarted = true;
-      this.startTimer();
-    }
-
     const g = this.grid().map(r => [...r]);
     const temp = g[r1][c1];
     g[r1][c1] = g[r2][c2];
@@ -234,103 +218,17 @@ export class Wordle7GameService {
       }
     }
     this.gameWon.set(true);
-    this.stopTimer();
   }
 
-  /** Reset the puzzle: re-scramble letters, keep timer running, keep puzzle data */
+  /** Reset the puzzle: re-scramble letters */
   resetPuzzle(): void {
     this.gameWon.set(false);
-    this.timerDisabled.set(false);
-    this.isRestored.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
-    this.timerStarted = true;
     this.clearHintState();
-
-    // Keep timer running without resetting seconds
-    this.stopTimer();
-    this.timerInterval = setInterval(() => this.timerSeconds.update(v => v + 1), 1000);
 
     const scrambled = this.scrambleGrid(this.solutionGrid);
     this.grid.set(scrambled);
-  }
-
-  restoreCompleted(savedGrid: string[][], savedSwaps: number): void {
-    this.isRestored.set(true);
-    this.grid.set(savedGrid);
-    this.gameWon.set(true);
-    this.timerDisabled.set(true);
-    this.selectedCell.set(null);
-    this.swapCount.set(savedSwaps);
-    this.stopTimer();
-  }
-
-  /** Get snapshot of current in-progress state for persistence */
-  getProgressSnapshot(): { grid: string[][]; timerSeconds: number; swapCount: number } | null {
-    if (this.gameWon() || this.isRestored() || this.timerDisabled()) return null;
-    if (this.swapCount() === 0) return null;
-    return {
-      grid: this.grid().map(r => [...r]),
-      timerSeconds: this.timerSeconds(),
-      swapCount: this.swapCount(),
-    };
-  }
-
-  /** Restore a paused in-progress state */
-  restorePaused(savedGrid: string[][], savedTimer: number, savedSwaps: number): void {
-    this.grid.set(savedGrid);
-    this.timerSeconds.set(savedTimer);
-    this.swapCount.set(savedSwaps);
-    this.timerStarted = true; // timer was already running before pause
-    this.gameWon.set(false);
-    this.timerDisabled.set(false);
-    this.isRestored.set(false);
-    this.selectedCell.set(null);
-    this.stopTimer();
-  }
-
-  // Timer
-  pauseTimer(): void { this.stopTimer(); }
-
-  resumeTimer(): void {
-    if (this.gameWon() || this.timerDisabled()) return;
-    this.stopTimer();
-    this.timerInterval = setInterval(() => {
-      this.timerSeconds.update(v => v + 1);
-    }, 1000);
-  }
-
-  private startTimer(): void {
-    this.stopTimer();
-    this.timerSeconds.set(0);
-    this.hintCount.set(0);
-    this.timerInterval = setInterval(() => {
-      this.timerSeconds.update(v => v + 1);
-    }, 1000);
-  }
-
-  private stopTimer(): void {
-    if (this.timerInterval) {
-      clearInterval(this.timerInterval);
-      this.timerInterval = null;
-    }
-  }
-
-  formatTime(seconds: number): string {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    const parts: string[] = [];
-    if (h > 0) parts.push(`${h} orë`);
-    if (m > 0) parts.push(`${m} minuta`);
-    if (s > 0 || parts.length === 0) parts.push(`${s} sekonda`);
-    return parts.join(' e ');
-  }
-
-  formatTimeClock(seconds: number): string {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return m.toString().padStart(2, '0') + ':' + s.toString().padStart(2, '0');
   }
 
   /**
@@ -371,8 +269,6 @@ export class Wordle7GameService {
     }
 
     if (!sourceCell) {
-      // The correct letter might be in a cell that's already green elsewhere
-      // Find any non-X cell that has the letter we need
       for (let r = 0; r < size; r++) {
         for (let c = 0; c < size; c++) {
           if (r === target.row && c === target.col) continue;
@@ -386,12 +282,6 @@ export class Wordle7GameService {
     }
 
     if (!sourceCell) return;
-
-    // Start timer if not started
-    if (!this.timerStarted) {
-      this.timerStarted = true;
-      this.startTimer();
-    }
 
     // Perform the swap
     const newGrid = g.map(r => [...r]);
@@ -459,7 +349,6 @@ export class Wordle7GameService {
   }
 
   destroy(): void {
-    this.stopTimer();
     this.clearHintState();
   }
 }
