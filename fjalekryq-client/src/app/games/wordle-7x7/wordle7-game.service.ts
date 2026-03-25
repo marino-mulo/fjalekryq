@@ -8,7 +8,6 @@ interface SavedGameState {
   grid: string[][];
   swapCount: number;
   hintCount: number;
-  solveWordUsed: boolean;
 }
 
 const STORAGE_KEY = 'wordle7_saved_game';
@@ -42,9 +41,11 @@ export class Wordle7GameService {
 
   readonly canHint = computed(() => !this.gameWon() && !this.hintCooldown());
 
-  // Solve-word state (one-time use per puzzle)
-  readonly solveWordUsed = signal(false);
-  readonly canSolveWord = computed(() => !this.gameWon() && !this.solveWordUsed());
+  // Solve-word state (30s cooldown between uses)
+  readonly solveWordCooldown = signal(false);
+  readonly solveWordCooldownRemaining = signal(0);
+  private solveWordCooldownInterval: ReturnType<typeof setInterval> | null = null;
+  readonly canSolveWord = computed(() => !this.gameWon() && !this.solveWordCooldown());
 
   /** Get the current grid size */
   getGridSize(): number { return this.gridSize; }
@@ -128,7 +129,6 @@ export class Wordle7GameService {
     this.gameWon.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
-    this.solveWordUsed.set(false);
     this.clearHintState();
     this.buildCellToWords();
 
@@ -138,7 +138,7 @@ export class Wordle7GameService {
   }
 
   /** Restore a saved game state (grid + counts) without re-scrambling */
-  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number, solveWordUsed = false): void {
+  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number): void {
     this.currentPuzzle = puzzle;
     this.gridSize = puzzle.gridSize ?? 7;
     this.solutionGrid = puzzle.solution.map(r => [...r]);
@@ -146,7 +146,6 @@ export class Wordle7GameService {
     this.gameWon.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(swapCount);
-    this.solveWordUsed.set(solveWordUsed);
     this.clearHintState();
     this.hintCount.set(hintCount);
     this.buildCellToWords();
@@ -161,7 +160,6 @@ export class Wordle7GameService {
       grid: this.grid().map(r => [...r]),
       swapCount: this.swapCount(),
       hintCount: this.hintCount(),
-      solveWordUsed: this.solveWordUsed(),
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -419,15 +417,24 @@ export class Wordle7GameService {
   /**
    * Solve the 3rd biggest word: sort words by length descending,
    * pick the 3rd one, and place all its letters in the correct positions.
-   * One-time use per puzzle.
+   * 30s cooldown between uses.
    */
   solveWord(): void {
     if (!this.canSolveWord()) return;
-    this.solveWordUsed.set(true);
 
-    // Sort words by length descending and pick the 3rd
+    // Sort words by length descending and pick the 3rd unsolved one
     const sorted = [...this.wordList].sort((a, b) => b.word.length - a.word.length);
-    const target = sorted[Math.min(2, sorted.length - 1)];
+    const g = this.grid();
+    const target = sorted.find((w, i) => {
+      if (i < 2) return false; // skip top 2
+      // Check if word is already fully solved
+      for (let j = 0; j < w.word.length; j++) {
+        const r = w.direction === 'horizontal' ? w.row : w.row + j;
+        const c = w.direction === 'horizontal' ? w.col + j : w.col;
+        if (g[r][c] !== this.solutionGrid[r][c]) return true; // has wrong letters, pick this one
+      }
+      return false;
+    }) ?? sorted[Math.min(2, sorted.length - 1)];
     if (!target) return;
 
     // Get positions of the target word
@@ -482,9 +489,29 @@ export class Wordle7GameService {
     this.showHintMessage(`Fjala "${target.word}" u zgjidh!`);
     this.checkWin();
     this.saveState();
+
+    // 30-second cooldown
+    this.solveWordCooldown.set(true);
+    this.solveWordCooldownRemaining.set(30);
+    this.solveWordCooldownInterval = setInterval(() => {
+      const r = this.solveWordCooldownRemaining() - 1;
+      this.solveWordCooldownRemaining.set(r);
+      if (r <= 0) {
+        this.solveWordCooldown.set(false);
+        this.solveWordCooldownRemaining.set(0);
+        if (this.solveWordCooldownInterval) {
+          clearInterval(this.solveWordCooldownInterval);
+          this.solveWordCooldownInterval = null;
+        }
+      }
+    }, 1000);
   }
 
   destroy(): void {
     this.clearHintState();
+    if (this.solveWordCooldownInterval) {
+      clearInterval(this.solveWordCooldownInterval);
+      this.solveWordCooldownInterval = null;
+    }
   }
 }

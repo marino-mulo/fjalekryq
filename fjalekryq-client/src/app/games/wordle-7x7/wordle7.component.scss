@@ -222,6 +222,11 @@
     color: #aaa;
     background: var(--white);
   }
+
+  &.cooling {
+    opacity: 0.6;
+    pointer-events: none;
+  }
 }
 
 .hint-btn {
