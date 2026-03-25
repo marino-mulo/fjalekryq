@@ -8,6 +8,7 @@ interface SavedGameState {
   grid: string[][];
   swapCount: number;
   hintCount: number;
+  solveWordUsed: boolean;
 }
 
 const STORAGE_KEY = 'wordle7_saved_game';
@@ -40,6 +41,10 @@ export class Wordle7GameService {
   private hintSwapTimer: ReturnType<typeof setTimeout> | null = null;
 
   readonly canHint = computed(() => !this.gameWon() && !this.hintCooldown());
+
+  // Solve-word state (one-time use per puzzle)
+  readonly solveWordUsed = signal(false);
+  readonly canSolveWord = computed(() => !this.gameWon() && !this.solveWordUsed());
 
   /** Get the current grid size */
   getGridSize(): number { return this.gridSize; }
@@ -123,6 +128,7 @@ export class Wordle7GameService {
     this.gameWon.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
+    this.solveWordUsed.set(false);
     this.clearHintState();
     this.buildCellToWords();
 
@@ -132,7 +138,7 @@ export class Wordle7GameService {
   }
 
   /** Restore a saved game state (grid + counts) without re-scrambling */
-  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number): void {
+  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number, solveWordUsed = false): void {
     this.currentPuzzle = puzzle;
     this.gridSize = puzzle.gridSize ?? 7;
     this.solutionGrid = puzzle.solution.map(r => [...r]);
@@ -140,6 +146,7 @@ export class Wordle7GameService {
     this.gameWon.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(swapCount);
+    this.solveWordUsed.set(solveWordUsed);
     this.clearHintState();
     this.hintCount.set(hintCount);
     this.buildCellToWords();
@@ -154,6 +161,7 @@ export class Wordle7GameService {
       grid: this.grid().map(r => [...r]),
       swapCount: this.swapCount(),
       hintCount: this.hintCount(),
+      solveWordUsed: this.solveWordUsed(),
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -406,6 +414,74 @@ export class Wordle7GameService {
       clearTimeout(this.hintSwapTimer);
       this.hintSwapTimer = null;
     }
+  }
+
+  /**
+   * Solve the 3rd biggest word: sort words by length descending,
+   * pick the 3rd one, and place all its letters in the correct positions.
+   * One-time use per puzzle.
+   */
+  solveWord(): void {
+    if (!this.canSolveWord()) return;
+    this.solveWordUsed.set(true);
+
+    // Sort words by length descending and pick the 3rd
+    const sorted = [...this.wordList].sort((a, b) => b.word.length - a.word.length);
+    const target = sorted[Math.min(2, sorted.length - 1)];
+    if (!target) return;
+
+    // Get positions of the target word
+    const positions: { row: number; col: number }[] = [];
+    for (let j = 0; j < target.word.length; j++) {
+      const r = target.direction === 'horizontal' ? target.row : target.row + j;
+      const c = target.direction === 'horizontal' ? target.col + j : target.col;
+      positions.push({ row: r, col: c });
+    }
+
+    // Place the correct letters by finding where each needed letter currently is
+    const newGrid = this.grid().map(r => [...r]);
+    let swaps = 0;
+    const affectedCells: { row: number; col: number }[] = [];
+
+    for (let j = 0; j < positions.length; j++) {
+      const pos = positions[j];
+      const correctLetter = this.solutionGrid[pos.row][pos.col];
+
+      if (newGrid[pos.row][pos.col] === correctLetter) continue; // already correct
+
+      // Find where this letter currently sits
+      for (let r = 0; r < this.gridSize; r++) {
+        for (let c = 0; c < this.gridSize; c++) {
+          if (r === pos.row && c === pos.col) continue;
+          if (newGrid[r][c] === correctLetter && newGrid[r][c] !== this.solutionGrid[r][c]) {
+            // Swap
+            newGrid[r][c] = newGrid[pos.row][pos.col];
+            newGrid[pos.row][pos.col] = correctLetter;
+            swaps++;
+            affectedCells.push(pos);
+            break;
+          }
+        }
+        if (newGrid[pos.row][pos.col] === correctLetter) break;
+      }
+    }
+
+    this.grid.set(newGrid);
+    this.swapCount.update(v => v + swaps);
+    this.hintCount.update(v => v + 1);
+    this.selectedCell.set(null);
+
+    // Highlight the solved word cells
+    this.hintSwappedCells.set(positions);
+    if (this.hintSwapTimer) clearTimeout(this.hintSwapTimer);
+    this.hintSwapTimer = setTimeout(() => {
+      this.hintSwappedCells.set([]);
+      this.hintSwapTimer = null;
+    }, 2500);
+
+    this.showHintMessage(`Fjala "${target.word}" u zgjidh!`);
+    this.checkWin();
+    this.saveState();
   }
 
   destroy(): void {

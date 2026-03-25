@@ -166,9 +166,10 @@
    ══════════════════════════════════════ */
 .bottom-controls {
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 18px;
-  justify-content: space-between;
+  justify-content: center;
 }
 
 .control-btn {
@@ -197,6 +198,30 @@
 .reset-btn {
   background: var(--white);
   color: var(--black);
+}
+
+.solve-btn {
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border-color: #1D4ED8;
+  box-shadow: 3px 3px 0 #1D4ED8;
+
+  &:hover:not(:disabled) {
+    background: #1D4ED8;
+    color: white;
+    box-shadow: 4px 4px 0 #1E3A8A;
+  }
+
+  &:active:not(:disabled) {
+    box-shadow: 1px 1px 0 #1E3A8A;
+  }
+
+  &:disabled {
+    border-color: #ccc;
+    box-shadow: 2px 2px 0 #ccc;
+    color: #aaa;
+    background: var(--white);
+  }
 }
 
 .hint-btn {
