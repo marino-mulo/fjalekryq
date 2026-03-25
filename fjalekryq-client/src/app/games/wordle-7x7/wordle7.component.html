@@ -14,7 +14,7 @@
   <!-- Top Strip: Moves remaining (centered) -->
   <div class="top-strip">
     @if (!isCompleted() && !game.gameLost() && !isLoading()) {
-      <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 5 && game.swapsRemaining() > 0" [class.swap-danger]="game.swapsRemaining() === 0">
+      <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 10 && game.swapsRemaining() > 5" [class.swap-danger]="game.swapsRemaining() <= 5">
         <span class="swap-count">{{ game.swapsRemaining() }}</span>
         <span class="swap-label">lëvizje të mbetura</span>
       </div>
