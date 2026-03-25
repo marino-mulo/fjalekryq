@@ -11,16 +11,13 @@
 
 <!-- Game Content (board-width container) -->
 <div class="game-content">
-  <!-- Top Strip: Swaps -->
+  <!-- Top Strip: Moves remaining (centered) -->
   <div class="top-strip">
-    <div></div>
-    @if (!isCompleted() && !game.gameLost()) {
-      <div class="swap-counter">
-        <span class="swap-count" [class.swap-warning]="game.swapsRemaining() <= 5 && game.swapsRemaining() > 0" [class.swap-danger]="game.swapsRemaining() === 0">{{ game.swapCount() }} / {{ game.swapLimit() }}</span>
-        <span class="swap-label">shkëmbime</span>
+    @if (!isCompleted() && !game.gameLost() && !isLoading()) {
+      <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 5 && game.swapsRemaining() > 0" [class.swap-danger]="game.swapsRemaining() === 0">
+        <span class="swap-count">{{ game.swapsRemaining() }}</span>
+        <span class="swap-label">lëvizje të mbetura</span>
       </div>
-    } @else {
-      <div></div>
     }
   </div>
 
@@ -32,18 +29,10 @@
 
   @if (isCompleted()) {
     <div class="completed-card">
-      @if (game.hintCount() === 0) {
-        <div class="completed-card-row">
-          <span class="completed-card-label">Perfect Game!</span>
-          <img src="icons/rewards/medal.svg" class="completed-card-icon" alt="">
-        </div>
-      } @else {
-        <div class="completed-card-row">
-          <span class="completed-card-label">{{ completedPraise() }}</span>
-          <img [src]="completedIcon()" class="completed-card-icon" alt="">
-        </div>
-      }
-      <span class="completed-card-time">{{ completedSwaps() }} {{ completedSwaps() === 1 ? 'shkëmbim' : 'shkëmbime' }}@if (game.hintCount() > 0) { me {{ game.hintCount() }} {{ game.hintCount() === 1 ? 'ndihmë' : 'ndihma' }}}</span>
+      <div class="completed-card-row">
+        <span class="completed-card-label">{{ completedPraise() }}</span>
+        <img [src]="completedIcon()" class="completed-card-icon" alt="">
+      </div>
       <button class="btn btn--primary play-another-btn" (click)="playAnother()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
@@ -59,7 +48,6 @@
         <span class="completed-card-label lost-label">Dështove!</span>
         <img src="icons/rewards/sad.svg" class="completed-card-icon" alt="">
       </div>
-      <span class="completed-card-time">{{ game.swapCount() }} / {{ game.swapLimit() }} shkëmbime të përdorura</span>
       <button class="btn btn--primary play-another-btn" (click)="playAnother()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>

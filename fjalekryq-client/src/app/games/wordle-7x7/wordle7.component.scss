@@ -11,8 +11,7 @@
 .top-strip {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  position: relative;
+  justify-content: center;
   width: 100%;
   margin-bottom: 12px;
   min-height: 32px;
@@ -258,11 +257,11 @@
   }
 }
 
-.swap-warning {
+.swap-counter.swap-warning .swap-count {
   color: #D97706;
 }
 
-.swap-danger {
+.swap-counter.swap-danger .swap-count {
   color: #DC2626;
 }
 

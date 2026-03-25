@@ -500,7 +500,6 @@ export class Wordle7GameService {
 
     this.grid.set(newGrid);
     this.totalSwapCount.update(v => v + swaps);
-    this.hintCount.update(v => v + 1);
     this.selectedCell.set(null);
 
     // Highlight the solved word cells

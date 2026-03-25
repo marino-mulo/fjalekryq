@@ -23,7 +23,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   showInfo = false;
 
   // Completion state
-  completedSwaps = signal(0);
   isCompleted = signal(false);
   completedPraise = signal('Bravo!');
   completedIcon = signal('icons/rewards/rocket.svg');
@@ -78,7 +77,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private loadRandomPuzzle(): void {
     this.isLoading.set(true);
     this.isCompleted.set(false);
-    this.completedSwaps.set(0);
     this.game.destroy();
     Wordle7GameService.clearSavedState();
 
@@ -147,9 +145,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   onWin(): void {
-    const swaps = this.game.swapCount();
     this.isCompleted.set(true);
-    this.completedSwaps.set(swaps);
     this.completedPraise.set(this.pickPraise());
     this.completedIcon.set(this.pickIcon());
   }
