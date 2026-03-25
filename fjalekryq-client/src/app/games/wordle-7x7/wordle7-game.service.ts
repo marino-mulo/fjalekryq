@@ -8,6 +8,7 @@ interface SavedGameState {
   grid: string[][];
   swapCount: number;
   hintCount: number;
+  totalSwapCount: number;
 }
 
 const STORAGE_KEY = 'wordle7_saved_game';
@@ -27,7 +28,10 @@ export class Wordle7GameService {
   readonly grid = signal<string[][]>([]);
   readonly selectedCell = signal<{ row: number; col: number } | null>(null);
   readonly gameWon = signal(false);
-  readonly swapCount = signal(0);
+  readonly gameLost = signal(false);
+  readonly swapCount = signal(0);       // player swaps only (counts toward limit)
+  readonly totalSwapCount = signal(0);  // all swaps including hints (display)
+  readonly swapLimit = signal(0);
 
   // Hint state
   readonly hintMessage = signal('');
@@ -39,13 +43,16 @@ export class Wordle7GameService {
   private hintMessageTimer: ReturnType<typeof setTimeout> | null = null;
   private hintSwapTimer: ReturnType<typeof setTimeout> | null = null;
 
-  readonly canHint = computed(() => !this.gameWon() && !this.hintCooldown());
+  readonly canHint = computed(() => !this.gameWon() && !this.gameLost() && !this.hintCooldown());
 
   // Solve-word state (30s cooldown between uses)
   readonly solveWordCooldown = signal(false);
   readonly solveWordCooldownRemaining = signal(0);
   private solveWordCooldownInterval: ReturnType<typeof setInterval> | null = null;
-  readonly canSolveWord = computed(() => !this.gameWon() && !this.solveWordCooldown());
+  readonly canSolveWord = computed(() => !this.gameWon() && !this.gameLost() && !this.solveWordCooldown());
+
+  /** Remaining swaps the player can make */
+  readonly swapsRemaining = computed(() => Math.max(0, this.swapLimit() - this.swapCount()));
 
   /** Get the current grid size */
   getGridSize(): number { return this.gridSize; }
@@ -126,9 +133,12 @@ export class Wordle7GameService {
     this.gridSize = puzzle.gridSize ?? 7;
     this.solutionGrid = puzzle.solution.map(r => [...r]);
     this.wordList = puzzle.words;
+    this.swapLimit.set(puzzle.swapLimit ?? 999);
     this.gameWon.set(false);
+    this.gameLost.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
+    this.totalSwapCount.set(0);
     this.clearHintState();
     this.buildCellToWords();
 
@@ -138,14 +148,17 @@ export class Wordle7GameService {
   }
 
   /** Restore a saved game state (grid + counts) without re-scrambling */
-  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number): void {
+  restorePuzzle(puzzle: Wordle7Puzzle, grid: string[][], swapCount: number, hintCount: number, totalSwapCount?: number): void {
     this.currentPuzzle = puzzle;
     this.gridSize = puzzle.gridSize ?? 7;
     this.solutionGrid = puzzle.solution.map(r => [...r]);
     this.wordList = puzzle.words;
+    this.swapLimit.set(puzzle.swapLimit ?? 999);
     this.gameWon.set(false);
+    this.gameLost.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(swapCount);
+    this.totalSwapCount.set(totalSwapCount ?? swapCount);
     this.clearHintState();
     this.hintCount.set(hintCount);
     this.buildCellToWords();
@@ -160,6 +173,7 @@ export class Wordle7GameService {
       grid: this.grid().map(r => [...r]),
       swapCount: this.swapCount(),
       hintCount: this.hintCount(),
+      totalSwapCount: this.totalSwapCount(),
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -238,7 +252,7 @@ export class Wordle7GameService {
 
   /** Handle cell selection / swap */
   selectCell(row: number, col: number): void {
-    if (this.gameWon()) return;
+    if (this.gameWon() || this.gameLost()) return;
     const g = this.grid();
     if (g[row][col] === 'X') return;
     if (this.isCellLocked(row, col)) return;
@@ -259,7 +273,7 @@ export class Wordle7GameService {
     this.selectedCell.set(null);
   }
 
-  /** Swap two cells */
+  /** Swap two cells (player swap — counts toward limit) */
   private swapCells(r1: number, c1: number, r2: number, c2: number): void {
     const g = this.grid().map(r => [...r]);
     const temp = g[r1][c1];
@@ -267,8 +281,10 @@ export class Wordle7GameService {
     g[r2][c2] = temp;
     this.grid.set(g);
     this.swapCount.update(v => v + 1);
+    this.totalSwapCount.update(v => v + 1);
 
     this.checkWin();
+    if (!this.gameWon()) this.checkLoss();
     this.saveState();
   }
 
@@ -283,6 +299,15 @@ export class Wordle7GameService {
     }
     this.gameWon.set(true);
     Wordle7GameService.clearSavedState();
+  }
+
+  /** Check if player has exhausted their swap limit */
+  private checkLoss(): void {
+    if (this.swapCount() >= this.swapLimit()) {
+      this.gameLost.set(true);
+      this.selectedCell.set(null);
+      Wordle7GameService.clearSavedState();
+    }
   }
 
   /** Reset the puzzle: re-scramble letters */
@@ -348,13 +373,13 @@ export class Wordle7GameService {
 
     if (!sourceCell) return;
 
-    // Perform the swap
+    // Perform the swap (hint — does NOT count toward limit)
     const newGrid = g.map(r => [...r]);
     const temp = newGrid[target.row][target.col];
     newGrid[target.row][target.col] = newGrid[sourceCell.row][sourceCell.col];
     newGrid[sourceCell.row][sourceCell.col] = temp;
     this.grid.set(newGrid);
-    this.swapCount.update(v => v + 1);
+    this.totalSwapCount.update(v => v + 1);
     this.selectedCell.set(null);
 
     // Highlight the two swapped cells
@@ -474,7 +499,7 @@ export class Wordle7GameService {
     }
 
     this.grid.set(newGrid);
-    this.swapCount.update(v => v + swaps);
+    this.totalSwapCount.update(v => v + swaps);
     this.hintCount.update(v => v + 1);
     this.selectedCell.set(null);
 

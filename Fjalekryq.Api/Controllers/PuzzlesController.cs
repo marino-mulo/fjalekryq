@@ -24,6 +24,10 @@ public class PuzzlesController : ControllerBase
         var puzzle = Wordle7Generator.GenerateRandom(seed, excluded);
         var hash = Wordle7Generator.ComputePuzzleHash(puzzle.Solution);
 
-        return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash });
+        // Swap limit: 1.5x the number of letter cells (rounded up)
+        var letterCount = puzzle.Solution.Sum(row => row.Count(c => c != "X"));
+        var swapLimit = (int)Math.Ceiling(letterCount * 1.5);
+
+        return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash, SwapLimit = swapLimit });
     }
 }

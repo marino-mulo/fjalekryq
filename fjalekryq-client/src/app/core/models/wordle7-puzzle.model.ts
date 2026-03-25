@@ -10,4 +10,5 @@ export interface Wordle7Puzzle {
   solution: string[][];
   words: WordEntry[];
   hash: string;
+  swapLimit: number;
 }

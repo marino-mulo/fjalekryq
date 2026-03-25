@@ -5,6 +5,7 @@ public class Wordle7Puzzle
     public int GridSize { get; set; } = 7;
     public string[][] Solution { get; set; } = [];
     public WordEntry[] Words { get; set; } = [];
+    public int SwapLimit { get; set; }
 }
 
 public class WordEntry

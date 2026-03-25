@@ -14,9 +14,9 @@
   <!-- Top Strip: Swaps -->
   <div class="top-strip">
     <div></div>
-    @if (!isCompleted()) {
+    @if (!isCompleted() && !game.gameLost()) {
       <div class="swap-counter">
-        <span class="swap-count">{{ game.swapCount() }}</span>
+        <span class="swap-count" [class.swap-warning]="game.swapsRemaining() <= 5 && game.swapsRemaining() > 0" [class.swap-danger]="game.swapsRemaining() === 0">{{ game.swapCount() }} / {{ game.swapLimit() }}</span>
         <span class="swap-label">shkëmbime</span>
       </div>
     } @else {
@@ -53,6 +53,22 @@
     </div>
   }
 
+  @if (game.gameLost()) {
+    <div class="completed-card lost-card">
+      <div class="completed-card-row">
+        <span class="completed-card-label lost-label">Dështove!</span>
+        <img src="icons/rewards/sad.svg" class="completed-card-icon" alt="">
+      </div>
+      <span class="completed-card-time">{{ game.swapCount() }} / {{ game.swapLimit() }} shkëmbime të përdorura</span>
+      <button class="btn btn--primary play-another-btn" (click)="playAnother()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
+        Luaj një tjetër
+      </button>
+    </div>
+  }
+
   @if (game.hintMessage()) {
     <div class="hint-message">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -63,7 +79,7 @@
     </div>
   }
 
-  @if (!isCompleted() && !isLoading()) {
+  @if (!isCompleted() && !game.gameLost() && !isLoading()) {
     <div class="bottom-controls">
       <button #newPuzzleBtn class="control-btn reset-btn" [disabled]="newPuzzleCooldown() > 0" (click)="playAnother(); newPuzzleBtn.blur()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

@@ -258,6 +258,14 @@
   }
 }
 
+.swap-warning {
+  color: #D97706;
+}
+
+.swap-danger {
+  color: #DC2626;
+}
+
 /* ══════════════════════════════════════
    Completed Card (below board)
    ══════════════════════════════════════ */
@@ -293,6 +301,15 @@
   font-size: 1.25rem;
   color: #15803d;
   letter-spacing: -0.5px;
+}
+
+.lost-card {
+  border-color: #FECACA;
+  background: #FFF5F5;
+}
+
+.lost-label {
+  color: #DC2626;
 }
 
 .completed-card-time {
