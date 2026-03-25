@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Wordle7Puzzle } from '../models/wordle7-puzzle.model';
 
@@ -7,11 +7,11 @@ import { Wordle7Puzzle } from '../models/wordle7-puzzle.model';
 export class PuzzleService {
   private http = inject(HttpClient);
 
-  getRandomWordle7(excludeHash?: string): Observable<Wordle7Puzzle> {
-    let url = '/api/puzzles/wordle7/random';
-    if (excludeHash) {
-      url += `?excludeHash=${encodeURIComponent(excludeHash)}`;
+  getRandomWordle7(excludeWords?: string[]): Observable<Wordle7Puzzle> {
+    let params = new HttpParams();
+    if (excludeWords && excludeWords.length > 0) {
+      params = params.set('excludeWords', excludeWords.join(','));
     }
-    return this.http.get<Wordle7Puzzle>(url);
+    return this.http.get<Wordle7Puzzle>('/api/puzzles/wordle7/random', { params });
   }
 }

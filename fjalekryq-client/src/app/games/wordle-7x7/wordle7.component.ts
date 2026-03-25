@@ -32,7 +32,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   puzzleNumber = signal(1);
   isLoading = signal(false);
   loadingPercent = signal(0);
-  private lastHash: string | undefined;
+  private lastWords: string[] = [];
   private loadingInterval: ReturnType<typeof setInterval> | null = null;
 
   // New puzzle cooldown (10 seconds)
@@ -60,7 +60,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     // Try to restore a saved game first
     const saved = Wordle7GameService.loadSavedState();
     if (saved) {
-      this.lastHash = saved.puzzle.hash;
+      this.lastWords = saved.puzzle.words.map(w => w.word);
       this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount);
     } else {
       this.loadRandomPuzzle();
@@ -84,8 +84,8 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
     this.startLoadingProgress();
 
-    this.puzzleService.getRandomWordle7(this.lastHash).subscribe(puzzle => {
-      this.lastHash = puzzle.hash;
+    this.puzzleService.getRandomWordle7(this.lastWords).subscribe(puzzle => {
+      this.lastWords = puzzle.words.map(w => w.word);
       this.loadingPercent.set(100);
       this.stopLoadingProgress();
 

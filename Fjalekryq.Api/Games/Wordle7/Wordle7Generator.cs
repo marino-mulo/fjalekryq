@@ -21,14 +21,16 @@ public static class Wordle7Generator
     /// <summary>
     /// Generate a random puzzle using the full word pool (3-13 letters).
     /// Picks a random grid size configuration each time.
+    /// Words in excludeWords are removed from the pool so the new puzzle
+    /// shares no words with the previous game.
     /// </summary>
-    public static Wordle7Puzzle GenerateRandom(int seed)
+    public static Wordle7Puzzle GenerateRandom(int seed, HashSet<string>? excludeWords = null)
     {
         var rng = new Random(seed);
         var cfgIndex = rng.Next(RandomConfigs.Length);
         var cfg = RandomConfigs[cfgIndex];
 
-        var result = GeneratePuzzle(rng, cfg.size, cfg.minWords, cfg.minLetters, cfg.attempts, "full", cfg.featuredLen);
+        var result = GeneratePuzzle(rng, cfg.size, cfg.minWords, cfg.minLetters, cfg.attempts, "full", cfg.featuredLen, excludeWords);
 
         if (result == null)
         {
@@ -36,14 +38,21 @@ public static class Wordle7Generator
             result = GeneratePuzzle(rng, cfg.size,
                 Math.Max(3, cfg.minWords - 3),
                 Math.Max(12, cfg.minLetters - 10),
-                cfg.attempts * 2, "full", cfg.featuredLen);
+                cfg.attempts * 2, "full", cfg.featuredLen, excludeWords);
         }
 
         // If still null, try a smaller grid
         if (result == null)
         {
             var fallbackCfg = RandomConfigs[0];
-            result = GeneratePuzzle(rng, fallbackCfg.size, 5, 15, 1500, "full", 7);
+            result = GeneratePuzzle(rng, fallbackCfg.size, 5, 15, 1500, "full", 7, excludeWords);
+        }
+
+        // Last resort: ignore exclusions to avoid failing entirely
+        if (result == null)
+        {
+            var fallbackCfg = RandomConfigs[0];
+            result = GeneratePuzzle(rng, fallbackCfg.size, 5, 15, 1500, "full", 7, null);
         }
 
         if (result == null)
@@ -67,10 +76,18 @@ public static class Wordle7Generator
     }
 
     private static (string[][] grid, WordEntry[] words)? GeneratePuzzle(
-        Random rng, int size, int minWords, int minLetters, int maxAttempts, string poolName, int featuredLen)
+        Random rng, int size, int minWords, int minLetters, int maxAttempts, string poolName, int featuredLen,
+        HashSet<string>? excludeWords = null)
     {
         var pool = Wordle7Dictionary.GetPool(poolName);
         var bigWords = Wordle7Dictionary.GetWordsByLength(featuredLen);
+
+        // Filter out words from the previous puzzle
+        if (excludeWords != null && excludeWords.Count > 0)
+        {
+            pool = pool.Where(w => !excludeWords.Contains(w)).ToArray();
+            bigWords = bigWords.Where(w => !excludeWords.Contains(w)).ToArray();
+        }
         string[][] bestGrid = null!;
         WordEntry[] bestWords = null!;
         int bestScore = 0;

@@ -8,25 +8,22 @@ namespace Fjalekryq.Api.Controllers;
 public class PuzzlesController : ControllerBase
 {
     [HttpGet("wordle7/random")]
-    public IActionResult GetRandomWordle7([FromQuery] string? excludeHash = null)
+    public IActionResult GetRandomWordle7([FromQuery] string? excludeWords = null)
     {
-        const int maxRetries = 10;
-        for (int i = 0; i < maxRetries; i++)
+        // Parse comma-separated list of words to exclude (from previous puzzle)
+        var excluded = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrEmpty(excludeWords))
         {
-            var seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode() ^ i;
-            var puzzle = Wordle7Generator.GenerateRandom(seed);
-            var hash = Wordle7Generator.ComputePuzzleHash(puzzle.Solution);
-
-            if (excludeHash == null || hash != excludeHash)
+            foreach (var w in excludeWords.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash });
+                excluded.Add(w);
             }
         }
 
-        // Fallback: return whatever we get
-        var fallbackSeed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
-        var fallback = Wordle7Generator.GenerateRandom(fallbackSeed);
-        var fallbackHash = Wordle7Generator.ComputePuzzleHash(fallback.Solution);
-        return Ok(new { fallback.GridSize, fallback.Solution, fallback.Words, Hash = fallbackHash });
+        var seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
+        var puzzle = Wordle7Generator.GenerateRandom(seed, excluded);
+        var hash = Wordle7Generator.ComputePuzzleHash(puzzle.Solution);
+
+        return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash });
     }
 }
