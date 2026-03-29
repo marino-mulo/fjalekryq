@@ -11,7 +11,9 @@ interface SavedGameState {
   totalSwapCount: number;
 }
 
-const STORAGE_KEY = 'wordle7_saved_game';
+const STORAGE_KEY        = 'wordle7_saved_game';
+const HINT_COOLDOWN_KEY  = 'wordle7_hint_cooldown_end';
+const SOLVE_COOLDOWN_KEY = 'wordle7_solve_cooldown_end';
 
 @Injectable()
 export class Wordle7GameService {
@@ -163,6 +165,46 @@ export class Wordle7GameService {
     this.hintCount.set(hintCount);
     this.buildCellToWords();
     this.grid.set(grid);
+    this.restoreCooldowns();
+  }
+
+  /** Restore cooldowns that were still active before a page refresh */
+  private restoreCooldowns(): void {
+    const now = Date.now();
+
+    const hintEnd = parseInt(localStorage.getItem(HINT_COOLDOWN_KEY) ?? '0', 10);
+    const hintRemaining = Math.ceil((hintEnd - now) / 1000);
+    if (hintRemaining > 0) {
+      this.hintCooldown.set(true);
+      this.hintCooldownRemaining.set(hintRemaining);
+      this.hintCooldownInterval = setInterval(() => {
+        const r = this.hintCooldownRemaining() - 1;
+        this.hintCooldownRemaining.set(r);
+        if (r <= 0) {
+          this.hintCooldown.set(false);
+          this.hintCooldownRemaining.set(0);
+          try { localStorage.removeItem(HINT_COOLDOWN_KEY); } catch { /* ignore */ }
+          if (this.hintCooldownInterval) { clearInterval(this.hintCooldownInterval); this.hintCooldownInterval = null; }
+        }
+      }, 1000);
+    }
+
+    const solveEnd = parseInt(localStorage.getItem(SOLVE_COOLDOWN_KEY) ?? '0', 10);
+    const solveRemaining = Math.ceil((solveEnd - now) / 1000);
+    if (solveRemaining > 0) {
+      this.solveWordCooldown.set(true);
+      this.solveWordCooldownRemaining.set(solveRemaining);
+      this.solveWordCooldownInterval = setInterval(() => {
+        const r = this.solveWordCooldownRemaining() - 1;
+        this.solveWordCooldownRemaining.set(r);
+        if (r <= 0) {
+          this.solveWordCooldown.set(false);
+          this.solveWordCooldownRemaining.set(0);
+          try { localStorage.removeItem(SOLVE_COOLDOWN_KEY); } catch { /* ignore */ }
+          if (this.solveWordCooldownInterval) { clearInterval(this.solveWordCooldownInterval); this.solveWordCooldownInterval = null; }
+        }
+      }, 1000);
+    }
   }
 
   /** Save current game state to localStorage */
@@ -191,9 +233,13 @@ export class Wordle7GameService {
     }
   }
 
-  /** Clear saved game state */
+  /** Clear saved game state and cooldown timestamps */
   static clearSavedState(): void {
-    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(HINT_COOLDOWN_KEY);
+      localStorage.removeItem(SOLVE_COOLDOWN_KEY);
+    } catch { /* ignore */ }
   }
 
   /** Build lookup: cell key -> word indices that pass through it */
@@ -394,7 +440,8 @@ export class Wordle7GameService {
     this.checkWin();
     this.saveState();
 
-    // 10-second cooldown
+    // 10-second cooldown (persisted so refresh doesn't reset it)
+    try { localStorage.setItem(HINT_COOLDOWN_KEY, String(Date.now() + 10000)); } catch { /* ignore */ }
     this.hintCooldown.set(true);
     this.hintCooldownRemaining.set(10);
     this.hintCooldownInterval = setInterval(() => {
@@ -403,6 +450,7 @@ export class Wordle7GameService {
       if (r <= 0) {
         this.hintCooldown.set(false);
         this.hintCooldownRemaining.set(0);
+        try { localStorage.removeItem(HINT_COOLDOWN_KEY); } catch { /* ignore */ }
         if (this.hintCooldownInterval) {
           clearInterval(this.hintCooldownInterval);
           this.hintCooldownInterval = null;
@@ -514,7 +562,8 @@ export class Wordle7GameService {
     this.checkWin();
     this.saveState();
 
-    // 30-second cooldown
+    // 30-second cooldown (persisted so refresh doesn't reset it)
+    try { localStorage.setItem(SOLVE_COOLDOWN_KEY, String(Date.now() + 30000)); } catch { /* ignore */ }
     this.solveWordCooldown.set(true);
     this.solveWordCooldownRemaining.set(30);
     this.solveWordCooldownInterval = setInterval(() => {
@@ -523,6 +572,7 @@ export class Wordle7GameService {
       if (r <= 0) {
         this.solveWordCooldown.set(false);
         this.solveWordCooldownRemaining.set(0);
+        try { localStorage.removeItem(SOLVE_COOLDOWN_KEY); } catch { /* ignore */ }
         if (this.solveWordCooldownInterval) {
           clearInterval(this.solveWordCooldownInterval);
           this.solveWordCooldownInterval = null;

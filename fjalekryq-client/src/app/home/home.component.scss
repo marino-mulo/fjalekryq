@@ -67,13 +67,13 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 28px 32px 22px;
+  gap: 8px;
+  padding: 18px 24px 14px;
   background: var(--purple);
   color: #fff;
   font-family: var(--font-display);
   border: 2px solid var(--black);
-  border-radius: 22px;
+  border-radius: 18px;
   box-shadow: 4px 4px 0px var(--black);
   cursor: pointer;
   transition: transform 0.12s, box-shadow 0.12s;
@@ -89,8 +89,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
+  width: 44px;
+  height: 44px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
 }
@@ -98,20 +98,20 @@
 .btn-play-bottom {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .btn-level {
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 1px;
   opacity: 0.9;
 }
 
 .btn-difficulty {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 800;
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: 20px;
 
   &[data-diff="easy"]    { background: #22C55E; color: #fff; }
