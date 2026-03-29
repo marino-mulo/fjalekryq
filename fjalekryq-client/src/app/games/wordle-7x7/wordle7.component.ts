@@ -14,6 +14,18 @@ function getLevelDifficulty(level: number): string {
   return 'extreme';
 }
 
+const BG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
+const BG_COLORS = ['green', 'yellow', 'grey'] as const;
+
+interface BgTile {
+  id: number;
+  letter: string;
+  x: number;
+  y: number;
+  color: 'green' | 'yellow' | 'grey';
+  delay: number;
+}
+
 @Component({
   selector: 'app-wordle7',
   standalone: true,
@@ -43,6 +55,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   loadingPercent = signal(0);
   private lastWords: string[] = [];
   private loadingInterval: ReturnType<typeof setInterval> | null = null;
+
+  // Loading background tiles
+  bgTiles = signal<BgTile[]>([]);
+  private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
 
   private readonly ICONS = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
@@ -77,6 +93,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
     this.stopLoadingProgress();
+    this.stopBgTiles();
   }
 
   private loadRandomPuzzle(): void {
@@ -86,6 +103,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     Wordle7GameService.clearSavedState();
 
     this.startLoadingProgress();
+    this.startBgTiles();
 
     const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     const difficulty = getLevelDifficulty(level);
@@ -94,6 +112,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.lastWords = puzzle.words.map(w => w.word);
       this.loadingPercent.set(100);
       this.stopLoadingProgress();
+      this.stopBgTiles();
 
       setTimeout(() => {
         this.game.initPuzzle(puzzle);
@@ -101,6 +120,39 @@ export class Wordle7Component implements OnInit, OnDestroy {
         this.loadingPercent.set(0);
       }, 300);
     });
+  }
+
+  private startBgTiles(): void {
+    const tiles: BgTile[] = [];
+    for (let i = 0; i < 18; i++) {
+      const col = i % 6;
+      const row = Math.floor(i / 6);
+      tiles.push({
+        id: i,
+        letter: BG_LETTERS[Math.floor(Math.random() * BG_LETTERS.length)],
+        x: 4 + col * 15.5 + (Math.random() - 0.5) * 8,
+        y: 5 + row * 30 + (Math.random() - 0.5) * 12,
+        color: BG_COLORS[i % 3],
+        delay: Math.random() * 4,
+      });
+    }
+    this.bgTiles.set(tiles);
+    this.bgSwapTimer = setInterval(() => {
+      const t = this.bgTiles();
+      const i = Math.floor(Math.random() * t.length);
+      let j = Math.floor(Math.random() * (t.length - 1));
+      if (j >= i) j++;
+      this.bgTiles.set(t.map((tile, idx) => {
+        if (idx === i) return { ...tile, x: t[j].x, y: t[j].y };
+        if (idx === j) return { ...tile, x: t[i].x, y: t[i].y };
+        return tile;
+      }));
+    }, 1200);
+  }
+
+  private stopBgTiles(): void {
+    if (this.bgSwapTimer) { clearInterval(this.bgSwapTimer); this.bgSwapTimer = null; }
+    this.bgTiles.set([]);
   }
 
   private startLoadingProgress(): void {

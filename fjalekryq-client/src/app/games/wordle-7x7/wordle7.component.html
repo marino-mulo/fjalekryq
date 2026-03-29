@@ -1,6 +1,16 @@
 <!-- Full-page loading overlay -->
 @if (isLoading()) {
   <div class="loading-overlay">
+    <div class="bg-tiles" aria-hidden="true">
+      @for (tile of bgTiles(); track tile.id) {
+        <div class="bg-tile bg-tile--{{ tile.color }}"
+             [style.left.%]="tile.x"
+             [style.top.%]="tile.y"
+             [style.animation-delay.s]="tile.delay">
+          {{ tile.letter }}
+        </div>
+      }
+    </div>
     <div class="loading-spinner"></div>
     <span class="loading-text">Duke ngarkuar... {{ loadingPercent() }}%</span>
     <div class="loading-bar-track">
@@ -38,8 +48,8 @@
         <span class="completed-card-label">{{ completedPraise() }}</span>
         <img [src]="completedIcon()" class="completed-card-icon" alt="">
       </div>
-      <button class="btn-menu" (click)="nextLevel()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <button class="btn-next-level" (click)="nextLevel()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
         Niveli tjetër
