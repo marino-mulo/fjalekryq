@@ -9,12 +9,17 @@
 
     <div class="menu-actions">
       <button class="btn-play" (click)="startGame()">
-        <span class="btn-play-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-        </span>
-        LUAJ
+        <div class="btn-play-top">
+          <span class="btn-play-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          </span>
+          <span class="btn-play-label">LUAJ</span>
+        </div>
+        <div class="btn-play-bottom">
+          <span class="btn-level">LEVEL {{ level() }}</span>
+          <span class="btn-difficulty" [attr.data-diff]="difficultyKey()">{{ difficultyLabel() }}</span>
+        </div>
       </button>
-
     </div>
 
     <div class="menu-footer">
@@ -31,6 +36,6 @@
   </div>
 } @else {
   <section class="game-section">
-    <app-wordle7 />
+    <app-wordle7 (goBack)="backToMenu()" />
   </section>
 }

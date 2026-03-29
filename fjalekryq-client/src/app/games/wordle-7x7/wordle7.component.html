@@ -11,7 +11,7 @@
 
 <!-- Game Content (board-width container) -->
 <div class="game-content">
-  <!-- Top Strip: Moves remaining (centered) -->
+  <!-- Top Strip: Moves remaining -->
   <div class="top-strip">
     @if (!isCompleted() && !game.gameLost() && !isLoading()) {
       <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 10 && game.swapsRemaining() > 5" [class.swap-danger]="game.swapsRemaining() <= 5">
@@ -33,11 +33,11 @@
         <span class="completed-card-label">{{ completedPraise() }}</span>
         <img [src]="completedIcon()" class="completed-card-icon" alt="">
       </div>
-      <button class="btn btn--primary play-another-btn" (click)="playAnother()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      <button class="btn-menu" (click)="backToMenu()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
-        Luaj një tjetër
+        Menu
       </button>
     </div>
   }
@@ -48,11 +48,11 @@
         <span class="completed-card-label lost-label">Dështove!</span>
         <img src="icons/rewards/sad.svg" class="completed-card-icon" alt="">
       </div>
-      <button class="btn btn--primary play-another-btn" (click)="playAnother()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+      <button class="btn-menu" (click)="backToMenu()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
         </svg>
-        Luaj një tjetër
+        Menu
       </button>
     </div>
   }
@@ -69,37 +69,25 @@
 
   @if (!isCompleted() && !game.gameLost() && !isLoading()) {
     <div class="bottom-controls">
-      <button #newPuzzleBtn class="control-btn reset-btn" [disabled]="newPuzzleCooldown() > 0" (click)="playAnother(); newPuzzleBtn.blur()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
-        </svg>
-        @if (newPuzzleCooldown() > 0) {
-          Luaj një tjetër ({{ newPuzzleCooldown() }}s)
-        } @else {
-          Luaj një tjetër
-        }
-      </button>
       <button #solveBtn class="control-btn solve-btn" [class.cooling]="game.solveWordCooldown()" [disabled]="!game.canSolveWord()" (click)="onSolveWord(); solveBtn.blur()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
           <polyline points="22 4 12 14.01 9 11.01"/>
         </svg>
-        @if (game.solveWordCooldown()) {
-          Zgjidh fjalën ({{ game.solveWordCooldownRemaining() }}s)
-        } @else {
-          Zgjidh fjalën
-        }
+        <span>
+          @if (game.solveWordCooldown()) { {{ game.solveWordCooldownRemaining() }}s }
+          @else { Zgjidh }
+        </span>
       </button>
       <button #hintBtn class="control-btn hint-btn" [class.cooling]="game.hintCooldown()" [disabled]="!game.canHint()" (click)="onHint(); hintBtn.blur()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 18h6"/><path d="M10 22h4"/>
           <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
         </svg>
-        @if (game.hintCooldown()) {
-          Ndihmë ({{ game.hintCooldownRemaining() }}s)
-        } @else {
-          Ndihmë
-        }
+        <span>
+          @if (game.hintCooldown()) { {{ game.hintCooldownRemaining() }}s }
+          @else { Ndihmë }
+        </span>
       </button>
     </div>
   }

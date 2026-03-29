@@ -1,9 +1,18 @@
-import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, Output, EventEmitter } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
 import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
 import { GameHeaderService } from '../../core/services/game-header.service';
+
+const LEVEL_KEY = 'fjalekryq_level';
+
+function getLevelDifficulty(level: number): string {
+  if (level <= 100) return 'easy';
+  if (level <= 300) return 'medium';
+  if (level <= 500) return 'hard';
+  return 'extreme';
+}
 
 @Component({
   selector: 'app-wordle7',
@@ -18,6 +27,8 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private gameHeader = inject(GameHeaderService);
   game = inject(Wordle7GameService);
 
+  @Output() goBack = new EventEmitter<void>();
+
   private subs: Subscription[] = [];
 
   showInfo = false;
@@ -28,15 +39,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   completedIcon = signal('icons/rewards/rocket.svg');
 
   // Puzzle tracking
-  puzzleNumber = signal(1);
   isLoading = signal(false);
   loadingPercent = signal(0);
   private lastWords: string[] = [];
   private loadingInterval: ReturnType<typeof setInterval> | null = null;
-
-  // New puzzle cooldown (10 seconds)
-  newPuzzleCooldown = signal(0);
-  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
 
   private readonly ICONS = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
@@ -70,7 +76,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.destroy();
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
-    this.clearCooldown();
     this.stopLoadingProgress();
   }
 
@@ -82,12 +87,14 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
     this.startLoadingProgress();
 
-    this.puzzleService.getRandomWordle7(this.lastWords).subscribe(puzzle => {
+    const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    const difficulty = getLevelDifficulty(level);
+
+    this.puzzleService.getRandomWordle7(this.lastWords, difficulty).subscribe(puzzle => {
       this.lastWords = puzzle.words.map(w => w.word);
       this.loadingPercent.set(100);
       this.stopLoadingProgress();
 
-      // Brief pause at 100% so user sees it complete
       setTimeout(() => {
         this.game.initPuzzle(puzzle);
         this.isLoading.set(false);
@@ -101,7 +108,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.loadingPercent.set(0);
     let current = 0;
     this.loadingInterval = setInterval(() => {
-      // Simulate progress: fast at start, slows down approaching 90%
       const remaining = 90 - current;
       const increment = Math.max(0.5, remaining * 0.08);
       current = Math.min(90, current + increment);
@@ -113,34 +119,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     if (this.loadingInterval) {
       clearInterval(this.loadingInterval);
       this.loadingInterval = null;
-    }
-  }
-
-  playAnother(): void {
-    Wordle7GameService.clearSavedState();
-    this.puzzleNumber.update(n => n + 1);
-    this.loadRandomPuzzle();
-    this.startCooldown();
-  }
-
-  private startCooldown(): void {
-    this.clearCooldown();
-    this.newPuzzleCooldown.set(10);
-    this.cooldownTimer = setInterval(() => {
-      const remaining = this.newPuzzleCooldown() - 1;
-      if (remaining <= 0) {
-        this.newPuzzleCooldown.set(0);
-        this.clearCooldown();
-      } else {
-        this.newPuzzleCooldown.set(remaining);
-      }
-    }, 1000);
-  }
-
-  private clearCooldown(): void {
-    if (this.cooldownTimer) {
-      clearInterval(this.cooldownTimer);
-      this.cooldownTimer = null;
     }
   }
 
@@ -156,6 +134,11 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
   onSolveWord(): void {
     this.game.solveWord();
+  }
+
+  backToMenu(): void {
+    Wordle7GameService.clearSavedState();
+    this.goBack.emit();
   }
 
   openInfo(): void { this.showInfo = true; }

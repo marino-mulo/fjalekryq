@@ -127,19 +127,19 @@
   transition: width 0.15s ease;
 }
 
-.play-another-btn {
+.btn-menu {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 12px;
   width: 100%;
-  padding: 16px;
+  padding: 14px;
   font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 800;
-  background: var(--purple);
-  color: #fff;
+  background: var(--white);
+  color: var(--black);
   border: 2px solid var(--black);
   border-radius: 14px;
   box-shadow: 3px 3px 0 var(--black);
@@ -191,11 +191,12 @@
 
 .control-btn {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 5px;
   font-family: var(--font-display);
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 800;
   padding: 14px 10px;
   border-radius: 14px;
@@ -205,6 +206,8 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.1s, box-shadow 0.1s;
+
+  svg { flex-shrink: 0; }
 
   &:active:not(:disabled) {
     transform: translate(2px, 2px);
@@ -217,12 +220,6 @@
     box-shadow: 2px 2px 0 #ccc;
     border-color: #ccc;
   }
-}
-
-.reset-btn {
-  grid-column: 1 / -1;
-  background: var(--white);
-  color: var(--black);
 }
 
 .solve-btn {
