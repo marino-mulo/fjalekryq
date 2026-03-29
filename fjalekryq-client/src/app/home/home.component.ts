@@ -40,12 +40,9 @@ export class HomeComponent implements OnInit {
     this.showGame.set(true);
   }
 
-  backToMenu(completed: boolean): void {
-    if (completed) {
-      const next = this.level() + 1;
-      this.level.set(next);
-      localStorage.setItem(LEVEL_KEY, String(next));
-    }
+  backToMenu(): void {
+    const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
     this.showGame.set(false);
   }
 }

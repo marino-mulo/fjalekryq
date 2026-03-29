@@ -27,7 +27,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private gameHeader = inject(GameHeaderService);
   game = inject(Wordle7GameService);
 
-  @Output() goBack = new EventEmitter<boolean>();
+  @Output() goBack = new EventEmitter<void>();
 
   private subs: Subscription[] = [];
 
@@ -136,9 +136,16 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.solveWord();
   }
 
-  backToMenu(completed = false): void {
+  nextLevel(): void {
+    const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    const next = isNaN(current) || current < 1 ? 2 : current + 1;
+    localStorage.setItem(LEVEL_KEY, String(next));
+    this.loadRandomPuzzle();
+  }
+
+  backToMenu(): void {
     Wordle7GameService.clearSavedState();
-    this.goBack.emit(completed);
+    this.goBack.emit();
   }
 
   openInfo(): void { this.showInfo = true; }
