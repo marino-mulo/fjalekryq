@@ -96,6 +96,26 @@
 }
 
 /* ══════════════════════════════════════
+   Swap fly-in animation
+   ══════════════════════════════════════ */
+.cell-flying {
+  animation: cellFlyIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes cellFlyIn {
+  0% {
+    transform: translate(var(--from-dx, 0px), var(--from-dy, 0px)) scale(0.65);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ══════════════════════════════════════
    Hint swap highlight
    ══════════════════════════════════════ */
 .hint-swap-ring {

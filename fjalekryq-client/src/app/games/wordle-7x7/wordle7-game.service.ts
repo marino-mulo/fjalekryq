@@ -35,6 +35,9 @@ export class Wordle7GameService {
   readonly totalSwapCount = signal(0);  // all swaps including hints (display)
   readonly swapLimit = signal(0);
 
+  // Animation: last swapped cells [ { row, col, fromRow, fromCol }, ... ]
+  readonly lastSwap = signal<Array<{ row: number; col: number; fromRow: number; fromCol: number }> | null>(null);
+
   // Hint state
   readonly hintMessage = signal('');
   readonly hintCooldown = signal(false);
@@ -326,6 +329,10 @@ export class Wordle7GameService {
     g[r1][c1] = g[r2][c2];
     g[r2][c2] = temp;
     this.grid.set(g);
+    this.lastSwap.set([
+      { row: r1, col: c1, fromRow: r2, fromCol: c2 },
+      { row: r2, col: c2, fromRow: r1, fromCol: c1 },
+    ]);
     this.swapCount.update(v => v + 1);
     this.totalSwapCount.update(v => v + 1);
 
@@ -419,12 +426,18 @@ export class Wordle7GameService {
 
     if (!sourceCell) return;
 
-    // Perform the swap (hint — does NOT count toward limit)
+    // Perform the swap (counts as 1 move)
     const newGrid = g.map(r => [...r]);
     const temp = newGrid[target.row][target.col];
     newGrid[target.row][target.col] = newGrid[sourceCell.row][sourceCell.col];
     newGrid[sourceCell.row][sourceCell.col] = temp;
     this.grid.set(newGrid);
+    this.lastSwap.set([
+      { row: target.row, col: target.col, fromRow: sourceCell.row, fromCol: sourceCell.col },
+      { row: sourceCell.row, col: sourceCell.col, fromRow: target.row, fromCol: target.col },
+    ]);
+    this.swapCount.update(v => v + 1);
+    this.totalSwapCount.update(v => v + 1);
     this.selectedCell.set(null);
 
     // Highlight the two swapped cells
@@ -437,6 +450,7 @@ export class Wordle7GameService {
 
     this.showHintMessage('Një shkronjë u vendos në vendin e duhur!');
     this.checkWin();
+    if (!this.gameWon()) this.checkLoss();
     this.saveState();
 
     // 10-second cooldown (persisted so refresh doesn't reset it)
@@ -544,6 +558,9 @@ export class Wordle7GameService {
     }
 
     this.grid.set(newGrid);
+    this.lastSwap.set(positions.map(pos => ({ row: pos.row, col: pos.col, fromRow: pos.row, fromCol: pos.col })));
+    this.swapCount.update(v => v + target.word.length);
+    this.totalSwapCount.update(v => v + target.word.length);
     this.selectedCell.set(null);
 
     // Highlight the solved word cells
@@ -556,6 +573,7 @@ export class Wordle7GameService {
 
     this.showHintMessage(`Fjala "${target.word}" u zgjidh!`);
     this.checkWin();
+    if (!this.gameWon()) this.checkLoss();
     this.saveState();
 
     // 30-second cooldown (persisted so refresh doesn't reset it)

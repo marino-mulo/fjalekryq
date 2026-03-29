@@ -10,30 +10,37 @@
 
     @for (cell of cells; track cell.row * 100 + cell.col) {
       @if (!isBlocked(cell.row, cell.col)) {
-        <!-- Letter cell -->
-        <rect [attr.x]="cellX(cell.col)" [attr.y]="cellY(cell.row)"
-              [attr.width]="cellSize" [attr.height]="cellSize"
-              [attr.rx]="borderRadius" [attr.ry]="borderRadius"
-              [class.cell-green]="getCellColor(cell.row, cell.col) === 'green'"
-              [class.cell-yellow]="getCellColor(cell.row, cell.col) === 'yellow'"
-              [class.cell-grey]="getCellColor(cell.row, cell.col) === 'grey'"
-              [class.cell-won]="game.gameWon()"
-              [class.cell-locked]="isLocked(cell.row, cell.col)"
-              class="letter-cell"
-              (click)="onCellClick(cell.row, cell.col)"/>
+        <!-- Animated group: letter cell + text fly-in -->
+        @let fly = getCellFly(cell.row, cell.col);
+        <g [class.cell-flying]="fly !== null"
+           [style.--from-dx]="fly ? fly.fromDx + 'px' : '0px'"
+           [style.--from-dy]="fly ? fly.fromDy + 'px' : '0px'">
 
-        <!-- Letter text -->
-        <text [attr.x]="cellX(cell.col) + cellSize / 2"
-              [attr.y]="cellY(cell.row) + cellSize / 2 + 1"
-              [attr.font-size]="fontSize"
-              class="letter-text text-colored"
-              [class.text-won]="game.gameWon()"
-              dominant-baseline="central" text-anchor="middle"
-              (click)="onCellClick(cell.row, cell.col)">
-          {{ getLetter(cell.row, cell.col) }}
-        </text>
+          <!-- Letter cell -->
+          <rect [attr.x]="cellX(cell.col)" [attr.y]="cellY(cell.row)"
+                [attr.width]="cellSize" [attr.height]="cellSize"
+                [attr.rx]="borderRadius" [attr.ry]="borderRadius"
+                [class.cell-green]="getCellColor(cell.row, cell.col) === 'green'"
+                [class.cell-yellow]="getCellColor(cell.row, cell.col) === 'yellow'"
+                [class.cell-grey]="getCellColor(cell.row, cell.col) === 'grey'"
+                [class.cell-won]="game.gameWon()"
+                [class.cell-locked]="isLocked(cell.row, cell.col)"
+                class="letter-cell"
+                (click)="onCellClick(cell.row, cell.col)"/>
 
-        <!-- Selection ring -->
+          <!-- Letter text -->
+          <text [attr.x]="cellX(cell.col) + cellSize / 2"
+                [attr.y]="cellY(cell.row) + cellSize / 2 + 1"
+                [attr.font-size]="fontSize"
+                class="letter-text text-colored"
+                [class.text-won]="game.gameWon()"
+                dominant-baseline="central" text-anchor="middle"
+                (click)="onCellClick(cell.row, cell.col)">
+            {{ getLetter(cell.row, cell.col) }}
+          </text>
+        </g>
+
+        <!-- Selection ring (outside animation group, stays fixed) -->
         @if (isSelected(cell.row, cell.col)) {
           <rect [attr.x]="cellX(cell.col) - 1.5" [attr.y]="cellY(cell.row) - 1.5"
                 [attr.width]="cellSize + 3" [attr.height]="cellSize + 3"

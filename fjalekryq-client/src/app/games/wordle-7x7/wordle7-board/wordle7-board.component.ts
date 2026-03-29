@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, effect } from '@angular/core';
+import { Component, Input, Output, EventEmitter, effect, signal } from '@angular/core';
 import { Wordle7GameService, CellColor } from '../wordle7-game.service';
 
 // Cell size lookup to keep total board around ~388px wide
@@ -19,6 +19,9 @@ export class Wordle7BoardComponent {
   private winEmitted = false;
   private previousWonState = false;
 
+  readonly flyingCells = signal<Array<{ row: number; col: number; fromDx: number; fromDy: number }>>([]);
+  private flyTimer: ReturnType<typeof setTimeout> | null = null;
+
   readonly gap = 3;
   readonly borderWidth = 2.5;
   readonly outerRadius = 14;
@@ -34,6 +37,22 @@ export class Wordle7BoardComponent {
       }
       this.previousWonState = won;
     });
+
+    effect(() => {
+      const swaps = this.game.lastSwap();
+      if (!swaps || swaps.length === 0) return;
+      if (this.flyTimer) clearTimeout(this.flyTimer);
+      this.flyingCells.set(swaps.map(s => ({
+        row: s.row,
+        col: s.col,
+        fromDx: this.cellX(s.fromCol) - this.cellX(s.col),
+        fromDy: this.cellY(s.fromRow) - this.cellY(s.row),
+      })));
+      this.flyTimer = setTimeout(() => {
+        this.flyingCells.set([]);
+        this.flyTimer = null;
+      }, 400);
+    }, { allowSignalWrites: true });
   }
 
   get gridSize(): number {
@@ -111,6 +130,10 @@ export class Wordle7BoardComponent {
 
   isHintSwapped(row: number, col: number): boolean {
     return this.game.hintSwappedCells().some(c => c.row === row && c.col === col);
+  }
+
+  getCellFly(row: number, col: number): { fromDx: number; fromDy: number } | null {
+    return this.flyingCells().find(c => c.row === row && c.col === col) ?? null;
   }
 
   onCellClick(row: number, col: number): void {
