@@ -1,6 +1,18 @@
 @if (!showGame()) {
   <div class="mobile-menu">
 
+    <!-- Background animated tiles -->
+    <div class="bg-tiles" aria-hidden="true">
+      @for (tile of bgTiles(); track tile.id) {
+        <div class="bg-tile bg-tile--{{ tile.color }}"
+             [style.left.%]="tile.x"
+             [style.top.%]="tile.y"
+             [style.animation-delay.s]="tile.delay">
+          {{ tile.letter }}
+        </div>
+      }
+    </div>
+
     <div class="menu-top">
       <img src="logo.svg" class="menu-logo" alt="Fjalekryq">
       <h1 class="menu-title">Fjale<span class="purple">kryq</span></h1>
