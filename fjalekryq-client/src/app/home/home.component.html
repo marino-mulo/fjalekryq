@@ -14,7 +14,14 @@
     </div>
 
     <div class="menu-top">
-      <img src="logo.svg" class="menu-logo" alt="Fjalekryq">
+      <div class="hero-grid">
+        @for (tile of heroTiles(); track tile.id + '_' + tile.animKey) {
+          <div class="hero-tile hero-tile--{{ tile.color }}"
+               [style.animation-delay.ms]="tile.animKey === 0 ? tile.id * 45 : 0">
+            {{ tile.letter }}
+          </div>
+        }
+      </div>
       <h1 class="menu-title">Fjale<span class="purple">kryq</span></h1>
       <p class="menu-sub">Loja shqipe e fjalëve</p>
     </div>

@@ -69,16 +69,37 @@
   justify-content: center;
 }
 
-.menu-logo {
-  width: 110px;
-  height: 110px;
-  filter: drop-shadow(4px 4px 0px var(--black));
-  animation: logoEntrance 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+/* ── Hero tile grid (replaces logo) ── */
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 48px);
+  gap: 5px;
+  filter: drop-shadow(4px 4px 0px rgba(0,0,0,0.18));
 }
 
-@keyframes logoEntrance {
-  0%   { transform: scale(0.5) translateY(40px); opacity: 0; }
-  100% { transform: scale(1)   translateY(0);    opacity: 1; }
+.hero-tile {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 20px;
+  color: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+  animation: heroTileIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  &.hero-tile--green  { background: #6aaa64; }
+  &.hero-tile--yellow { background: #c9b458; }
+  &.hero-tile--grey   { background: #787c7e; }
+}
+
+@keyframes heroTileIn {
+  0%   { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1);   opacity: 1; }
 }
 
 .menu-title {

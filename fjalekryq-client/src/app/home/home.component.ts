@@ -3,16 +3,23 @@ import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
 
 const LEVEL_KEY = 'fjalekryq_level';
 
-const BG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
-const BG_COLORS = ['green', 'yellow', 'grey'] as const;
+const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
+const COLORS = ['green', 'yellow', 'grey'] as const;
 
-export interface BgTile {
+interface BgTile {
   id: number;
   letter: string;
-  x: number;    // left %
-  y: number;    // top %
+  x: number;
+  y: number;
   color: 'green' | 'yellow' | 'grey';
-  delay: number; // float animation-delay in seconds
+  delay: number;
+}
+
+interface HeroTile {
+  id: number;
+  letter: string;
+  color: 'green' | 'yellow' | 'grey';
+  animKey: number;
 }
 
 @Component({
@@ -26,8 +33,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   showGame = signal(false);
   level = signal(1);
   bgTiles = signal<BgTile[]>([]);
+  heroTiles = signal<HeroTile[]>([]);
 
-  private swapTimer: ReturnType<typeof setInterval> | null = null;
+  private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
+  private heroSwapTimer: ReturnType<typeof setInterval> | null = null;
 
   readonly difficultyKey = computed(() => {
     const l = this.level();
@@ -37,24 +46,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     return 'extreme';
   });
 
-  readonly difficultyLabel = computed(() => {
-    switch (this.difficultyKey()) {
-      case 'easy':    return 'i lehtë';
-      case 'medium':  return 'mesatar';
-      case 'hard':    return 'i vështirë';
-      default:        return 'shumë i vështirë';
-    }
-  });
-
   ngOnInit(): void {
     const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
     this.bgTiles.set(this.createBgTiles());
+    this.heroTiles.set(this.createHeroTiles());
     this.startBgSwaps();
+    this.startHeroSwaps();
   }
 
   ngOnDestroy(): void {
-    if (this.swapTimer) clearInterval(this.swapTimer);
+    if (this.bgSwapTimer) clearInterval(this.bgSwapTimer);
+    if (this.heroSwapTimer) clearInterval(this.heroSwapTimer);
   }
 
   startGame(): void {
@@ -69,16 +72,15 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private createBgTiles(): BgTile[] {
     const tiles: BgTile[] = [];
-    // 3 rows × 6 cols = 18 tiles, spread across screen with jitter
     for (let i = 0; i < 18; i++) {
       const col = i % 6;
       const row = Math.floor(i / 6);
       tiles.push({
         id: i,
-        letter: BG_LETTERS[Math.floor(Math.random() * BG_LETTERS.length)],
+        letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
         x: 4 + col * 15.5 + (Math.random() - 0.5) * 8,
         y: 5 + row * 30 + (Math.random() - 0.5) * 12,
-        color: BG_COLORS[i % 3],
+        color: COLORS[i % 3],
         delay: Math.random() * 4,
       });
     }
@@ -86,18 +88,40 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private startBgSwaps(): void {
-    this.swapTimer = setInterval(() => {
+    this.bgSwapTimer = setInterval(() => {
       const tiles = this.bgTiles();
       const i = Math.floor(Math.random() * tiles.length);
       let j = Math.floor(Math.random() * (tiles.length - 1));
       if (j >= i) j++;
-
-      const updated = tiles.map((t, idx) => {
+      this.bgTiles.set(tiles.map((t, idx) => {
         if (idx === i) return { ...t, x: tiles[j].x, y: tiles[j].y };
         if (idx === j) return { ...t, x: tiles[i].x, y: tiles[i].y };
         return t;
-      });
-      this.bgTiles.set(updated);
+      }));
     }, 1200);
+  }
+
+  private createHeroTiles(): HeroTile[] {
+    return Array.from({ length: 16 }, (_, i) => ({
+      id: i,
+      letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
+      color: COLORS[i % 3],
+      animKey: 0,
+    }));
+  }
+
+  private startHeroSwaps(): void {
+    this.heroSwapTimer = setInterval(() => {
+      const tiles = this.heroTiles();
+      const i = Math.floor(Math.random() * tiles.length);
+      let j = Math.floor(Math.random() * (tiles.length - 1));
+      if (j >= i) j++;
+      const newKey = Date.now();
+      this.heroTiles.set(tiles.map((t, idx) => {
+        if (idx === i) return { ...t, letter: tiles[j].letter, color: tiles[j].color, animKey: newKey };
+        if (idx === j) return { ...t, letter: tiles[i].letter, color: tiles[i].color, animKey: newKey + 1 };
+        return t;
+      }));
+    }, 900);
   }
 }
