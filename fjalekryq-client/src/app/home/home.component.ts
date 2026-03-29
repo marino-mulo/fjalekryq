@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
 
 @Component({
@@ -8,4 +8,10 @@ import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent {}
+export class HomeComponent {
+  showGame = signal(false);
+
+  startGame() {
+    this.showGame.set(true);
+  }
+}

@@ -1,32 +1,40 @@
-<section class="game-section">
-  <app-wordle7 />
-</section>
+@if (!showGame()) {
+  <div class="mobile-menu">
 
-<section class="about-section" id="rreth">
-  <div class="section-inner">
-    <h2 class="section-title">Rreth Fjalekryq</h2>
-    <div class="info-grid">
-      <div class="info-box">
-        <div class="info-emoji ">
-          <img src="icons/ui/lightbulb.svg" width="36" height="36" alt="">
-        </div>
-        <h3 class="info-title">Stërvit trurin</h3>
-        <p class="info-desc">Çdo lojë është projektuar për të stimuluar mendimin logjik dhe kreativitetin.</p>
-      </div>
-      <div class="info-box">
-        <div class="info-emoji ">
-          <img src="icons/ui/globe.svg" width="36" height="36" alt="">
-        </div>
-        <h3 class="info-title">Pa instalim</h3>
-        <p class="info-desc">Luaj direkt në shfletues, pa nevojë për aplikacion.</p>
-      </div>
-      <div class="info-box">
-        <div class="info-emoji ">
-          <img src="icons/ui/phone.svg" width="44" height="44" alt="">
-        </div>
-        <h3 class="info-title">Për çdo pajisje</h3>
-        <p class="info-desc">Optimizuar për celular, tablet dhe kompjuter.</p>
-      </div>
+    <div class="menu-top">
+      <img src="logo.svg" class="menu-logo" alt="Fjalekryq">
+      <h1 class="menu-title">Fjale<span class="purple">kryq</span></h1>
+      <p class="menu-sub">Loja shqipe e fjalëve</p>
     </div>
+
+    <div class="menu-actions">
+      <button class="btn-play" (click)="startGame()">
+        <span class="btn-play-icon">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+        </span>
+        LUAJ
+      </button>
+
+      <button class="btn-secondary" (click)="startGame()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Sfida e Sotme
+      </button>
+    </div>
+
+    <div class="menu-footer">
+      <a href="https://instagram.com/fjalekryq.al" target="_blank" rel="noopener" class="social-pill">
+        <img src="icons/ui/instagram.svg" width="18" height="18" alt="Instagram">
+        Instagram
+      </a>
+      <a href="https://tiktok.com/@fjalekryq" target="_blank" rel="noopener" class="social-pill">
+        <img src="icons/ui/tiktok.svg" width="18" height="18" alt="TikTok">
+        TikTok
+      </a>
+    </div>
+
   </div>
-</section>
+} @else {
+  <section class="game-section">
+    <app-wordle7 />
+  </section>
+}
