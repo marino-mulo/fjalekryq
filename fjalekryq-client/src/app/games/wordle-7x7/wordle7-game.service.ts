@@ -533,7 +533,7 @@ export class Wordle7GameService {
 
     // Place the correct letters by finding where each needed letter currently is
     const newGrid = this.grid().map(r => [...r]);
-    const affectedCells: { row: number; col: number }[] = [];
+    const swapAnim: Array<{ row: number; col: number; fromRow: number; fromCol: number }> = [];
 
     for (let j = 0; j < positions.length; j++) {
       const pos = positions[j];
@@ -546,10 +546,11 @@ export class Wordle7GameService {
         for (let c = 0; c < this.gridSize; c++) {
           if (r === pos.row && c === pos.col) continue;
           if (newGrid[r][c] === correctLetter && newGrid[r][c] !== this.solutionGrid[r][c]) {
-            // Swap
+            // Swap and record animation source
             newGrid[r][c] = newGrid[pos.row][pos.col];
             newGrid[pos.row][pos.col] = correctLetter;
-            affectedCells.push(pos);
+            swapAnim.push({ row: pos.row, col: pos.col, fromRow: r, fromCol: c });
+            swapAnim.push({ row: r, col: c, fromRow: pos.row, fromCol: pos.col });
             break;
           }
         }
@@ -558,7 +559,7 @@ export class Wordle7GameService {
     }
 
     this.grid.set(newGrid);
-    this.lastSwap.set(positions.map(pos => ({ row: pos.row, col: pos.col, fromRow: pos.row, fromCol: pos.col })));
+    this.lastSwap.set(swapAnim.length > 0 ? swapAnim : positions.map(pos => ({ row: pos.row, col: pos.col, fromRow: pos.row, fromCol: pos.col })));
     this.swapCount.update(v => v + target.word.length);
     this.totalSwapCount.update(v => v + target.word.length);
     this.selectedCell.set(null);
