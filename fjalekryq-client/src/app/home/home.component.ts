@@ -24,10 +24,10 @@ export class HomeComponent implements OnInit {
 
   readonly difficultyLabel = computed(() => {
     switch (this.difficultyKey()) {
-      case 'easy':    return 'Lehtë';
-      case 'medium':  return 'Mesëm';
-      case 'hard':    return 'Vështirë';
-      default:        return 'Ekstrem';
+      case 'easy':    return 'i lehtë';
+      case 'medium':  return 'mesatar';
+      case 'hard':    return 'i vështirë';
+      default:        return 'shumë i vështirë';
     }
   });
 
