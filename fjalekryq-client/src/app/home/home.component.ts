@@ -40,10 +40,12 @@ export class HomeComponent implements OnInit {
     this.showGame.set(true);
   }
 
-  backToMenu(): void {
-    const next = this.level() + 1;
-    this.level.set(next);
-    localStorage.setItem(LEVEL_KEY, String(next));
+  backToMenu(completed: boolean): void {
+    if (completed) {
+      const next = this.level() + 1;
+      this.level.set(next);
+      localStorage.setItem(LEVEL_KEY, String(next));
+    }
     this.showGame.set(false);
   }
 }

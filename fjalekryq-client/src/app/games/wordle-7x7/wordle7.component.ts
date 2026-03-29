@@ -27,7 +27,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private gameHeader = inject(GameHeaderService);
   game = inject(Wordle7GameService);
 
-  @Output() goBack = new EventEmitter<void>();
+  @Output() goBack = new EventEmitter<boolean>();
 
   private subs: Subscription[] = [];
 
@@ -136,9 +136,9 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.solveWord();
   }
 
-  backToMenu(): void {
+  backToMenu(completed = false): void {
     Wordle7GameService.clearSavedState();
-    this.goBack.emit();
+    this.goBack.emit(completed);
   }
 
   openInfo(): void { this.showInfo = true; }
