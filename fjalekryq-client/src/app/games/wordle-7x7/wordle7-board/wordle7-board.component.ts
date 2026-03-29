@@ -51,7 +51,7 @@ export class Wordle7BoardComponent {
       this.flyTimer = setTimeout(() => {
         this.flyingCells.set([]);
         this.flyTimer = null;
-      }, 400);
+      }, 700);
     }, { allowSignalWrites: true });
   }
 
