@@ -144,7 +144,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   backToMenu(): void {
-    Wordle7GameService.clearSavedState();
     this.goBack.emit();
   }
 

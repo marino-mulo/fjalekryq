@@ -425,7 +425,6 @@ export class Wordle7GameService {
     newGrid[target.row][target.col] = newGrid[sourceCell.row][sourceCell.col];
     newGrid[sourceCell.row][sourceCell.col] = temp;
     this.grid.set(newGrid);
-    this.totalSwapCount.update(v => v + 1);
     this.selectedCell.set(null);
 
     // Highlight the two swapped cells
@@ -520,7 +519,6 @@ export class Wordle7GameService {
 
     // Place the correct letters by finding where each needed letter currently is
     const newGrid = this.grid().map(r => [...r]);
-    let swaps = 0;
     const affectedCells: { row: number; col: number }[] = [];
 
     for (let j = 0; j < positions.length; j++) {
@@ -537,7 +535,6 @@ export class Wordle7GameService {
             // Swap
             newGrid[r][c] = newGrid[pos.row][pos.col];
             newGrid[pos.row][pos.col] = correctLetter;
-            swaps++;
             affectedCells.push(pos);
             break;
           }
@@ -547,7 +544,6 @@ export class Wordle7GameService {
     }
 
     this.grid.set(newGrid);
-    this.totalSwapCount.update(v => v + swaps);
     this.selectedCell.set(null);
 
     // Highlight the solved word cells
