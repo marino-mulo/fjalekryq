@@ -128,12 +128,30 @@
 }
 
 .play-another-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-top: 8px;
-  font-size: 0.95rem;
+  margin-top: 12px;
+  width: 100%;
+  padding: 16px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  background: var(--purple);
+  color: #fff;
+  border: 2px solid var(--black);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--black);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--black);
+  }
 }
 
 /* ══════════════════════════════════════
@@ -164,30 +182,37 @@
    Bottom Controls: Reset + Hint
    ══════════════════════════════════════ */
 .bottom-controls {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
   margin-top: 18px;
-  justify-content: center;
+  width: 100%;
 }
 
 .control-btn {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding: 10px 24px;
-  border-radius: 12px;
+  justify-content: center;
+  gap: 7px;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 14px 10px;
+  border-radius: 14px;
   border: 2px solid var(--black);
   cursor: pointer;
-  transition: all 0.15s;
   box-shadow: 3px 3px 0 var(--black);
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:active:not(:disabled) {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--black);
+  }
 
   &:disabled {
-    opacity: 0.4;
+    opacity: 0.38;
     cursor: not-allowed;
     box-shadow: 2px 2px 0 #ccc;
     border-color: #ccc;
@@ -195,21 +220,16 @@
 }
 
 .reset-btn {
+  grid-column: 1 / -1;
   background: var(--white);
   color: var(--black);
 }
 
 .solve-btn {
-  background: #EFF6FF;
-  color: #1D4ED8;
-  border-color: #1D4ED8;
-  box-shadow: 3px 3px 0 #1D4ED8;
-
-  &:hover:not(:disabled) {
-    background: #1D4ED8;
-    color: white;
-    box-shadow: 4px 4px 0 #1E3A8A;
-  }
+  background: #1D4ED8;
+  color: #fff;
+  border-color: #1E3A8A;
+  box-shadow: 3px 3px 0 #1E3A8A;
 
   &:active:not(:disabled) {
     box-shadow: 1px 1px 0 #1E3A8A;
@@ -223,22 +243,16 @@
   }
 
   &.cooling {
-    opacity: 0.6;
+    opacity: 0.5;
     pointer-events: none;
   }
 }
 
 .hint-btn {
-  background: #FFF7ED;
-  color: #C2410C;
-  border-color: #C2410C;
-  box-shadow: 3px 3px 0 #C2410C;
-
-  &:hover:not(:disabled) {
-    background: #C2410C;
-    color: white;
-    box-shadow: 4px 4px 0 #9A3412;
-  }
+  background: #C2410C;
+  color: #fff;
+  border-color: #9A3412;
+  box-shadow: 3px 3px 0 #9A3412;
 
   &:active:not(:disabled) {
     box-shadow: 1px 1px 0 #9A3412;
@@ -252,7 +266,7 @@
   }
 
   &.cooling {
-    opacity: 0.6;
+    opacity: 0.5;
     pointer-events: none;
   }
 }
@@ -277,9 +291,10 @@
   margin-top: 18px;
   padding: 20px 24px;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 2px solid var(--black);
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 4px 4px 0 var(--black);
+  width: 100%;
 }
 
 .completed-card-row {
@@ -445,8 +460,8 @@
   }
 
   .control-btn {
-    font-size: 0.85rem;
-    padding: 8px 18px;
+    font-size: 0.88rem;
+    padding: 13px 8px;
   }
 
   .bottom-controls {
