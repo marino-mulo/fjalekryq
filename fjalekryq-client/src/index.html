@@ -21,28 +21,24 @@
       }
       .app-loading-tile {
         position: absolute;
-        width: 52px;
-        height: 52px;
-        border-radius: 10px;
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-family: 'Nunito', 'Arial Black', sans-serif;
         font-weight: 900;
-        font-size: 22px;
+        font-size: 24px;
         color: #fff;
-        opacity: 0;
-        border: 2px solid rgba(0,0,0,0.12);
-        box-shadow: 3px 3px 0 rgba(0,0,0,0.08);
-        animation: tileIn 0.5s ease forwards, tileFloat 2s ease-in-out infinite;
+        opacity: 0.45;
+        border: 2px solid rgba(0,0,0,0.15);
+        box-shadow: 3px 3px 0 rgba(0,0,0,0.12);
+        animation: tileFloat 2s ease-in-out infinite;
       }
       .app-loading-tile.g { background: #6aaa64; }
       .app-loading-tile.y { background: #c9b458; }
       .app-loading-tile.d { background: #787c7e; }
-      @keyframes tileIn {
-        0%   { opacity: 0; }
-        100% { opacity: 0.45; }
-      }
       @keyframes tileFloat {
         0%, 100% { transform: translateY(0px); }
         50%       { transform: translateY(-8px); }

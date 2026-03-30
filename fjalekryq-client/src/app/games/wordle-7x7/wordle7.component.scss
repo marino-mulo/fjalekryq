@@ -90,6 +90,52 @@
   &.tut-horizontal { background: #c9b458; }
 }
 
+/* ── In-game tutorial tip banner ── */
+.tutorial-tip {
+  position: fixed;
+  bottom: 110px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  background: #1e293b;
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 16px 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 340px;
+  width: calc(100% - 32px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  animation: tipSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tipSlideUp {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.tutorial-tip-text {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  flex: 1;
+}
+
+.tutorial-tip-close {
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .btn-tutorial-start {
   background: var(--purple);
   color: #fff;

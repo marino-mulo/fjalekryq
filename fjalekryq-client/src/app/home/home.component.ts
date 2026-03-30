@@ -45,6 +45,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.showGame.set(true);
   }
 
+  startTutorial(): void {
+    localStorage.setItem('fjalekryq_force_tutorial', 'true');
+    this.showGame.set(true);
+  }
+
   backToMenu(): void {
     const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);

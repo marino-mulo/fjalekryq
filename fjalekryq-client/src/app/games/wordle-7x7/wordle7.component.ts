@@ -1,14 +1,15 @@
-import { Component, OnInit, OnDestroy, inject, signal, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, Output, EventEmitter, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
 import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
 import { GameHeaderService } from '../../core/services/game-header.service';
 
-const LEVEL_KEY = 'fjalekryq_level';
-const TUTORIAL_KEY = 'fjalekryq_tutorial_done';
+const LEVEL_KEY          = 'fjalekryq_level';
+const TUTORIAL_KEY       = 'fjalekryq_tutorial_done';
+const FORCE_TUTORIAL_KEY = 'fjalekryq_force_tutorial';
 
-// Simple 5×5 tutorial puzzle: MALI (vertical) ∩ FOLË (horizontal) at L(2,2)
+// 5×5 tutorial puzzle: MALI (vertical, col 2) ∩ FOLË (horizontal, row 2) at L(2,2)
 const TUTORIAL_PUZZLE = {
   gridSize: 5,
   solution: [
@@ -19,11 +20,19 @@ const TUTORIAL_PUZZLE = {
     ['X', 'X', 'X', 'X', 'X'],
   ],
   words: [
-    { word: 'MALI', row: 0, col: 2, direction: 'vertical' as const },
+    { word: 'MALI', row: 0, col: 2, direction: 'vertical'   as const },
     { word: 'FOLË', row: 2, col: 0, direction: 'horizontal' as const },
   ],
   hash: 'tutorial_v1',
   swapLimit: 30,
+};
+
+// In-game tip texts shown one at a time (steps 1–4)
+const TUTORIAL_TIPS: Record<number, string> = {
+  1: '👆 Tapto dy shkronja njëra pas tjetrës për t\'i shkëmbyer vendet',
+  2: '🟢 E gjelbër = vendi i saktë  ·  🟡 E verdhë = fjalë e duhur, vend i gabuar',
+  3: '💡 "Ndihmë" — vendos automatikisht një shkronjë në vend (kosto: 1 lëvizje)',
+  4: '✅ "Zgjidh" — zgjidh automatikisht një fjalë të tërë (kosto: gjatësia e fjalës)',
 };
 
 function getLevelDifficulty(level: number): string {
@@ -34,13 +43,11 @@ function getLevelDifficulty(level: number): string {
 }
 
 const BG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
-const BG_COLORS = ['green', 'yellow', 'grey'] as const;
+const BG_COLORS  = ['green', 'yellow', 'grey'] as const;
 
 interface BgTile {
-  id: number;
-  letter: string;
-  x: number;
-  y: number;
+  id: number; letter: string;
+  x: number;  y: number;
   color: 'green' | 'yellow' | 'grey';
   delay: number;
 }
@@ -55,57 +62,63 @@ interface BgTile {
 })
 export class Wordle7Component implements OnInit, OnDestroy {
   private puzzleService = inject(PuzzleService);
-  private gameHeader = inject(GameHeaderService);
+  private gameHeader    = inject(GameHeaderService);
   game = inject(Wordle7GameService);
 
   @Output() goBack = new EventEmitter<void>();
 
   private subs: Subscription[] = [];
+  private stepTimer: ReturnType<typeof setTimeout> | null = null;
 
   showInfo = false;
 
-  // Tutorial state
-  isTutorial = signal(false);
+  // Tutorial
+  isTutorial        = signal(false);
   showTutorialIntro = signal(false);
+  tutorialStep      = signal(0);
+  tutorialTip       = signal('');
 
-  // Completion state
-  isCompleted = signal(false);
+  // Completion
+  isCompleted    = signal(false);
   completedPraise = signal('Bravo!');
-  completedIcon = signal('icons/rewards/rocket.svg');
+  completedIcon   = signal('icons/rewards/rocket.svg');
 
-  // Puzzle tracking
-  isLoading = signal(false);
+  // Puzzle / loading
+  isLoading      = signal(false);
   loadingPercent = signal(0);
   private lastWords: string[] = [];
   private loadingInterval: ReturnType<typeof setInterval> | null = null;
 
-  // Loading background tiles
   bgTiles = signal<BgTile[]>([]);
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
 
-  private readonly ICONS = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
+  private readonly ICONS   = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
-  private pickPraise(): string {
-    return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)];
-  }
-  private pickIcon(): string {
-    return this.ICONS[Math.floor(Math.random() * this.ICONS.length)];
+  private pickPraise() { return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)]; }
+  private pickIcon()   { return this.ICONS[Math.floor(Math.random() * this.ICONS.length)]; }
+
+  constructor() {
+    // Advance from step 1 → 2 on the first swap
+    effect(() => {
+      if (this.isTutorial() && this.tutorialStep() === 1 && this.game.totalSwapCount() > 0) {
+        this.advanceTutorialStep();
+      }
+    }, { allowSignalWrites: true });
   }
 
   ngOnInit(): void {
     this.gameHeader.enterGame();
     this.gameHeader.gameColor.set('#22C55E');
     this.gameHeader.dayBarVisible.set(false);
+    this.subs.push(this.gameHeader.infoClicked$.subscribe(() => this.openInfo()));
 
-    this.subs.push(
-      this.gameHeader.infoClicked$.subscribe(() => this.openInfo()),
-    );
+    const forceTutorial = localStorage.getItem(FORCE_TUTORIAL_KEY) === 'true';
+    if (forceTutorial) localStorage.removeItem(FORCE_TUTORIAL_KEY);
 
-    const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    const level        = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     const tutorialDone = localStorage.getItem(TUTORIAL_KEY) === 'true';
 
-    if (level === 1 && !tutorialDone) {
-      // Tutorial mode
+    if ((level === 1 && !tutorialDone) || forceTutorial) {
       this.isTutorial.set(true);
       const saved = Wordle7GameService.loadSavedState();
       if (saved && saved.puzzle.hash === 'tutorial_v1') {
@@ -115,7 +128,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
       }
       this.showTutorialIntro.set(true);
     } else {
-      // Normal game — try to restore saved state
       const saved = Wordle7GameService.loadSavedState();
       if (saved && saved.puzzle.hash !== 'tutorial_v1') {
         this.lastWords = saved.puzzle.words.map(w => w.word);
@@ -127,6 +139,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.stepTimer) clearTimeout(this.stepTimer);
     this.game.destroy();
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
@@ -134,24 +147,75 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.stopBgTiles();
   }
 
+  // ── Tutorial controls ──────────────────────────────────────
+  dismissTutorialIntro(): void {
+    this.showTutorialIntro.set(false);
+    this.tutorialStep.set(1);
+    this.tutorialTip.set(TUTORIAL_TIPS[1]);
+  }
+
+  dismissTutorialTip(): void {
+    if (this.stepTimer) { clearTimeout(this.stepTimer); this.stepTimer = null; }
+    this.advanceTutorialStep();
+  }
+
+  private advanceTutorialStep(): void {
+    const next = this.tutorialStep() + 1;
+    this.tutorialStep.set(next);
+    if (TUTORIAL_TIPS[next]) {
+      this.tutorialTip.set(TUTORIAL_TIPS[next]);
+      if (next >= 2) {
+        this.stepTimer = setTimeout(() => this.advanceTutorialStep(), 5000);
+      }
+    } else {
+      this.tutorialTip.set('');
+    }
+  }
+
+  // ── Game controls ──────────────────────────────────────────
+  onWin(): void {
+    if (this.stepTimer) { clearTimeout(this.stepTimer); this.stepTimer = null; }
+    this.tutorialTip.set('');
+    this.isCompleted.set(true);
+    this.completedPraise.set(this.pickPraise());
+    this.completedIcon.set(this.pickIcon());
+  }
+
+  onHint(): void      { this.game.hint(); }
+  onSolveWord(): void { this.game.solveWord(); }
+
+  nextLevel(): void {
+    if (this.isTutorial()) {
+      localStorage.setItem(TUTORIAL_KEY, 'true');
+      this.isTutorial.set(false);
+      this.tutorialStep.set(0);
+      this.loadRandomPuzzle();
+    } else {
+      const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+      localStorage.setItem(LEVEL_KEY, String(isNaN(current) || current < 1 ? 2 : current + 1));
+      this.loadRandomPuzzle();
+    }
+  }
+
+  backToMenu(): void { this.goBack.emit(); }
+  openInfo():   void { this.showInfo = true; }
+  closeInfo():  void { this.showInfo = false; }
+
+  // ── Puzzle loading ─────────────────────────────────────────
   private loadRandomPuzzle(): void {
     this.isLoading.set(true);
     this.isCompleted.set(false);
     this.game.destroy();
     Wordle7GameService.clearSavedState();
-
     this.startLoadingProgress();
     this.startBgTiles();
 
     const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-    const difficulty = getLevelDifficulty(level);
-
-    this.puzzleService.getRandomWordle7(this.lastWords, difficulty).subscribe(puzzle => {
+    this.puzzleService.getRandomWordle7(this.lastWords, getLevelDifficulty(level)).subscribe(puzzle => {
       this.lastWords = puzzle.words.map(w => w.word);
       this.loadingPercent.set(100);
       this.stopLoadingProgress();
       this.stopBgTiles();
-
       setTimeout(() => {
         this.game.initPuzzle(puzzle);
         this.isLoading.set(false);
@@ -163,13 +227,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private startBgTiles(): void {
     const tiles: BgTile[] = [];
     for (let i = 0; i < 18; i++) {
-      const col = i % 6;
-      const row = Math.floor(i / 6);
+      const col = i % 6, row = Math.floor(i / 6);
       tiles.push({
         id: i,
         letter: BG_LETTERS[Math.floor(Math.random() * BG_LETTERS.length)],
         x: 4 + col * 15.5 + (Math.random() - 0.5) * 8,
-        y: 5 + row * 30 + (Math.random() - 0.5) * 12,
+        y: 5 + row * 30  + (Math.random() - 0.5) * 12,
         color: BG_COLORS[i % 3],
         delay: Math.random() * 4,
       });
@@ -198,56 +261,13 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.loadingPercent.set(0);
     let current = 0;
     this.loadingInterval = setInterval(() => {
-      const remaining = 90 - current;
-      const increment = Math.max(0.5, remaining * 0.08);
-      current = Math.min(90, current + increment);
+      const rem = 90 - current;
+      current = Math.min(90, current + Math.max(0.5, rem * 0.08));
       this.loadingPercent.set(Math.round(current));
     }, 100);
   }
 
   private stopLoadingProgress(): void {
-    if (this.loadingInterval) {
-      clearInterval(this.loadingInterval);
-      this.loadingInterval = null;
-    }
+    if (this.loadingInterval) { clearInterval(this.loadingInterval); this.loadingInterval = null; }
   }
-
-  onWin(): void {
-    this.isCompleted.set(true);
-    this.completedPraise.set(this.pickPraise());
-    this.completedIcon.set(this.pickIcon());
-  }
-
-  onHint(): void {
-    this.game.hint();
-  }
-
-  onSolveWord(): void {
-    this.game.solveWord();
-  }
-
-  dismissTutorialIntro(): void {
-    this.showTutorialIntro.set(false);
-  }
-
-  nextLevel(): void {
-    if (this.isTutorial()) {
-      // Tutorial done — mark it, stay on level 1 for the real first puzzle
-      localStorage.setItem(TUTORIAL_KEY, 'true');
-      this.isTutorial.set(false);
-      this.loadRandomPuzzle();
-    } else {
-      const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-      const next = isNaN(current) || current < 1 ? 2 : current + 1;
-      localStorage.setItem(LEVEL_KEY, String(next));
-      this.loadRandomPuzzle();
-    }
-  }
-
-  backToMenu(): void {
-    this.goBack.emit();
-  }
-
-  openInfo(): void { this.showInfo = true; }
-  closeInfo(): void { this.showInfo = false; }
 }

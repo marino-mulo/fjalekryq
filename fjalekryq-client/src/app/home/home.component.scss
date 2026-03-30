@@ -142,6 +142,31 @@
   letter-spacing: 1px;
 }
 
+.btn-tutorial {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: var(--white);
+  color: var(--black);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 0.95rem;
+  border: 2px solid var(--black);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--black);
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.12s, box-shadow 0.12s;
+  touch-action: manipulation;
+
+  &:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--black);
+  }
+}
+
 /* ── Footer: Social Pills ── */
 .menu-footer {
   display: flex;

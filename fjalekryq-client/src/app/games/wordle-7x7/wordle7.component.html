@@ -1,4 +1,4 @@
-<!-- Tutorial intro overlay -->
+<!-- Tutorial intro overlay (blocking) -->
 @if (isTutorial() && showTutorialIntro()) {
   <div class="tutorial-overlay">
     <div class="tutorial-card">
@@ -11,11 +11,11 @@
         </div>
         <div class="tutorial-step">
           <span class="step-num">2</span>
-          <p>Vendos çdo shkronjë në vendin e duhur për të formuar fjalët</p>
+          <p>🟢 E gjelbër = vendi i saktë &nbsp;·&nbsp; 🟡 E verdhë = fjalë e duhur, vend i gabuar</p>
         </div>
         <div class="tutorial-step">
           <span class="step-num">3</span>
-          <p>Të gjelbrat janë në vend, të verdhat janë në fjalë por jo në vend</p>
+          <p>"Ndihmë" vendos automatikisht një shkronjë (1 lëvizje). "Zgjidh" zgjidh një fjalë të tërë.</p>
         </div>
       </div>
       <div class="tutorial-words-row">
@@ -26,6 +26,14 @@
         Fillo tutorialin!
       </button>
     </div>
+  </div>
+}
+
+<!-- In-game tutorial tip banner (non-blocking) -->
+@if (isTutorial() && tutorialTip()) {
+  <div class="tutorial-tip">
+    <span class="tutorial-tip-text">{{ tutorialTip() }}</span>
+    <button class="tutorial-tip-close" (click)="dismissTutorialTip()">✕</button>
   </div>
 }
 
