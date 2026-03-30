@@ -1,39 +1,87 @@
-<!-- Tutorial intro overlay (blocking) -->
-@if (isTutorial() && showTutorialIntro()) {
-  <div class="tutorial-overlay">
-    <div class="tutorial-card">
-      <div class="tutorial-badge">TUTORIAL</div>
-      <h2 class="tutorial-title">Si luhet?</h2>
-      <div class="tutorial-steps">
-        <div class="tutorial-step">
-          <span class="step-num">1</span>
-          <p>Tapto dy shkronja njëra pas tjetrës për t'i shkëmbyer vendet</p>
-        </div>
-        <div class="tutorial-step">
-          <span class="step-num">2</span>
-          <p>🟢 E gjelbër = vendi i saktë &nbsp;·&nbsp; 🟡 E verdhë = fjalë e duhur, vend i gabuar</p>
-        </div>
-        <div class="tutorial-step">
-          <span class="step-num">3</span>
-          <p>"Ndihmë" vendos automatikisht një shkronjë (1 lëvizje). "Zgjidh" zgjidh një fjalë të tërë.</p>
-        </div>
+<!-- ── Tutorial Phase 1: How to swap (blocking) ── -->
+@if (isTutorial() && tutorialPhase() === 1) {
+  <div class="tut-overlay">
+    <div class="tut-modal">
+      <div class="tut-step-badge">HAPI 1 nga 4</div>
+      <h2 class="tut-title">Shkëmbe Shkronjat</h2>
+      <div class="tut-demo">
+        <div class="tut-tile tut-tile--grey">F</div>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+        <div class="tut-tile tut-tile--grey">A</div>
       </div>
-      <div class="tutorial-words-row">
-        <span class="tut-word tut-vertical">MALI ↕</span>
-        <span class="tut-word tut-horizontal">FOLË →</span>
-      </div>
-      <button class="btn-tutorial-start" (click)="dismissTutorialIntro()">
-        Fillo tutorialin!
-      </button>
+      <p class="tut-desc">Tapto dy shkronja njëra pas tjetrës për t'i shkëmbyer vendet dhe formuar fjalët.</p>
+      <button class="tut-btn" (click)="setTutorialPhase(2)">Gati, po provoj!</button>
     </div>
   </div>
 }
 
-<!-- In-game tutorial tip banner (non-blocking) -->
-@if (isTutorial() && tutorialTip()) {
-  <div class="tutorial-tip">
-    <span class="tutorial-tip-text">{{ tutorialTip() }}</span>
-    <button class="tutorial-tip-close" (click)="dismissTutorialTip()">✕</button>
+<!-- ── Tutorial Phase 2: Waiting for first swap (non-blocking hint) ── -->
+@if (isTutorial() && tutorialPhase() === 2) {
+  <div class="tut-hint-banner">
+    <span>👆 Tapto dy shkronja njëra pas tjetrës</span>
+  </div>
+}
+
+<!-- ── Tutorial Phase 3: Colors explanation (blocking) ── -->
+@if (isTutorial() && tutorialPhase() === 3) {
+  <div class="tut-overlay">
+    <div class="tut-modal">
+      <div class="tut-step-badge">HAPI 2 nga 4</div>
+      <h2 class="tut-title">Kuptimi i Ngjyrave</h2>
+      <div class="tut-colors">
+        <div class="tut-color-row">
+          <div class="tut-tile tut-tile--green">M</div>
+          <p>Shkronja është në vendin <strong>e saktë</strong></p>
+        </div>
+        <div class="tut-color-row">
+          <div class="tut-tile tut-tile--yellow">A</div>
+          <p>Shkronja i përket fjalës por është në vendin <strong>e gabuar</strong></p>
+        </div>
+        <div class="tut-color-row">
+          <div class="tut-tile tut-tile--dark">X</div>
+          <p>Qelizë <strong>bosh</strong> (nuk ka shkronjë)</p>
+        </div>
+      </div>
+      <button class="tut-btn" (click)="setTutorialPhase(4)">Kuptova!</button>
+    </div>
+  </div>
+}
+
+<!-- ── Tutorial Phase 4: Hint button explanation (blocking) ── -->
+@if (isTutorial() && tutorialPhase() === 4) {
+  <div class="tut-overlay">
+    <div class="tut-modal">
+      <div class="tut-step-badge">HAPI 3 nga 4</div>
+      <h2 class="tut-title">Butoni "Ndihmë"</h2>
+      <div class="tut-btn-demo hint-demo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6"/><path d="M10 22h4"/>
+          <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
+        </svg>
+        <span>Ndihmë</span>
+      </div>
+      <p class="tut-desc">Ky buton vendos automatikisht <strong>një shkronjë</strong> në vendin e duhur. Çdo përdorim zbreson një lëvizje.</p>
+      <button class="tut-btn" (click)="setTutorialPhase(5)">Kuptova!</button>
+    </div>
+  </div>
+}
+
+<!-- ── Tutorial Phase 5: Solve button explanation (blocking) ── -->
+@if (isTutorial() && tutorialPhase() === 5) {
+  <div class="tut-overlay">
+    <div class="tut-modal">
+      <div class="tut-step-badge">HAPI 4 nga 4</div>
+      <h2 class="tut-title">Butoni "Zgjidh"</h2>
+      <div class="tut-btn-demo solve-demo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>Zgjidh</span>
+      </div>
+      <p class="tut-desc">Ky buton zgjidh automatikisht <strong>një fjalë të tërë</strong>. Çdo përdorim zbreson lëvizje. Ka pritje 30 sekondash mes dy përdorimeve.</p>
+      <button class="tut-btn" (click)="setTutorialPhase(6)">Filloj lojën!</button>
+    </div>
   </div>
 }
 

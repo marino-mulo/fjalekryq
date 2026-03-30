@@ -1,9 +1,9 @@
-/* ── Tutorial overlay ── */
-.tutorial-overlay {
+/* ── Tutorial blocking overlay ── */
+.tut-overlay {
   position: fixed;
   inset: 0;
   z-index: 600;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -11,7 +11,7 @@
   animation: overlayFadeIn 0.25s ease;
 }
 
-.tutorial-card {
+.tut-modal {
   background: #fff;
   border-radius: 20px;
   padding: 28px 24px 24px;
@@ -19,12 +19,12 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.22);
 }
 
-.tutorial-badge {
-  align-self: center;
+.tut-step-badge {
   background: var(--purple);
   color: #fff;
   font-family: var(--font-display);
@@ -35,120 +35,130 @@
   border-radius: 50px;
 }
 
-.tutorial-title {
+.tut-title {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   font-weight: 900;
   text-align: center;
   margin: 0;
   color: var(--black);
 }
 
-.tutorial-steps {
+.tut-desc {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #444;
+  text-align: center;
+}
+
+/* Swap demo row */
+.tut-demo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Color legend rows */
+.tut-colors {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  width: 100%;
 }
 
-.tutorial-step {
+.tut-color-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
 
-  p { margin: 0; font-size: 0.9rem; line-height: 1.4; color: #444; }
+  p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: #444;
+  }
 }
 
-.step-num {
-  min-width: 26px;
-  height: 26px;
-  background: #6aaa64;
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-size: 0.85rem;
-  border-radius: 50%;
+/* Tutorial tiles */
+.tut-tile {
+  min-width: 44px;
+  height: 44px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-}
-
-.tutorial-words-row {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-}
-
-.tut-word {
-  padding: 6px 14px;
-  border-radius: 10px;
   font-family: var(--font-display);
   font-weight: 900;
+  font-size: 1.3rem;
+  color: #fff;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  flex-shrink: 0;
+
+  &.tut-tile--green  { background: #6aaa64; }
+  &.tut-tile--yellow { background: #c9b458; }
+  &.tut-tile--grey   { background: #787c7e; }
+  &.tut-tile--dark   { background: #3f3f3f; }
+}
+
+/* Button demo (hint / solve preview) */
+.tut-btn-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 28px;
+  border-radius: 14px;
+  border: 2px solid var(--black);
+  font-family: var(--font-display);
+  font-weight: 800;
   font-size: 1rem;
   color: #fff;
-  &.tut-vertical  { background: #6aaa64; }
-  &.tut-horizontal { background: #c9b458; }
+
+  &.hint-demo  { background: #C2410C; box-shadow: 3px 3px 0 #9A3412; }
+  &.solve-demo { background: #1D4ED8; box-shadow: 3px 3px 0 #1E3A8A; }
 }
 
-/* ── In-game tutorial tip banner ── */
-.tutorial-tip {
-  position: fixed;
-  bottom: 110px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 400;
-  background: #1e293b;
-  color: #fff;
-  border-radius: 14px;
-  padding: 12px 16px 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 340px;
-  width: calc(100% - 32px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-  animation: tipSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes tipSlideUp {
-  0%   { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-
-.tutorial-tip-text {
-  font-size: 0.85rem;
-  line-height: 1.4;
-  flex: 1;
-}
-
-.tutorial-tip-close {
-  background: rgba(255,255,255,0.15);
-  border: none;
-  color: #fff;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.btn-tutorial-start {
+/* Main CTA button */
+.tut-btn {
+  width: 100%;
   background: var(--purple);
   color: #fff;
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   padding: 14px;
   border: 2px solid var(--black);
   border-radius: 14px;
   box-shadow: 3px 3px 0 var(--black);
   cursor: pointer;
   transition: transform 0.1s, box-shadow 0.1s;
-  &:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--black); }
+  &:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--black); }
+}
+
+/* ── Non-blocking hint banner (phase 2) ── */
+.tut-hint-banner {
+  position: fixed;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  background: #1e293b;
+  color: #fff;
+  border-radius: 14px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  animation: tipSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes tipSlideUp {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0); }
 }
 
 /* ══════════════════════════════════════

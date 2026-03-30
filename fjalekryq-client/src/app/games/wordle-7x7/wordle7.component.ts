@@ -9,31 +9,30 @@ const LEVEL_KEY          = 'fjalekryq_level';
 const TUTORIAL_KEY       = 'fjalekryq_tutorial_done';
 const FORCE_TUTORIAL_KEY = 'fjalekryq_force_tutorial';
 
-// 5×5 tutorial puzzle: MALI (vertical, col 2) ∩ FOLË (horizontal, row 2) at L(2,2)
+// 7×7 tutorial: MALI (vertical col 3), BORA (horizontal row 1), DETI (horizontal row 3)
+// Intersections: MALI∩BORA at A(1,3), MALI∩DETI at I(3,3)
 const TUTORIAL_PUZZLE = {
-  gridSize: 5,
+  gridSize: 7,
   solution: [
-    ['X', 'X', 'M', 'X', 'X'],
-    ['X', 'X', 'A', 'X', 'X'],
-    ['F', 'O', 'L', 'Ë', 'X'],
-    ['X', 'X', 'I', 'X', 'X'],
-    ['X', 'X', 'X', 'X', 'X'],
+    ['X', 'X', 'X', 'M', 'X', 'X', 'X'],
+    ['B', 'O', 'R', 'A', 'X', 'X', 'X'],
+    ['X', 'X', 'X', 'L', 'X', 'X', 'X'],
+    ['D', 'E', 'T', 'I', 'X', 'X', 'X'],
+    ['X', 'X', 'X', 'X', 'X', 'X', 'X'],
+    ['X', 'X', 'X', 'X', 'X', 'X', 'X'],
+    ['X', 'X', 'X', 'X', 'X', 'X', 'X'],
   ],
   words: [
-    { word: 'MALI', row: 0, col: 2, direction: 'vertical'   as const },
-    { word: 'FOLË', row: 2, col: 0, direction: 'horizontal' as const },
+    { word: 'MALI', row: 0, col: 3, direction: 'vertical'   as const },
+    { word: 'BORA', row: 1, col: 0, direction: 'horizontal' as const },
+    { word: 'DETI', row: 3, col: 0, direction: 'horizontal' as const },
   ],
   hash: 'tutorial_v1',
-  swapLimit: 30,
+  swapLimit: 40,
 };
 
-// In-game tip texts shown one at a time (steps 1–4)
-const TUTORIAL_TIPS: Record<number, string> = {
-  1: '👆 Tapto dy shkronja njëra pas tjetrës për t\'i shkëmbyer vendet',
-  2: '🟢 E gjelbër = vendi i saktë  ·  🟡 E verdhë = fjalë e duhur, vend i gabuar',
-  3: '💡 "Ndihmë" — vendos automatikisht një shkronjë në vend (kosto: 1 lëvizje)',
-  4: '✅ "Zgjidh" — zgjidh automatikisht një fjalë të tërë (kosto: gjatësia e fjalës)',
-};
+// tutorialPhase: 0=off, 1=step1 modal, 2=waiting swap, 3=step2 modal, 4=step3 modal, 5=step4 modal, 6=done
+export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 function getLevelDifficulty(level: number): string {
   if (level <= 100) return 'easy';
@@ -68,15 +67,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
   @Output() goBack = new EventEmitter<void>();
 
   private subs: Subscription[] = [];
-  private stepTimer: ReturnType<typeof setTimeout> | null = null;
 
   showInfo = false;
 
   // Tutorial
-  isTutorial        = signal(false);
-  showTutorialIntro = signal(false);
-  tutorialStep      = signal(0);
-  tutorialTip       = signal('');
+  isTutorial    = signal(false);
+  tutorialPhase = signal<TutorialPhase>(0);
 
   // Completion
   isCompleted    = signal(false);
@@ -98,10 +94,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private pickIcon()   { return this.ICONS[Math.floor(Math.random() * this.ICONS.length)]; }
 
   constructor() {
-    // Advance from step 1 → 2 on the first swap
+    // Phase 2 = waiting for first swap → auto-advance to phase 3 when swap happens
     effect(() => {
-      if (this.isTutorial() && this.tutorialStep() === 1 && this.game.totalSwapCount() > 0) {
-        this.advanceTutorialStep();
+      if (this.isTutorial() && this.tutorialPhase() === 2 && this.game.totalSwapCount() > 0) {
+        this.tutorialPhase.set(3);
       }
     }, { allowSignalWrites: true });
   }
@@ -126,7 +122,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
       } else {
         this.game.initPuzzle(TUTORIAL_PUZZLE);
       }
-      this.showTutorialIntro.set(true);
+      this.tutorialPhase.set(1);
     } else {
       const saved = Wordle7GameService.loadSavedState();
       if (saved && saved.puzzle.hash !== 'tutorial_v1') {
@@ -139,7 +135,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.stepTimer) clearTimeout(this.stepTimer);
     this.game.destroy();
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
@@ -147,35 +142,14 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.stopBgTiles();
   }
 
-  // ── Tutorial controls ──────────────────────────────────────
-  dismissTutorialIntro(): void {
-    this.showTutorialIntro.set(false);
-    this.tutorialStep.set(1);
-    this.tutorialTip.set(TUTORIAL_TIPS[1]);
+  // ── Tutorial ─────────────────────────────────────────────
+  setTutorialPhase(phase: TutorialPhase): void {
+    this.tutorialPhase.set(phase);
   }
 
-  dismissTutorialTip(): void {
-    if (this.stepTimer) { clearTimeout(this.stepTimer); this.stepTimer = null; }
-    this.advanceTutorialStep();
-  }
-
-  private advanceTutorialStep(): void {
-    const next = this.tutorialStep() + 1;
-    this.tutorialStep.set(next);
-    if (TUTORIAL_TIPS[next]) {
-      this.tutorialTip.set(TUTORIAL_TIPS[next]);
-      if (next >= 2) {
-        this.stepTimer = setTimeout(() => this.advanceTutorialStep(), 5000);
-      }
-    } else {
-      this.tutorialTip.set('');
-    }
-  }
-
-  // ── Game controls ──────────────────────────────────────────
+  // ── Game controls ────────────────────────────────────────
   onWin(): void {
-    if (this.stepTimer) { clearTimeout(this.stepTimer); this.stepTimer = null; }
-    this.tutorialTip.set('');
+    this.tutorialPhase.set(0);
     this.isCompleted.set(true);
     this.completedPraise.set(this.pickPraise());
     this.completedIcon.set(this.pickIcon());
@@ -188,7 +162,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     if (this.isTutorial()) {
       localStorage.setItem(TUTORIAL_KEY, 'true');
       this.isTutorial.set(false);
-      this.tutorialStep.set(0);
+      this.tutorialPhase.set(0);
       this.loadRandomPuzzle();
     } else {
       const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
@@ -201,7 +175,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   openInfo():   void { this.showInfo = true; }
   closeInfo():  void { this.showInfo = false; }
 
-  // ── Puzzle loading ─────────────────────────────────────────
+  // ── Puzzle loading ────────────────────────────────────────
   private loadRandomPuzzle(): void {
     this.isLoading.set(true);
     this.isCompleted.set(false);
