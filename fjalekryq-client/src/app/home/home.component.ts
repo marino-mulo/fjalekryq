@@ -3,9 +3,15 @@ import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
 
 const LEVEL_KEY = 'fjalekryq_level';
 
-const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
+const LETTERS = 'ABCÇDEHIMNOPRSTUVXZ'.split('');
 const COLORS = ['green', 'yellow', 'grey'] as const;
-const HERO_WORD = ['F', 'J', 'A', 'L', 'Ë', 'K', 'R', 'Y', 'Q'];
+
+// 5×5 grid: "Fjalë" on row 2 (positions 5-9), "Kryq" on row 4 (positions 15-18)
+const WORD_POSITIONS: Record<number, string> = {
+  5: 'F', 6: 'J', 7: 'A', 8: 'L', 9: 'Ë',
+  15: 'K', 16: 'R', 17: 'Y', 18: 'Q',
+};
+const WORD_POS_LIST = [5, 6, 7, 8, 9, 15, 16, 17, 18];
 
 interface BgTile {
   id: number;
@@ -107,11 +113,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     }, 1200);
   }
 
+  private rndLetter(): string {
+    return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+  }
+
   private createHeroTiles(): HeroTile[] {
-    const shuffled = [...HERO_WORD].sort(() => Math.random() - 0.5);
-    return shuffled.map((letter, i) => ({
+    return Array.from({ length: 25 }, (_, i) => ({
       id: i,
-      letter,
+      letter: this.rndLetter(),
       color: Math.random() < 0.5 ? 'yellow' : 'grey',
       animKey: 0,
     }));
@@ -127,27 +136,26 @@ export class HomeComponent implements OnInit, OnDestroy {
     });
 
     while (!this.heroDestroyed) {
-      // Scramble: reset all tiles to random letters, yellow/grey
-      const scrambled = [...HERO_WORD].sort(() => Math.random() - 0.5);
+      // Scramble: all 25 tiles get random letters + yellow/grey
       const baseKey = Date.now();
-      this.heroTiles.set(scrambled.map((letter, i) => ({
+      this.heroTiles.set(Array.from({ length: 25 }, (_, i) => ({
         id: i,
-        letter,
-        color: Math.random() < 0.5 ? 'yellow' : 'grey' as 'yellow' | 'grey',
+        letter: this.rndLetter(),
+        color: (Math.random() < 0.5 ? 'yellow' : 'grey') as 'yellow' | 'grey',
         animKey: baseKey + i,
       })));
 
       await delay(600);
       if (this.heroDestroyed) return;
 
-      // Solve one by one in random order
-      const solveOrder = [...Array(9).keys()].sort(() => Math.random() - 0.5);
+      // Solve word positions one by one in random order
+      const solveOrder = [...WORD_POS_LIST].sort(() => Math.random() - 0.5);
       for (const pos of solveOrder) {
         if (this.heroDestroyed) return;
         const solveKey = Date.now();
         this.heroTiles.update(tiles => tiles.map((t, idx) => {
           if (idx !== pos) return t;
-          return { ...t, letter: HERO_WORD[pos], color: 'green', animKey: solveKey };
+          return { ...t, letter: WORD_POSITIONS[pos], color: 'green', animKey: solveKey };
         }));
         await delay(320);
         if (this.heroDestroyed) return;
