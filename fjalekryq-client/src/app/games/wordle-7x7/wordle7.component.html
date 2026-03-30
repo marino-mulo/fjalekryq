@@ -1,3 +1,34 @@
+<!-- Tutorial intro overlay -->
+@if (isTutorial() && showTutorialIntro()) {
+  <div class="tutorial-overlay">
+    <div class="tutorial-card">
+      <div class="tutorial-badge">TUTORIAL</div>
+      <h2 class="tutorial-title">Si luhet?</h2>
+      <div class="tutorial-steps">
+        <div class="tutorial-step">
+          <span class="step-num">1</span>
+          <p>Tapto dy shkronja njëra pas tjetrës për t'i shkëmbyer vendet</p>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">2</span>
+          <p>Vendos çdo shkronjë në vendin e duhur për të formuar fjalët</p>
+        </div>
+        <div class="tutorial-step">
+          <span class="step-num">3</span>
+          <p>Të gjelbrat janë në vend, të verdhat janë në fjalë por jo në vend</p>
+        </div>
+      </div>
+      <div class="tutorial-words-row">
+        <span class="tut-word tut-vertical">MALI ↕</span>
+        <span class="tut-word tut-horizontal">FOLË →</span>
+      </div>
+      <button class="btn-tutorial-start" (click)="dismissTutorialIntro()">
+        Fillo tutorialin!
+      </button>
+    </div>
+  </div>
+}
+
 <!-- Full-page loading overlay -->
 @if (isLoading()) {
   <div class="loading-overlay">
@@ -44,14 +75,14 @@
   @if (isCompleted()) {
     <div class="completed-card">
       <div class="completed-card-row">
-        <span class="completed-card-label">{{ completedPraise() }}</span>
+        <span class="completed-card-label">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
         <img [src]="completedIcon()" class="completed-card-icon" alt="">
       </div>
       <button class="btn-next-level" (click)="nextLevel()">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
-        Niveli tjetër
+        {{ isTutorial() ? 'Fillo lojën!' : 'Niveli tjetër' }}
       </button>
     </div>
   }

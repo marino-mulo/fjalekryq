@@ -6,6 +6,25 @@ import { PuzzleService } from '../../core/services/puzzle.service';
 import { GameHeaderService } from '../../core/services/game-header.service';
 
 const LEVEL_KEY = 'fjalekryq_level';
+const TUTORIAL_KEY = 'fjalekryq_tutorial_done';
+
+// Simple 5×5 tutorial puzzle: MALI (vertical) ∩ FOLË (horizontal) at L(2,2)
+const TUTORIAL_PUZZLE = {
+  gridSize: 5,
+  solution: [
+    ['X', 'X', 'M', 'X', 'X'],
+    ['X', 'X', 'A', 'X', 'X'],
+    ['F', 'O', 'L', 'Ë', 'X'],
+    ['X', 'X', 'I', 'X', 'X'],
+    ['X', 'X', 'X', 'X', 'X'],
+  ],
+  words: [
+    { word: 'MALI', row: 0, col: 2, direction: 'vertical' as const },
+    { word: 'FOLË', row: 2, col: 0, direction: 'horizontal' as const },
+  ],
+  hash: 'tutorial_v1',
+  swapLimit: 30,
+};
 
 function getLevelDifficulty(level: number): string {
   if (level <= 100) return 'easy';
@@ -45,6 +64,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
   showInfo = false;
 
+  // Tutorial state
+  isTutorial = signal(false);
+  showTutorialIntro = signal(false);
+
   // Completion state
   isCompleted = signal(false);
   completedPraise = signal('Bravo!');
@@ -78,13 +101,28 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.gameHeader.infoClicked$.subscribe(() => this.openInfo()),
     );
 
-    // Try to restore a saved game first
-    const saved = Wordle7GameService.loadSavedState();
-    if (saved) {
-      this.lastWords = saved.puzzle.words.map(w => w.word);
-      this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
+    const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    const tutorialDone = localStorage.getItem(TUTORIAL_KEY) === 'true';
+
+    if (level === 1 && !tutorialDone) {
+      // Tutorial mode
+      this.isTutorial.set(true);
+      const saved = Wordle7GameService.loadSavedState();
+      if (saved && saved.puzzle.hash === 'tutorial_v1') {
+        this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
+      } else {
+        this.game.initPuzzle(TUTORIAL_PUZZLE);
+      }
+      this.showTutorialIntro.set(true);
     } else {
-      this.loadRandomPuzzle();
+      // Normal game — try to restore saved state
+      const saved = Wordle7GameService.loadSavedState();
+      if (saved && saved.puzzle.hash !== 'tutorial_v1') {
+        this.lastWords = saved.puzzle.words.map(w => w.word);
+        this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
+      } else {
+        this.loadRandomPuzzle();
+      }
     }
   }
 
@@ -188,11 +226,22 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.solveWord();
   }
 
+  dismissTutorialIntro(): void {
+    this.showTutorialIntro.set(false);
+  }
+
   nextLevel(): void {
-    const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-    const next = isNaN(current) || current < 1 ? 2 : current + 1;
-    localStorage.setItem(LEVEL_KEY, String(next));
-    this.loadRandomPuzzle();
+    if (this.isTutorial()) {
+      // Tutorial done — mark it, stay on level 1 for the real first puzzle
+      localStorage.setItem(TUTORIAL_KEY, 'true');
+      this.isTutorial.set(false);
+      this.loadRandomPuzzle();
+    } else {
+      const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+      const next = isNaN(current) || current < 1 ? 2 : current + 1;
+      localStorage.setItem(LEVEL_KEY, String(next));
+      this.loadRandomPuzzle();
+    }
   }
 
   backToMenu(): void {

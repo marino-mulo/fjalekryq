@@ -1,3 +1,110 @@
+/* ── Tutorial overlay ── */
+.tutorial-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(0,0,0,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: overlayFadeIn 0.25s ease;
+}
+
+.tutorial-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px 24px 24px;
+  max-width: 340px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+
+.tutorial-badge {
+  align-self: center;
+  background: var(--purple);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 2px;
+  padding: 4px 14px;
+  border-radius: 50px;
+}
+
+.tutorial-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 900;
+  text-align: center;
+  margin: 0;
+  color: var(--black);
+}
+
+.tutorial-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tutorial-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  p { margin: 0; font-size: 0.9rem; line-height: 1.4; color: #444; }
+}
+
+.step-num {
+  min-width: 26px;
+  height: 26px;
+  background: #6aaa64;
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 0.85rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tutorial-words-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.tut-word {
+  padding: 6px 14px;
+  border-radius: 10px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1rem;
+  color: #fff;
+  &.tut-vertical  { background: #6aaa64; }
+  &.tut-horizontal { background: #c9b458; }
+}
+
+.btn-tutorial-start {
+  background: var(--purple);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  padding: 14px;
+  border: 2px solid var(--black);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 var(--black);
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.1s;
+  &:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--black); }
+}
+
 /* ══════════════════════════════════════
    Top Strip: Name + Swaps
    ══════════════════════════════════════ */
