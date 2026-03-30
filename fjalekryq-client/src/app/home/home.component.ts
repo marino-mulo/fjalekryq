@@ -5,6 +5,7 @@ const LEVEL_KEY = 'fjalekryq_level';
 
 const LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
 const COLORS = ['green', 'yellow', 'grey'] as const;
+const HERO_WORD = ['F', 'J', 'A', 'L', 'Ë', 'K', 'R', 'Y', 'Q'];
 
 interface BgTile {
   id: number;
@@ -37,6 +38,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
   private heroSwapTimer: ReturnType<typeof setInterval> | null = null;
+  private heroDestroyed = false;
 
   readonly difficultyKey = computed(() => {
     const l = this.level();
@@ -56,8 +58,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.heroDestroyed = true;
     if (this.bgSwapTimer) clearInterval(this.bgSwapTimer);
-    if (this.heroSwapTimer) clearInterval(this.heroSwapTimer);
+    if (this.heroSwapTimer) {
+      clearInterval(this.heroSwapTimer);
+      clearTimeout(this.heroSwapTimer as unknown as ReturnType<typeof setTimeout>);
+    }
   }
 
   startGame(): void {
@@ -102,26 +108,53 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   private createHeroTiles(): HeroTile[] {
-    return Array.from({ length: 16 }, (_, i) => ({
+    const shuffled = [...HERO_WORD].sort(() => Math.random() - 0.5);
+    return shuffled.map((letter, i) => ({
       id: i,
-      letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
-      color: COLORS[i % 3],
+      letter,
+      color: Math.random() < 0.5 ? 'yellow' : 'grey',
       animKey: 0,
     }));
   }
 
   private startHeroSwaps(): void {
-    this.heroSwapTimer = setInterval(() => {
-      const tiles = this.heroTiles();
-      const i = Math.floor(Math.random() * tiles.length);
-      let j = Math.floor(Math.random() * (tiles.length - 1));
-      if (j >= i) j++;
-      const newKey = Date.now();
-      this.heroTiles.set(tiles.map((t, idx) => {
-        if (idx === i) return { ...t, letter: tiles[j].letter, color: tiles[j].color, animKey: newKey };
-        if (idx === j) return { ...t, letter: tiles[i].letter, color: tiles[i].color, animKey: newKey + 1 };
-        return t;
-      }));
-    }, 900);
+    this.runHeroCycle();
+  }
+
+  private async runHeroCycle(): Promise<void> {
+    const delay = (ms: number) => new Promise<void>(res => {
+      this.heroSwapTimer = setTimeout(res, ms) as unknown as ReturnType<typeof setInterval>;
+    });
+
+    while (!this.heroDestroyed) {
+      // Scramble: reset all tiles to random letters, yellow/grey
+      const scrambled = [...HERO_WORD].sort(() => Math.random() - 0.5);
+      const baseKey = Date.now();
+      this.heroTiles.set(scrambled.map((letter, i) => ({
+        id: i,
+        letter,
+        color: Math.random() < 0.5 ? 'yellow' : 'grey' as 'yellow' | 'grey',
+        animKey: baseKey + i,
+      })));
+
+      await delay(600);
+      if (this.heroDestroyed) return;
+
+      // Solve one by one in random order
+      const solveOrder = [...Array(9).keys()].sort(() => Math.random() - 0.5);
+      for (const pos of solveOrder) {
+        if (this.heroDestroyed) return;
+        const solveKey = Date.now();
+        this.heroTiles.update(tiles => tiles.map((t, idx) => {
+          if (idx !== pos) return t;
+          return { ...t, letter: HERO_WORD[pos], color: 'green', animKey: solveKey };
+        }));
+        await delay(320);
+        if (this.heroDestroyed) return;
+      }
+
+      // Pause fully solved
+      await delay(2200);
+    }
   }
 }
