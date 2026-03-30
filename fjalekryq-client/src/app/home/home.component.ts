@@ -58,19 +58,19 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private createBgTiles(): BgTile[] {
     const tiles: BgTile[] = [];
-    // 5 rows spread across full screen height
     const rows = [5, 24, 44, 64, 82];
-    for (let i = 0; i < 18; i++) {
-      const col = i % 6;
-      const row = Math.floor(i / 6) % rows.length;
-      tiles.push({
-        id: i,
-        letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
-        x: 4 + col * 15.5 + (Math.random() - 0.5) * 6,
-        y: rows[row] + (Math.random() - 0.5) * 8,
-        color: COLORS[i % 3],
-        delay: Math.random() * 4,
-      });
+    for (let r = 0; r < rows.length; r++) {
+      for (let c = 0; c < 6; c++) {
+        const i = r * 6 + c;
+        tiles.push({
+          id: i,
+          letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
+          x: 4 + c * 15.5 + (Math.random() - 0.5) * 6,
+          y: rows[r] + (Math.random() - 0.5) * 8,
+          color: COLORS[i % 3],
+          delay: Math.random() * 4,
+        });
+      }
     }
     return tiles;
   }

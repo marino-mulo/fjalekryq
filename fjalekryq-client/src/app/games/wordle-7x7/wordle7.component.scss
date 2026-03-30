@@ -353,7 +353,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 18px;
   width: 100%;
   padding: 16px 24px;
   font-family: var(--font-display);
@@ -525,57 +525,36 @@
 }
 
 /* ══════════════════════════════════════
-   Completed Card (below board)
+   Completed: praise in top strip
    ══════════════════════════════════════ */
-.completed-card {
+.completed-praise-top {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  color: #15803d;
+  letter-spacing: -0.3px;
+}
+
+/* Lost card (kept as-is) */
+.lost-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  gap: 4px;
+  gap: 8px;
   margin-top: 18px;
   padding: 20px 24px;
-  background: #fff;
-  border: 2px solid var(--black);
+  background: #FFF5F5;
+  border: 2px solid #FECACA;
   border-radius: 16px;
   box-shadow: 4px 4px 0 var(--black);
   width: 100%;
 }
 
-.completed-card-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
-.completed-card-icon {
-  width: 28px;
-  height: 28px;
-}
-
-.completed-card-label {
+.lost-label {
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 1.25rem;
-  color: #15803d;
-  letter-spacing: -0.5px;
-}
-
-.lost-card {
-  border-color: #FECACA;
-  background: #FFF5F5;
-}
-
-.lost-label {
   color: #DC2626;
-}
-
-.completed-card-time {
-  font-family: var(--font-body);
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: #4ade80;
 }
 
 /* Info Modal */

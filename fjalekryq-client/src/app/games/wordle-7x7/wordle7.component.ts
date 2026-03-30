@@ -199,17 +199,20 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   private startBgTiles(): void {
+    const rows = [5, 24, 44, 64, 82];
     const tiles: BgTile[] = [];
-    for (let i = 0; i < 18; i++) {
-      const col = i % 6, row = Math.floor(i / 6);
-      tiles.push({
-        id: i,
-        letter: BG_LETTERS[Math.floor(Math.random() * BG_LETTERS.length)],
-        x: 4 + col * 15.5 + (Math.random() - 0.5) * 8,
-        y: 5 + row * 30  + (Math.random() - 0.5) * 12,
-        color: BG_COLORS[i % 3],
-        delay: Math.random() * 4,
-      });
+    for (let r = 0; r < rows.length; r++) {
+      for (let c = 0; c < 6; c++) {
+        const i = r * 6 + c;
+        tiles.push({
+          id: i,
+          letter: BG_LETTERS[Math.floor(Math.random() * BG_LETTERS.length)],
+          x: 4 + c * 15.5 + (Math.random() - 0.5) * 8,
+          y: rows[r]       + (Math.random() - 0.5) * 12,
+          color: BG_COLORS[i % 3],
+          delay: Math.random() * 4,
+        });
+      }
     }
     this.bgTiles.set(tiles);
     this.bgSwapTimer = setInterval(() => {

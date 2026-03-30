@@ -38,8 +38,8 @@
           <p>Shkronja i përket fjalës por është në vendin <strong>e gabuar</strong></p>
         </div>
         <div class="tut-color-row">
-          <div class="tut-tile tut-tile--dark">X</div>
-          <p>Qelizë <strong>bosh</strong> (nuk ka shkronjë)</p>
+          <div class="tut-tile tut-tile--grey">B</div>
+          <p>Shkronja <strong>nuk i përket</strong> asnjë fjale</p>
         </div>
       </div>
       <button class="tut-btn" (click)="setTutorialPhase(4)">Kuptova!</button>
@@ -114,7 +114,9 @@
         <polyline points="15 18 9 12 15 6"/>
       </svg>
     </button>
-    @if (!isCompleted() && !game.gameLost() && !isLoading()) {
+    @if (isCompleted()) {
+      <span class="completed-praise-top">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
+    } @else if (!game.gameLost() && !isLoading()) {
       <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 10 && game.swapsRemaining() > 5" [class.swap-danger]="game.swapsRemaining() <= 5">
         <span class="swap-count">{{ game.swapsRemaining() }}</span>
         <span class="swap-label">lëvizje të mbetura</span>
@@ -129,26 +131,17 @@
   }
 
   @if (isCompleted()) {
-    <div class="completed-card">
-      <div class="completed-card-row">
-        <span class="completed-card-label">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
-        <img [src]="completedIcon()" class="completed-card-icon" alt="">
-      </div>
-      <button class="btn-next-level" (click)="nextLevel()">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-        {{ isTutorial() ? 'Fillo lojën!' : 'Niveli tjetër' }}
-      </button>
-    </div>
+    <button class="btn-next-level" (click)="nextLevel()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+      {{ isTutorial() ? 'Fillo lojën!' : 'Niveli tjetër' }}
+    </button>
   }
 
   @if (game.gameLost()) {
-    <div class="completed-card lost-card">
-      <div class="completed-card-row">
-        <span class="completed-card-label lost-label">Dështove!</span>
-        <img src="icons/rewards/sad.svg" class="completed-card-icon" alt="">
-      </div>
+    <div class="lost-card">
+      <span class="lost-label">Dështove!</span>
       <button class="btn-menu" (click)="backToMenu()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>

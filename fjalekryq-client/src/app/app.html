@@ -1,8 +1,11 @@
 @if (showSplash()) {
   <div class="splash" [class.fading]="splashFading()">
-    <div class="splash-center">
-      <img src="logo.svg" alt="Fjalekryq" class="splash-logo">
-    </div>
+    @for (t of splashTiles; track t.id) {
+      <div class="sp sp--{{ t.color }}"
+           [style.left]="t.left"
+           [style.top]="t.top"
+           [style.animation-delay]="t.delay">{{ t.letter }}</div>
+    }
   </div>
 }
 
