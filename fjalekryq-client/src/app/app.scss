@@ -49,3 +49,36 @@
   0%, 100% { transform: translateY(0); }
   50%       { transform: translateY(-8px); }
 }
+
+/* ── Splash logo pop-in ── */
+.splash-logo-wrap {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.splash-logo {
+  width: 220px;
+  height: 220px;
+  max-width: 70vw;
+  max-height: 70vw;
+  object-fit: contain;
+  animation: logoPopIn 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+             logoFloat  2.8s ease-in-out 0.65s infinite;
+  opacity: 0;
+  transform: scale(0);
+}
+
+@keyframes logoPopIn {
+  0%   { opacity: 0; transform: scale(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%       { transform: scale(1.03) translateY(-6px); }
+}
