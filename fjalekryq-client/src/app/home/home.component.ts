@@ -4,14 +4,14 @@ import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
 const LEVEL_KEY = 'fjalekryq_level';
 
 const LETTERS = 'ABCÇDEHIMNOPRSTUVXZ'.split('');
-const COLORS = ['gold', 'lime', 'orange', 'red', 'sky', 'violet'] as const;
+const COLORS = ['gold', 'lime', 'grey'] as const;
 
 interface BgTile {
   id: number;
   letter: string;
   x: number;
   y: number;
-  color: 'gold' | 'lime' | 'orange' | 'red' | 'sky' | 'violet';
+  color: 'gold' | 'lime' | 'grey';
   delay: number;
 }
 

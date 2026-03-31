@@ -301,12 +301,9 @@
     top  0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
   animation: tileFloat 4s ease-in-out infinite;
 
-  &.bg-tile--gold   { background: #F4B400; }
-  &.bg-tile--lime   { background: #22C55E; }
-  &.bg-tile--orange { background: #FF7A00; }
-  &.bg-tile--red    { background: #EF4444; }
-  &.bg-tile--sky    { background: #3B82F6; }
-  &.bg-tile--violet { background: #A855F7; }
+  &.bg-tile--gold { background: #F4B400; }
+  &.bg-tile--lime { background: #22C55E; }
+  &.bg-tile--grey { background: #787c7e; }
 }
 
 @keyframes tileFloat {
