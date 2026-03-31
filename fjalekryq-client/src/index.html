@@ -13,14 +13,15 @@
     .app-loading {
       position: fixed;
       inset: 0;
-      background: #FFF8F0;
+      background: radial-gradient(ellipse 70% 42% at 50% 54%, rgba(255,186,39,0.28) 0%, transparent 72%),
+                  linear-gradient(180deg, #0C1F4A 0%, #123B86 48%, #07152F 100%);
       overflow: hidden;
     }
     .sp {
       position: fixed;
-      width: 54px;
-      height: 54px;
-      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -28,14 +29,17 @@
       font-weight: 900;
       font-size: 22px;
       color: #fff;
-      opacity: 0.38;
-      border: 2px solid rgba(0,0,0,0.14);
-      box-shadow: 3px 3px 0 rgba(0,0,0,0.1);
+      opacity: 0.72;
+      border: 2px solid rgba(255,255,255,0.18);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
       animation: spFloat 2.2s ease-in-out infinite;
     }
-    .sp.g { background: #6aaa64; }
-    .sp.y { background: #c9b458; }
-    .sp.d { background: #787c7e; }
+    .sp.g { background: #22C55E; }
+    .sp.y { background: #F4B400; }
+    .sp.d { background: #A855F7; }
+    .sp.o { background: #FF7A00; }
+    .sp.r { background: #EF4444; }
+    .sp.b { background: #3B82F6; }
     @keyframes spFloat {
       0%, 100% { transform: translateY(0px); }
       50%       { transform: translateY(-8px); }
@@ -45,34 +49,34 @@
 <body>
   <app-root>
     <div class="app-loading">
-      <!-- Row 1 ~5% -->
+      <!-- Row 1 ~4vh -->
       <div class="sp g" style="left:4vw;top:4vh">S</div>
       <div class="sp y" style="left:19vw;top:2vh;animation-delay:0.4s">M</div>
-      <div class="sp d" style="left:35vw;top:6vh;animation-delay:0.8s">B</div>
-      <div class="sp g" style="left:52vw;top:3vh;animation-delay:0.2s">T</div>
-      <div class="sp y" style="left:67vw;top:7vh;animation-delay:1.1s">N</div>
+      <div class="sp o" style="left:35vw;top:6vh;animation-delay:0.8s">B</div>
+      <div class="sp r" style="left:52vw;top:3vh;animation-delay:0.2s">T</div>
+      <div class="sp b" style="left:67vw;top:7vh;animation-delay:1.1s">N</div>
       <div class="sp d" style="left:82vw;top:2vh;animation-delay:0.6s">D</div>
-      <!-- Row 2 ~28% -->
-      <div class="sp g" style="left:2vw;top:26vh;animation-delay:1.4s">F</div>
-      <div class="sp y" style="left:18vw;top:30vh;animation-delay:0.3s">P</div>
-      <div class="sp d" style="left:34vw;top:25vh;animation-delay:1.7s">H</div>
-      <div class="sp g" style="left:51vw;top:29vh;animation-delay:0.7s">V</div>
-      <div class="sp y" style="left:66vw;top:24vh;animation-delay:1.2s">C</div>
+      <!-- Row 2 ~26vh -->
+      <div class="sp r" style="left:2vw;top:26vh;animation-delay:1.4s">F</div>
+      <div class="sp g" style="left:18vw;top:30vh;animation-delay:0.3s">P</div>
+      <div class="sp b" style="left:34vw;top:25vh;animation-delay:1.7s">H</div>
+      <div class="sp y" style="left:51vw;top:29vh;animation-delay:0.7s">V</div>
+      <div class="sp o" style="left:66vw;top:24vh;animation-delay:1.2s">C</div>
       <div class="sp d" style="left:83vw;top:31vh;animation-delay:0.1s">Z</div>
-      <!-- Row 3 ~55% -->
-      <div class="sp g" style="left:5vw;top:53vh;animation-delay:1.9s">R</div>
-      <div class="sp y" style="left:21vw;top:57vh;animation-delay:0.5s">K</div>
-      <div class="sp d" style="left:37vw;top:52vh;animation-delay:1.0s">A</div>
-      <div class="sp g" style="left:53vw;top:56vh;animation-delay:1.6s">L</div>
-      <div class="sp y" style="left:68vw;top:51vh;animation-delay:0.9s">E</div>
-      <div class="sp d" style="left:82vw;top:58vh;animation-delay:1.3s">Q</div>
-      <!-- Row 4 ~82% -->
-      <div class="sp g" style="left:3vw;top:80vh;animation-delay:0.5s">J</div>
-      <div class="sp y" style="left:20vw;top:84vh;animation-delay:1.5s">O</div>
-      <div class="sp d" style="left:36vw;top:79vh;animation-delay:0.2s">U</div>
-      <div class="sp g" style="left:52vw;top:83vh;animation-delay:1.8s">I</div>
-      <div class="sp y" style="left:67vw;top:78vh;animation-delay:0.7s">X</div>
-      <div class="sp d" style="left:83vw;top:85vh;animation-delay:1.1s">W</div>
+      <!-- Row 3 ~53vh -->
+      <div class="sp y" style="left:5vw;top:53vh;animation-delay:1.9s">R</div>
+      <div class="sp d" style="left:21vw;top:57vh;animation-delay:0.5s">K</div>
+      <div class="sp r" style="left:37vw;top:52vh;animation-delay:1.0s">A</div>
+      <div class="sp b" style="left:53vw;top:56vh;animation-delay:1.6s">L</div>
+      <div class="sp g" style="left:68vw;top:51vh;animation-delay:0.9s">E</div>
+      <div class="sp o" style="left:82vw;top:58vh;animation-delay:1.3s">Q</div>
+      <!-- Row 4 ~80vh -->
+      <div class="sp o" style="left:3vw;top:80vh;animation-delay:0.5s">J</div>
+      <div class="sp r" style="left:20vw;top:84vh;animation-delay:1.5s">O</div>
+      <div class="sp g" style="left:36vw;top:79vh;animation-delay:0.2s">U</div>
+      <div class="sp d" style="left:52vw;top:83vh;animation-delay:1.8s">I</div>
+      <div class="sp b" style="left:67vw;top:78vh;animation-delay:0.7s">X</div>
+      <div class="sp y" style="left:83vw;top:85vh;animation-delay:1.1s">W</div>
     </div>
   </app-root>
 </body>

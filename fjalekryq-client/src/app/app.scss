@@ -15,7 +15,9 @@
   position: fixed;
   inset: 0;
   z-index: 9999;
-  background: #FFF8F0;
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 54%, rgba(255,186,39,0.28) 0%, transparent 72%),
+    linear-gradient(180deg, #0C1F4A 0%, #123B86 48%, #07152F 100%);
   overflow: hidden;
   transition: opacity 0.45s ease-out;
 
@@ -34,15 +36,18 @@
   font-weight: 900;
   font-size: 22px;
   color: #fff;
-  opacity: 0.38;
-  border: 2px solid rgba(0, 0, 0, 0.12);
-  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+  opacity: 0.72;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
   user-select: none;
   animation: spFloat 2.5s ease-in-out infinite;
 
-  &.sp--g { background: #6aaa64; }
-  &.sp--y { background: #c9b458; }
-  &.sp--d { background: #787c7e; }
+  &.sp--g { background: #22C55E; }
+  &.sp--y { background: #F4B400; }
+  &.sp--d { background: #A855F7; }
+  &.sp--o { background: #FF7A00; }
+  &.sp--r { background: #EF4444; }
+  &.sp--b { background: #3B82F6; }
 }
 
 @keyframes spFloat {

@@ -2,7 +2,7 @@ import { Component, signal, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 const SP_LETTERS = 'ABCDEFGHJKLMNPRSTUVWXYZ'.split('');
-const SP_COLORS  = ['g', 'y', 'd'] as const;
+const SP_COLORS  = ['g', 'y', 'd', 'o', 'r', 'b'] as const;
 
 interface SpTile { id: number; letter: string; left: string; top: string; color: string; delay: string; }
 
