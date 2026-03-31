@@ -210,5 +210,6 @@
 .game-section {
   display: flex;
   justify-content: center;
-  padding: 8px 0 16px;
+  min-height: 100dvh;
+  width: 100%;
 }

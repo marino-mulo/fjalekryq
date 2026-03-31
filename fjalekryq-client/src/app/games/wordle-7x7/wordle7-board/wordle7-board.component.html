@@ -4,9 +4,9 @@
        [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight"
        xmlns="http://www.w3.org/2000/svg">
 
-    <!-- Background (matches page cream) -->
+    <!-- Background: dark navy matching page -->
     <rect x="0" y="0" [attr.width]="svgWidth" [attr.height]="svgHeight"
-          rx="14" ry="14" fill="#FFF8F0"/>
+          rx="14" ry="14" fill="#0D1B40"/>
 
     @for (cell of cells; track cell.row * 100 + cell.col) {
       @if (!isBlocked(cell.row, cell.col)) {
@@ -45,7 +45,7 @@
           <rect [attr.x]="cellX(cell.col) - 1.5" [attr.y]="cellY(cell.row) - 1.5"
                 [attr.width]="cellSize + 3" [attr.height]="cellSize + 3"
                 [attr.rx]="borderRadius + 1" [attr.ry]="borderRadius + 1"
-                fill="none" stroke="#1a1a1a" stroke-width="3"
+                fill="none" stroke="#FFFFFF" stroke-width="3"
                 class="selection-ring"/>
         }
 
@@ -64,6 +64,6 @@
     <rect [attr.x]="borderWidth / 2" [attr.y]="borderWidth / 2"
           [attr.width]="svgWidth - borderWidth" [attr.height]="svgHeight - borderWidth"
           [attr.rx]="outerRadius" [attr.ry]="outerRadius"
-          fill="none" stroke="#1a1a1a" [attr.stroke-width]="borderWidth"/>
+          fill="none" stroke="rgba(255,255,255,0.12)" [attr.stroke-width]="borderWidth"/>
   </svg>
 </div>
