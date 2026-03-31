@@ -42,12 +42,12 @@ function getLevelDifficulty(level: number): string {
 }
 
 const BG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
-const BG_COLORS  = ['green', 'yellow', 'grey'] as const;
+const BG_COLORS  = ['gold', 'lime', 'orange', 'red', 'sky', 'violet'] as const;
 
 interface BgTile {
   id: number; letter: string;
   x: number;  y: number;
-  color: 'green' | 'yellow' | 'grey';
+  color: 'gold' | 'lime' | 'orange' | 'red' | 'sky' | 'violet';
   delay: number;
 }
 
