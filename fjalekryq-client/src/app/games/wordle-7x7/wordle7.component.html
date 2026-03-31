@@ -1,4 +1,4 @@
-<!-- ── Tutorial Phase 1: How to swap (blocking) ── -->
+<!-- ── Tutorial Phase 1: How to swap (blocking modal) ── -->
 @if (isTutorial() && tutorialPhase() === 1) {
   <div class="tut-overlay">
     <div class="tut-modal">
@@ -15,14 +15,14 @@
   </div>
 }
 
-<!-- ── Tutorial Phase 2: Waiting for first swap (non-blocking hint) ── -->
+<!-- ── Tutorial Phase 2: Interactive swap (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 2) {
   <div class="tut-hint-banner">
-    <span>👆 Tapto dy shkronja njëra pas tjetrës</span>
+    <span>👆 Tapto dy shkronjat e theksuara me arin</span>
   </div>
 }
 
-<!-- ── Tutorial Phase 3: Colors explanation (blocking) ── -->
+<!-- ── Tutorial Phase 3: Colors explanation (blocking modal) ── -->
 @if (isTutorial() && tutorialPhase() === 3) {
   <div class="tut-overlay">
     <div class="tut-modal">
@@ -47,7 +47,7 @@
   </div>
 }
 
-<!-- ── Tutorial Phase 4: Hint button explanation (blocking) ── -->
+<!-- ── Tutorial Phase 4: Hint button explanation (blocking modal) ── -->
 @if (isTutorial() && tutorialPhase() === 4) {
   <div class="tut-overlay">
     <div class="tut-modal">
@@ -61,13 +61,20 @@
         <span>Ndihmë</span>
       </div>
       <p class="tut-desc">Ky buton vendos automatikisht <strong>një shkronjë</strong> në vendin e duhur. Çdo përdorim zbreson një lëvizje.</p>
-      <button class="tut-btn" (click)="setTutorialPhase(5)">Kuptova!</button>
+      <button class="tut-btn" (click)="setTutorialPhase(5)">Kuptova, provoje!</button>
     </div>
   </div>
 }
 
-<!-- ── Tutorial Phase 5: Solve button explanation (blocking) ── -->
+<!-- ── Tutorial Phase 5: Interactive hint (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 5) {
+  <div class="tut-hint-banner">
+    <span>💡 Tapo butonin <strong>Ndihmë</strong> më poshtë</span>
+  </div>
+}
+
+<!-- ── Tutorial Phase 6: Solve button explanation (blocking modal) ── -->
+@if (isTutorial() && tutorialPhase() === 6) {
   <div class="tut-overlay">
     <div class="tut-modal">
       <div class="tut-step-badge">HAPI 4 nga 4</div>
@@ -80,8 +87,22 @@
         <span>Zgjidh</span>
       </div>
       <p class="tut-desc">Ky buton zgjidh automatikisht <strong>një fjalë të tërë</strong>. Çdo përdorim zbreson lëvizje. Ka pritje 30 sekondash mes dy përdorimeve.</p>
-      <button class="tut-btn" (click)="setTutorialPhase(6)">Filloj lojën!</button>
+      <button class="tut-btn" (click)="setTutorialPhase(7)">Kuptova, provoje!</button>
     </div>
+  </div>
+}
+
+<!-- ── Tutorial Phase 7: Interactive solve (non-blocking) ── -->
+@if (isTutorial() && tutorialPhase() === 7) {
+  <div class="tut-hint-banner">
+    <span>✅ Tani tapo butonin <strong>Zgjidh</strong> më poshtë</span>
+  </div>
+}
+
+<!-- ── Tutorial Phase 8: All done banner ── -->
+@if (isTutorial() && tutorialPhase() === 8) {
+  <div class="tut-hint-banner tut-done-banner">
+    <span>🎯 Shkëlqyeshëm! Tani zgjidhe vetë!</span>
   </div>
 }
 
@@ -126,7 +147,7 @@
 
   @if (!isLoading()) {
     <div class="board-area">
-      <app-wordle7-board [game]="game" (win)="onWin()" />
+      <app-wordle7-board [game]="game" [tutorialHighlight]="tutorialHighlightCells()" (win)="onWin()" />
     </div>
   }
 
@@ -163,7 +184,11 @@
 
   @if (!isCompleted() && !game.gameLost() && !isLoading()) {
     <div class="bottom-controls">
-      <button #solveBtn class="control-btn solve-btn" [class.cooling]="game.solveWordCooldown()" [disabled]="!game.canSolveWord()" (click)="onSolveWord(); solveBtn.blur()">
+      <button #solveBtn class="control-btn solve-btn"
+              [class.cooling]="game.solveWordCooldown()"
+              [class.tut-pulsing]="isTutorial() && tutorialPhase() === 7"
+              [disabled]="!game.canSolveWord() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 5))"
+              (click)="onSolveWord(); solveBtn.blur()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
           <polyline points="22 4 12 14.01 9 11.01"/>
@@ -173,7 +198,11 @@
           @else { Zgjidh }
         </span>
       </button>
-      <button #hintBtn class="control-btn hint-btn" [class.cooling]="game.hintCooldown()" [disabled]="!game.canHint()" (click)="onHint(); hintBtn.blur()">
+      <button #hintBtn class="control-btn hint-btn"
+              [class.cooling]="game.hintCooldown()"
+              [class.tut-pulsing]="isTutorial() && tutorialPhase() === 5"
+              [disabled]="!game.canHint() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 7))"
+              (click)="onHint(); hintBtn.blur()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 18h6"/><path d="M10 22h4"/>
           <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>

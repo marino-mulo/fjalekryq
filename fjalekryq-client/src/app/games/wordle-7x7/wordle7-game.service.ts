@@ -22,6 +22,10 @@ export class Wordle7GameService {
   private wordList: WordEntry[] = [];
   private gridSize = 7;
   private currentPuzzle: Wordle7Puzzle | null = null;
+  private tutorialMode = false;
+
+  /** Prevent tutorial swaps from overwriting real saved game state */
+  setTutorialMode(enabled: boolean): void { this.tutorialMode = enabled; }
 
   // Pre-computed: which words pass through each cell (built once per puzzle)
   private cellToWords: Map<string, number[]> = new Map();
@@ -145,6 +149,12 @@ export class Wordle7GameService {
     this.swapCount.set(0);
     this.totalSwapCount.set(0);
     this.clearHintState();
+    this.solveWordCooldown.set(false);
+    this.solveWordCooldownRemaining.set(0);
+    if (this.solveWordCooldownInterval) {
+      clearInterval(this.solveWordCooldownInterval);
+      this.solveWordCooldownInterval = null;
+    }
     this.buildCellToWords();
 
     const scrambled = this.scrambleGrid(this.solutionGrid);
@@ -212,6 +222,7 @@ export class Wordle7GameService {
 
   /** Save current game state to localStorage */
   private saveState(): void {
+    if (this.tutorialMode) return;
     if (!this.currentPuzzle || this.gameWon()) return;
     const state: SavedGameState = {
       puzzle: this.currentPuzzle,

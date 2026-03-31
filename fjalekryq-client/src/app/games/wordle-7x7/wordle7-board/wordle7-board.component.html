@@ -57,6 +57,15 @@
                 fill="none" stroke="#F59E0B" stroke-width="3"
                 class="hint-swap-ring"/>
         }
+
+        <!-- Tutorial highlight ring -->
+        @if (isHighlighted(cell.row, cell.col)) {
+          <rect [attr.x]="cellX(cell.col) - 2" [attr.y]="cellY(cell.row) - 2"
+                [attr.width]="cellSize + 4" [attr.height]="cellSize + 4"
+                [attr.rx]="borderRadius + 2" [attr.ry]="borderRadius + 2"
+                fill="none" stroke="#FFBA27" stroke-width="3.5"
+                class="tut-highlight-ring"/>
+        }
       }
     }
 

@@ -126,3 +126,15 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ══════════════════════════════════════
+   Tutorial highlight ring
+   ══════════════════════════════════════ */
+.tut-highlight-ring {
+  animation: tutHighlightPulse 0.75s ease-in-out infinite;
+}
+
+@keyframes tutHighlightPulse {
+  0%, 100% { opacity: 1; stroke-width: 3.5; }
+  50%       { opacity: 0.35; stroke-width: 5; }
+}

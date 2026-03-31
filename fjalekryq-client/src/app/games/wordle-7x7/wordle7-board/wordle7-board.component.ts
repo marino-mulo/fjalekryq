@@ -14,6 +14,7 @@ const FONT_SIZE_MAP: Record<number, number> = { 7: 28, 8: 25, 9: 22, 10: 19, 11:
 })
 export class Wordle7BoardComponent {
   @Input({ required: true }) game!: Wordle7GameService;
+  @Input() tutorialHighlight: { row: number; col: number }[] = [];
   @Output() win = new EventEmitter<void>();
 
   private winEmitted = false;
@@ -132,6 +133,10 @@ export class Wordle7BoardComponent {
     return this.game.hintSwappedCells().some(c => c.row === row && c.col === col);
   }
 
+  isHighlighted(row: number, col: number): boolean {
+    return this.tutorialHighlight.some(c => c.row === row && c.col === col);
+  }
+
   getCellFly(row: number, col: number): { fromDx: number; fromDy: number } | null {
     return this.flyingCells().find(c => c.row === row && c.col === col) ?? null;
   }
@@ -139,6 +144,7 @@ export class Wordle7BoardComponent {
   onCellClick(row: number, col: number): void {
     if (this.game.gameWon()) return;
     if (this.isLocked(row, col)) return;
+    if (this.tutorialHighlight.length > 0 && !this.isHighlighted(row, col)) return;
     this.game.selectCell(row, col);
   }
 }

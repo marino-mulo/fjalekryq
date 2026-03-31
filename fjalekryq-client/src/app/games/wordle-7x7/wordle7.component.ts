@@ -31,8 +31,20 @@ const TUTORIAL_PUZZLE = {
   swapLimit: 40,
 };
 
-// tutorialPhase: 0=off, 1=step1 modal, 2=waiting swap, 3=step2 modal, 4=step3 modal, 5=step4 modal, 6=done
-export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+// Fixed starting grid: B↔M swapped at (0,3)/(1,0), DETI row fully scrambled as IDET
+const TUTORIAL_INITIAL_GRID = [
+  ['X', 'X', 'X', 'B', 'X', 'X', 'X'],
+  ['M', 'O', 'R', 'A', 'X', 'X', 'X'],
+  ['X', 'X', 'X', 'L', 'X', 'X', 'X'],
+  ['I', 'D', 'E', 'T', 'X', 'X', 'X'],
+  ['X', 'X', 'X', 'X', 'X', 'X', 'X'],
+  ['X', 'X', 'X', 'X', 'X', 'X', 'X'],
+  ['X', 'X', 'X', 'X', 'X', 'X', 'X'],
+];
+
+// tutorialPhase: 0=off, 1=swap modal, 2=interactive swap, 3=colors modal, 4=hint modal,
+//               5=interactive hint, 6=solve modal, 7=interactive solve, 8=done banner
+export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 function getLevelDifficulty(level: number): string {
   if (level <= 100) return 'easy';
@@ -73,6 +85,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   // Tutorial
   isTutorial    = signal(false);
   tutorialPhase = signal<TutorialPhase>(0);
+  tutorialHighlightCells = signal<{row: number; col: number}[]>([]);
 
   // Completion
   isCompleted    = signal(false);
@@ -94,10 +107,24 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private pickIcon()   { return this.ICONS[Math.floor(Math.random() * this.ICONS.length)]; }
 
   constructor() {
-    // Phase 2 = waiting for first swap → auto-advance to phase 3 when swap happens
+    // Phase 2 → 3: advance when first swap happens
     effect(() => {
       if (this.isTutorial() && this.tutorialPhase() === 2 && this.game.totalSwapCount() > 0) {
-        this.tutorialPhase.set(3);
+        this.setTutorialPhase(3);
+      }
+    }, { allowSignalWrites: true });
+
+    // Phase 5 → 6: advance when hint is used
+    effect(() => {
+      if (this.isTutorial() && this.tutorialPhase() === 5 && this.game.hintCount() > 0) {
+        this.setTutorialPhase(6);
+      }
+    }, { allowSignalWrites: true });
+
+    // Phase 7 → 8: advance when solve is used (cooldown starts)
+    effect(() => {
+      if (this.isTutorial() && this.tutorialPhase() === 7 && this.game.solveWordCooldown()) {
+        this.setTutorialPhase(8);
       }
     }, { allowSignalWrites: true });
   }
@@ -116,13 +143,9 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
     if ((level === 1 && !tutorialDone) || forceTutorial) {
       this.isTutorial.set(true);
-      const saved = Wordle7GameService.loadSavedState();
-      if (saved && saved.puzzle.hash === 'tutorial_v1') {
-        this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
-      } else {
-        this.game.initPuzzle(TUTORIAL_PUZZLE);
-      }
-      this.tutorialPhase.set(1);
+      this.game.setTutorialMode(true);
+      this.game.restorePuzzle(TUTORIAL_PUZZLE, TUTORIAL_INITIAL_GRID.map(r => [...r]), 0, 0, 0);
+      this.setTutorialPhase(1);
     } else {
       const saved = Wordle7GameService.loadSavedState();
       if (saved && saved.puzzle.hash !== 'tutorial_v1') {
@@ -145,11 +168,18 @@ export class Wordle7Component implements OnInit, OnDestroy {
   // ── Tutorial ─────────────────────────────────────────────
   setTutorialPhase(phase: TutorialPhase): void {
     this.tutorialPhase.set(phase);
+    // Phase 2 highlights the two cells user must swap
+    if (phase === 2) {
+      this.tutorialHighlightCells.set([{ row: 0, col: 3 }, { row: 1, col: 0 }]);
+    } else {
+      this.tutorialHighlightCells.set([]);
+    }
   }
 
   // ── Game controls ────────────────────────────────────────
   onWin(): void {
     this.tutorialPhase.set(0);
+    this.tutorialHighlightCells.set([]);
     this.isCompleted.set(true);
     this.completedPraise.set(this.pickPraise());
     this.completedIcon.set(this.pickIcon());
@@ -163,6 +193,8 @@ export class Wordle7Component implements OnInit, OnDestroy {
       localStorage.setItem(TUTORIAL_KEY, 'true');
       this.isTutorial.set(false);
       this.tutorialPhase.set(0);
+      this.tutorialHighlightCells.set([]);
+      this.game.setTutorialMode(false);
       this.loadRandomPuzzle();
     } else {
       const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
