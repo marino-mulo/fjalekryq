@@ -108,36 +108,42 @@
   justify-content: center;
 }
 
-.btn-play {
-  flex: 1;
+/* ── Shared button base ── */
+.btn-play,
+.btn-tutorial {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 13px 18px;
+  gap: 8px;
+  padding: 14px 20px;
+  border-radius: 16px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+  transition: transform 0.12s, box-shadow 0.12s;
+
+  &:active { transform: translateY(2px); }
+}
+
+.btn-play {
+  flex: 1;
   background: var(--purple);
   color: #fff;
-  font-family: var(--font-display);
-  border: 2px solid rgba(255,255,255,0.25);
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.35);
-  cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.12s;
-  touch-action: manipulation;
-
-  &:active {
-    transform: translate(0, 2px);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-  }
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
 }
 
 .btn-play-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   background: rgba(255, 255, 255, 0.2);
   border-radius: 50%;
   flex-shrink: 0;
@@ -150,29 +156,11 @@
 }
 
 .btn-tutorial {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 13px 16px;
   background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.9rem;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-  cursor: pointer;
-  white-space: nowrap;
-  transition: transform 0.12s, box-shadow 0.12s;
-  touch-action: manipulation;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   backdrop-filter: blur(6px);
-
-  &:active {
-    transform: translate(0, 2px);
-    box-shadow: 0 1px 6px rgba(0,0,0,0.2);
-  }
 }
 
 /* ── Footer: Social Pills ── */

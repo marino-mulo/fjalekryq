@@ -348,57 +348,43 @@
   transition: width 0.15s ease;
 }
 
-.btn-next-level {
+/* ── Shared game button base ── */
+.btn-next-level,
+.btn-menu {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 8px;
   margin-top: 18px;
   width: 100%;
-  padding: 16px 24px;
+  padding: 14px 20px;
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 900;
-  background: var(--purple);
-  color: #fff;
   border: none;
-  border-radius: 18px;
-  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
+  border-radius: 16px;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.12s, box-shadow 0.12s;
 
-  &:active {
-    transform: translateY(2px);
-    box-shadow: 0 2px 8px rgba(168,85,247,0.35);
-  }
+  &:active { transform: translateY(2px); }
+}
+
+.btn-next-level {
+  color: #fff;
+  background: var(--purple);
+  box-shadow: 0 6px 20px rgba(168, 85, 247, 0.45);
 }
 
 .btn-menu {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
-  width: 100%;
-  padding: 14px;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 800;
-  background: rgba(255,255,255,0.12);
-  backdrop-filter: blur(6px);
   color: #fff;
-  border: 1.5px solid rgba(255,255,255,0.25);
-  border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.1s;
-
-  &:active { transform: translateY(2px); }
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  margin-top: 12px;
 }
 
 /* ══════════════════════════════════════
@@ -436,6 +422,7 @@
   width: 100%;
 }
 
+/* ── Solve / Hint share same base as all other buttons ── */
 .control-btn {
   display: flex;
   flex-direction: row;
@@ -445,13 +432,13 @@
   font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 900;
-  padding: 16px 12px;
+  padding: 14px 20px;
   border-radius: 16px;
   border: none;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.1s, box-shadow 0.1s;
+  transition: transform 0.12s, box-shadow 0.12s;
 
   svg { flex-shrink: 0; width: 22px; height: 22px; }
 
@@ -466,35 +453,19 @@
 .solve-btn {
   background: #1D4ED8;
   color: #fff;
-  box-shadow: 0 5px 16px rgba(29, 78, 216, 0.45);
+  box-shadow: 0 6px 20px rgba(29, 78, 216, 0.45);
 
-  &:disabled {
-    background: rgba(255,255,255,0.08);
-    box-shadow: none;
-    color: rgba(255,255,255,0.3);
-  }
-
-  &.cooling {
-    opacity: 0.5;
-    pointer-events: none;
-  }
+  &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
+  &.cooling  { opacity: 0.5; pointer-events: none; }
 }
 
 .hint-btn {
   background: #C2410C;
   color: #fff;
-  box-shadow: 0 5px 16px rgba(194, 65, 12, 0.45);
+  box-shadow: 0 6px 20px rgba(194, 65, 12, 0.45);
 
-  &:disabled {
-    background: rgba(255,255,255,0.08);
-    box-shadow: none;
-    color: rgba(255,255,255,0.3);
-  }
-
-  &.cooling {
-    opacity: 0.5;
-    pointer-events: none;
-  }
+  &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
+  &.cooling  { opacity: 0.5; pointer-events: none; }
 }
 
 .swap-counter.swap-warning .swap-count { color: #FCD34D; }
