@@ -2,14 +2,16 @@
   display: inline-block;
   line-height: 0;
   border-radius: 16px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55), 0 0 0 1.5px rgba(255,255,255,0.08);
+  /* Deep shadow + subtle border: feels like a physical game board */
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.65),
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 0 1.5px rgba(255,255,255,0.1);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
+  * { -webkit-tap-highlight-color: transparent; }
 }
 
 .wordle7-board-svg {
@@ -28,7 +30,8 @@
    Cell styles — Wordle colors
    ══════════════════════════════════════ */
 .letter-cell {
-  cursor: pointer;
+  /* No cursor pointer in a native game */
+  cursor: default;
   transition: fill 0.3s ease;
 }
 
@@ -45,7 +48,7 @@
 }
 
 .cell-locked {
-  cursor: default;
+  /* locked = correct position, no interaction */
 }
 
 .cell-won {
@@ -61,7 +64,6 @@
   font-weight: 900;
   /* font-size set dynamically via [attr.font-size] in template */
   fill: #FFFFFF;
-  cursor: pointer;
   user-select: none;
   pointer-events: none;
   transition: fill 0.3s ease;

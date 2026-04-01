@@ -1,19 +1,76 @@
 /* ========================================
    Fjalekryq – Global Design System
-   Inkwell-inspired aesthetic
+   Native mobile-game aesthetic
    ======================================== */
 
+/* ── Reset ── */
 *, *::before, *::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-// Prevent double-tap zoom on all interactive elements (mobile)
+/* ── Native-app global overrides ── */
+*,
+*::before,
+*::after {
+  /* No text selection — apps don't let you highlight text */
+  user-select: none;
+  -webkit-user-select: none;
+  /* No iOS long-press callout (Save Image, Copy Link, etc.) */
+  -webkit-touch-callout: none;
+  /* No tap highlight flash */
+  -webkit-tap-highlight-color: transparent;
+  /* Use default arrow cursor everywhere (games have no pointer cursor) */
+  cursor: default;
+  /* No drag ghosts on images / links */
+  -webkit-user-drag: none;
+}
+
+/* Allow text selection and custom cursor only inside real input fields */
+input, textarea, [contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+  cursor: text;
+}
+
+/* No browser focus rings — we use our own visual feedback */
+*:focus,
+*:focus-visible {
+  outline: none;
+}
+
+/* Touch events fire instantly on buttons/links — no double-tap zoom */
 button, a, [role="button"] {
   touch-action: manipulation;
 }
 
+/* Hide all scrollbars globally */
+* { scrollbar-width: none; }
+*::-webkit-scrollbar { display: none; }
+
+/* ── HTML / Body ── */
+html {
+  /* Kill rubber-band / overscroll bounce — native apps don't bounce */
+  overscroll-behavior: none;
+  height: 100%;
+  /* No smooth-scroll — native games use immediate or spring animations */
+}
+
+body {
+  font-family: var(--font-body);
+  background: #07152F;   /* dark navy — never show a white flash */
+  color: var(--black);
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  /* iOS momentum scrolling for any sub-elements that DO scroll */
+  -webkit-overflow-scrolling: touch;
+  line-height: 1.6;
+}
+
+/* ── CSS Custom Properties ── */
 :root {
   --cream: #FFF8F0;
   --cream-dark: #F5EDE3;
@@ -40,64 +97,52 @@ button, a, [role="button"] {
   --radius-lg: 16px;
   --font-display: 'Nunito', sans-serif;
   --font-body: 'Quicksand', sans-serif;
+
+  /* Safe-area insets — automatically populated by the browser on notched devices */
+  --sat: env(safe-area-inset-top, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: var(--font-body);
-  background-color: var(--cream);
-  color: var(--black);
-  min-height: 100vh;
-  line-height: 1.6;
-}
-
-// --- Shared button styles ---
+/* ── Button base (used in modals / overlays) ── */
 .btn {
   font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
-  color: var(--black);
-  background: var(--white);
-  border: var(--border);
-  border-radius: 10px;
-  padding: 10px 24px;
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  text-decoration: none;
+  color: var(--white);
+  background: var(--purple);
+  border: none;
+  border-radius: var(--radius);
+  padding: 12px 28px;
+  box-shadow: 0 4px 16px rgba(168,85,247,0.4);
+  touch-action: manipulation;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.1s, box-shadow 0.1s;
 
-  &:hover {
-    transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0px var(--black);
+  &:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 6px rgba(168,85,247,0.3);
   }
 
-  &--primary {
-    background: var(--yellow-light);
-  }
-
-  &--danger {
-    background: var(--coral-light);
-  }
+  &--primary { background: var(--purple); }
+  &--danger  { background: var(--coral);  box-shadow: 0 4px 16px rgba(225,29,72,0.4); }
 }
 
-// --- Modal ---
+/* ── Modal ── */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(0,0,0,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 200;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s;
+  transition: opacity 0.2s;
 
   &.active {
     opacity: 1;
@@ -106,25 +151,26 @@ body {
 }
 
 .modal {
-  background: var(--white);
-  border: var(--border);
-  border-radius: var(--radius-lg);
-  padding: 40px 36px;
-  box-shadow: 8px 8px 0px var(--black);
+  background: #0F2251;
+  border: 1.5px solid rgba(255,255,255,0.14);
+  border-radius: 20px;
+  padding: 36px 28px 28px;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
   text-align: center;
   max-width: 400px;
   width: 90%;
 
   h2 {
     font-family: var(--font-display);
-    font-size: 1.6rem;
+    font-size: 1.5rem;
     font-weight: 900;
     margin-bottom: 12px;
+    color: #fff;
   }
 
   p {
-    font-size: 1rem;
-    color: #555;
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.65);
     margin-bottom: 24px;
     font-weight: 500;
   }

@@ -4,12 +4,33 @@
   <meta charset="utf-8">
   <title>Fjalekryq</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+  <!-- Viewport: cover notch/home-bar areas like a native app -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, viewport-fit=cover">
+
+  <!-- PWA / Add-to-Home-Screen -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Fjalëkryq">
+  <meta name="theme-color" content="#07152F">
+  <meta name="msapplication-navbutton-color" content="#07152F">
+
   <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="apple-touch-icon" href="logo.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+
   <style>
+    /* Critical path: paint the game background before JS loads */
+    html, body {
+      margin: 0; padding: 0;
+      background: #07152F;
+      overscroll-behavior: none;
+      overflow: hidden;
+    }
     .app-loading {
       position: fixed;
       inset: 0;
@@ -33,6 +54,7 @@
       border: 2px solid rgba(255,255,255,0.18);
       box-shadow: 0 6px 18px rgba(0,0,0,0.35);
       animation: spFloat 2.2s ease-in-out infinite;
+      user-select: none;
     }
     .sp.g { background: #22C55E; }
     .sp.y { background: #F4B400; }

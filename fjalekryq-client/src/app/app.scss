@@ -1,16 +1,52 @@
+/* ── Root host: fill the full viewport ── */
 :host {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100%;         /* fills the fixed 100%-height body */
+  min-height: 100dvh;
+  overscroll-behavior: none;
 }
 
 .page-content {
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
-/* ── Splash Screen ── */
+/* ══════════════════════════════════════
+   Landscape rotation blocker
+   ══════════════════════════════════════ */
+.landscape-block {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background:
+    radial-gradient(ellipse 70% 42% at 50% 54%, rgba(255,186,39,0.18) 0%, transparent 72%),
+    linear-gradient(180deg, #0C1F4A 0%, #123B86 48%, #07152F 100%);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.landscape-msg {
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.8);
+  letter-spacing: 0.5px;
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .landscape-block { display: flex; }
+}
+
+/* ══════════════════════════════════════
+   Splash Screen
+   ══════════════════════════════════════ */
 .splash {
   position: fixed;
   inset: 0;
@@ -39,7 +75,6 @@
   opacity: 0.72;
   border: 2px solid rgba(255, 255, 255, 0.18);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-  user-select: none;
   animation: spFloat 2.5s ease-in-out infinite;
 
   &.sp--g { background: #22C55E; }

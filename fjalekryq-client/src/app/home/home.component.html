@@ -13,34 +13,46 @@
       }
     </div>
 
+    <!-- ── Title area ── -->
     <div class="menu-top">
       <img src="logo.png" class="logo-img" alt="Fjalëkryq">
-      <p class="menu-sub">Loja shqipe e fjalëve</p>
+      <div class="game-tag">
+        <span class="game-tag-dot"></span>
+        LOJA SHQIPE E FJALËVE
+        <span class="game-tag-dot"></span>
+      </div>
     </div>
 
+    <!-- ── CTA area ── -->
     <div class="menu-actions">
+      <!-- Play button: full-width, prominent -->
       <button class="btn-play" (click)="startGame()">
         <span class="btn-play-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
         </span>
-        <span class="btn-level">LEVEL {{ level() }}</span>
+        <span class="btn-play-label">
+          <span class="btn-play-text">LUAJ</span>
+          <span class="btn-level-badge">Niveli {{ level() }}</span>
+        </span>
       </button>
+
+      <!-- Tutorial button: secondary -->
       <button class="btn-tutorial" (click)="startTutorial()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
         </svg>
-        Tutorial
+        Si të luhet
       </button>
     </div>
 
+    <!-- ── Social icons (icon-only, native-app style) ── -->
     <div class="menu-footer">
-      <a href="https://instagram.com/fjalekryq.al" target="_blank" rel="noopener" class="social-pill">
-        <img src="icons/ui/instagram.svg" width="18" height="18" alt="Instagram">
-        Instagram
+      <a href="https://instagram.com/fjalekryq.al" target="_blank" rel="noopener" class="social-icon" aria-label="Instagram">
+        <img src="icons/ui/instagram.svg" width="20" height="20" alt="Instagram">
       </a>
-      <a href="https://tiktok.com/@fjalekryq" target="_blank" rel="noopener" class="social-pill">
-        <img src="icons/ui/tiktok.svg" width="18" height="18" alt="TikTok">
-        TikTok
+      <div class="social-divider"></div>
+      <a href="https://tiktok.com/@fjalekryq" target="_blank" rel="noopener" class="social-icon" aria-label="TikTok">
+        <img src="icons/ui/tiktok.svg" width="20" height="20" alt="TikTok">
       </a>
     </div>
 
