@@ -21,20 +21,28 @@ public class PuzzlesController : ControllerBase
         }
 
         var seed = Environment.TickCount ^ Guid.NewGuid().GetHashCode();
-        var puzzle = Wordle7Generator.GenerateRandom(seed, excluded);
+        var normalizedDifficulty = difficulty?.ToLowerInvariant() switch
+        {
+            "easy" or "medium" or "hard" or "expert" => difficulty.ToLowerInvariant(),
+            _ => "medium"
+        };
+        var puzzle = Wordle7Generator.GenerateRandom(seed, excluded, normalizedDifficulty);
         var hash = Wordle7Generator.ComputePuzzleHash(puzzle.Solution);
 
-        // Swap limit multiplier based on difficulty
-        var letterCount = puzzle.Solution.Sum(row => row.Count(c => c != "X"));
-        double multiplier = difficulty switch
+        // Swap limit = sum of all word lengths * multiplier (+ extra moves per tier)
+        // Easy:   ceil(totalLetters * 1.6)
+        // Medium: ceil(totalLetters * 1.5) + 5
+        // Hard:   ceil(totalLetters * 1.4) + 10
+        // Expert: ceil(totalLetters * 1.2) + 15
+        var totalWordLetters = puzzle.Words.Sum(w => w.Word.Length);
+        var swapLimit = normalizedDifficulty switch
         {
-            "easy"    => 2.0,
-            "medium"  => 1.5,
-            "hard"    => 1.1,
-            "extreme" => 0.85,
-            _         => 1.5,
+            "easy"   => (int)Math.Ceiling(totalWordLetters * 1.6),
+            "medium" => (int)Math.Ceiling(totalWordLetters * 1.5) + 5,
+            "hard"   => (int)Math.Ceiling(totalWordLetters * 1.4) + 10,
+            "expert" => (int)Math.Ceiling(totalWordLetters * 1.2) + 15,
+            _        => (int)Math.Ceiling(totalWordLetters * 1.5) + 5,
         };
-        var swapLimit = (int)Math.Ceiling(letterCount * multiplier);
 
         return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash, SwapLimit = swapLimit });
     }

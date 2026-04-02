@@ -127,9 +127,10 @@ WORDS_7 = ["ANIMOVA", "ANKORUA", "ARKEBUZ", "ARKIVAT", "ARTIKUJ", "BAKËROS", "B
             "SHKOLLË", "SHPIFJA", "SHPRESA", "SHTALKË", "SHTERËT", "SHTËPIA", "SHYTIMI", "VASALJA",
             "VENDUAM", "VERBËTE", "VIJOSNI", "XËGITIN"]
 
-ALL_WORDS_SMALL = WORDS_3 + WORDS_4 + WORDS_5 + WORDS_6[:30]  # For 7x7
-ALL_WORDS_MEDIUM = WORDS_3 + WORDS_4 + WORDS_5 + WORDS_6  # For 8x8
-ALL_WORDS_LARGE = WORDS_3 + WORDS_4 + WORDS_5 + WORDS_6 + WORDS_7  # For 9x9, 10x10
+ALL_WORDS_EASY   = WORDS_3 + WORDS_4 + WORDS_5 + WORDS_6        # Easy  3-6 letters
+ALL_WORDS_MEDIUM = WORDS_5 + WORDS_6 + WORDS_7                   # Medium 5-7 letters
+ALL_WORDS_HARD   = WORDS_6 + WORDS_7                             # Hard  6-7 letters (extend with 8-10 when available)
+ALL_WORDS_EXPERT = WORDS_7                                        # Expert 7+ letters (extend with 8-13 when available)
 
 
 def make_grid(size):
@@ -348,30 +349,60 @@ def format_puzzle(grid, placed, size):
         words.append({"word": word, "row": row, "col": col, "direction": direction})
     return grid, words
 
+import math
+
+def compute_swap_limit(words, difficulty):
+    """Compute swap limit based on sum of all word lengths and difficulty tier."""
+    total = sum(len(w["word"]) for w in words)
+    if difficulty == "easy":
+        return math.ceil(total * 1.6)
+    elif difficulty == "medium":
+        return math.ceil(total * 1.5) + 5
+    elif difficulty == "hard":
+        return math.ceil(total * 1.4) + 10
+    elif difficulty == "expert":
+        return math.ceil(total * 1.2) + 15
+    return math.ceil(total * 1.5) + 5
+
 # =============================================
-# Generate all 7 puzzles with scaling grid sizes
-# Target: MANY words for engaging gameplay
+# Generate puzzles by difficulty tier
+# Easy:   5x5/6x6/7x7, min words 5-7, word lengths 3-6
+# Medium: 7x7/8x8/9x9, min words 7-9, word lengths 5-8
+# Hard:   9x9/10x10/11x11, min words 10-13, word lengths 7-10
+# Expert: 10x10/11x11/12x12/13x13, min words 12+, word lengths 10+
 # =============================================
-DAY_CONFIGS = [
-    {"name": "Day 0 (Monday - 7x7)",    "size": 7,  "min_words": 8,  "min_letters": 20, "attempts": 800, "pool": "small"},
-    {"name": "Day 1 (Tuesday - 7x7)",   "size": 7,  "min_words": 9,  "min_letters": 22, "attempts": 800, "pool": "small"},
-    {"name": "Day 2 (Wednesday - 8x8)", "size": 8,  "min_words": 10, "min_letters": 28, "attempts": 1000, "pool": "medium"},
-    {"name": "Day 3 (Thursday - 8x8)",  "size": 8,  "min_words": 11, "min_letters": 30, "attempts": 1000, "pool": "medium"},
-    {"name": "Day 4 (Friday - 9x9)",    "size": 9,  "min_words": 13, "min_letters": 35, "attempts": 1200, "pool": "large"},
-    {"name": "Day 5 (Saturday - 9x9)",  "size": 9,  "min_words": 14, "min_letters": 38, "attempts": 1200, "pool": "large"},
-    {"name": "Day 6 (Sunday - 10x10)",  "size": 10, "min_words": 16, "min_letters": 45, "attempts": 1500, "pool": "large"},
+DIFFICULTY_CONFIGS = [
+    {"name": "Easy (5x5)",    "difficulty": "easy",   "size": 5,  "min_words": 5,  "min_letters": 12, "attempts": 600,  "pool": "easy"},
+    {"name": "Easy (6x6)",    "difficulty": "easy",   "size": 6,  "min_words": 6,  "min_letters": 15, "attempts": 700,  "pool": "easy"},
+    {"name": "Easy (7x7)",    "difficulty": "easy",   "size": 7,  "min_words": 7,  "min_letters": 18, "attempts": 800,  "pool": "easy"},
+    {"name": "Medium (7x7)",  "difficulty": "medium", "size": 7,  "min_words": 7,  "min_letters": 20, "attempts": 800,  "pool": "medium"},
+    {"name": "Medium (8x8)",  "difficulty": "medium", "size": 8,  "min_words": 8,  "min_letters": 25, "attempts": 1000, "pool": "medium"},
+    {"name": "Medium (9x9)",  "difficulty": "medium", "size": 9,  "min_words": 9,  "min_letters": 30, "attempts": 1200, "pool": "medium"},
+    {"name": "Hard (9x9)",    "difficulty": "hard",   "size": 9,  "min_words": 10, "min_letters": 32, "attempts": 1200, "pool": "hard"},
+    {"name": "Hard (10x10)",  "difficulty": "hard",   "size": 10, "min_words": 11, "min_letters": 38, "attempts": 1500, "pool": "hard"},
+    {"name": "Hard (11x11)",  "difficulty": "hard",   "size": 11, "min_words": 13, "min_letters": 45, "attempts": 1500, "pool": "hard"},
+    {"name": "Expert (10x10)","difficulty": "expert", "size": 10, "min_words": 12, "min_letters": 40, "attempts": 1500, "pool": "expert"},
+    {"name": "Expert (11x11)","difficulty": "expert", "size": 11, "min_words": 12, "min_letters": 45, "attempts": 1500, "pool": "expert"},
+    {"name": "Expert (12x12)","difficulty": "expert", "size": 12, "min_words": 12, "min_letters": 50, "attempts": 2000, "pool": "expert"},
+    {"name": "Expert (13x13)","difficulty": "expert", "size": 13, "min_words": 12, "min_letters": 55, "attempts": 2000, "pool": "expert"},
 ]
 
 POOL_MAP = {
-    "small": ALL_WORDS_SMALL,
+    "easy":   ALL_WORDS_EASY,
     "medium": ALL_WORDS_MEDIUM,
-    "large": ALL_WORDS_LARGE,
+    "hard":   ALL_WORDS_HARD,
+    "expert": ALL_WORDS_EXPERT,
 }
+
+import sys
+# Accept optional difficulty argument: python auto_crossword.py easy
+target_difficulty = sys.argv[1] if len(sys.argv) > 1 else None
+configs_to_run = [c for c in DIFFICULTY_CONFIGS if target_difficulty is None or c["difficulty"] == target_difficulty]
 
 random.seed(99)
 
 all_puzzles = []
-for i, cfg in enumerate(DAY_CONFIGS):
+for i, cfg in enumerate(configs_to_run):
     print(f"\n{'='*55}")
     print(f"  Generating {cfg['name']}...")
     print(f"{'='*55}")
@@ -384,7 +415,8 @@ for i, cfg in enumerate(DAY_CONFIGS):
         grid, placed = result
         grid, words = format_puzzle(grid, placed, size)
         n_letters = count_letters(grid)
-        print(f"  ✓ {len(words)} words, {n_letters} letters (grid {size}x{size})")
+        swap_limit = compute_swap_limit(words, cfg["difficulty"])
+        print(f"  ✓ {len(words)} words, {n_letters} letters (grid {size}x{size}), swapLimit={swap_limit}")
         show(grid)
         print(f"  Words: {[w['word'] for w in words]}")
 
@@ -401,56 +433,27 @@ for i, cfg in enumerate(DAY_CONFIGS):
         else:
             print(f"  ✗ NOT connected")
 
-        all_puzzles.append((f"Day {i}", grid, words, size))
+        all_puzzles.append((cfg["name"], grid, words, size, swap_limit))
     else:
         print(f"  ✗ Failed! Trying with lower requirements...")
-        result = generate_puzzle(pool, size, max(3, cfg["min_words"]-3), max(12, cfg["min_letters"]-10), cfg["attempts"]*2)
+        result = generate_puzzle(pool, size, max(3, cfg["min_words"]-3), max(10, cfg["min_letters"]-8), cfg["attempts"]*2)
         if result:
             grid, placed = result
             grid, words = format_puzzle(grid, placed, size)
-            print(f"  ✓ (reduced) {len(words)} words, {count_letters(grid)} letters")
+            swap_limit = compute_swap_limit(words, cfg["difficulty"])
+            print(f"  ✓ (reduced) {len(words)} words, {count_letters(grid)} letters, swapLimit={swap_limit}")
             show(grid)
             print(f"  Words: {[w['word'] for w in words]}")
-            all_puzzles.append((f"Day {i}", grid, words, size))
+            all_puzzles.append((cfg["name"], grid, words, size, swap_limit))
         else:
-            print(f"  ✗✗ Complete failure")
+            print(f"  ✗✗ Complete failure for {cfg['name']}")
 
 # =============================================
-# Output C# format
+# Output summary
 # =============================================
-if len(all_puzzles) == 7:
-    print(f"\n\n{'='*55}")
-    print(f"  C# OUTPUT")
-    print(f"{'='*55}\n")
-    for i, (label, grid, words, size) in enumerate(all_puzzles):
-        wl = [w["word"] for w in words]
-        print(f"// {label} ({size}x{size}): {', '.join(wl)}")
-        print(f"new()")
-        print(f"{{")
-        print(f"    GridSize = {size},")
-        print(f"    Solution = [")
-        for row in grid:
-            print(f"        [{', '.join(f'\"' + c + '\"' for c in row)}],")
-        print(f"    ],")
-        print(f"    Words = [")
-        for w in words:
-            print(f'        new() {{ Word = "{w["word"]}", Row = {w["row"]}, Col = {w["col"]}, Direction = "{w["direction"]}" }},')
-        print(f"    ]")
-        print(f"}},")
-
-    # Also output for quick_validate.py
-    print(f"\n\n{'='*55}")
-    print(f"  VALIDATION SCRIPT OUTPUT")
-    print(f"{'='*55}\n")
-    for i, (label, grid, words, size) in enumerate(all_puzzles):
-        wl = [w["word"] for w in words]
-        print(f"# Day {i} ({size}x{size}): {', '.join(wl)}")
-        grid_str = str(grid).replace("'", '"')
-        print(f"g={grid_str}")
-        w_tuples = [(w["word"], w["row"], w["col"], w["direction"][0].upper()) for w in words]
-        w_str = str(w_tuples).replace("'", '"')
-        print(f"w={w_str}")
-        print(f"total+=1; passed += check(\"{label}\", g, w, {size})")
-        print()
-else:
-    print(f"\n  Only generated {len(all_puzzles)}/7 puzzles. Need manual fixes.")
+print(f"\n\n{'='*55}")
+print(f"  GENERATED {len(all_puzzles)}/{len(configs_to_run)} PUZZLES")
+print(f"{'='*55}\n")
+for label, grid, words, size, swap_limit in all_puzzles:
+    wl = [w["word"] for w in words]
+    print(f"  {label} ({size}x{size}): {', '.join(wl)} | swapLimit={swap_limit}")
