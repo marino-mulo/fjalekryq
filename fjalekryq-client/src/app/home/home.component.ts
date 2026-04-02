@@ -1,5 +1,6 @@
 import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
+import { LevelMapComponent } from '../level-map/level-map.component';
 
 const LEVEL_KEY = 'fjalekryq_level';
 
@@ -19,14 +20,15 @@ interface BgTile {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [Wordle7Component],
+  imports: [Wordle7Component, LevelMapComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
-  showGame = signal(false);
-  level = signal(1);
-  bgTiles = signal<BgTile[]>([]);
+  showGame     = signal(false);
+  showLevelMap = signal(false);
+  level        = signal(1);
+  bgTiles      = signal<BgTile[]>([]);
 
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -41,19 +43,36 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (this.bgSwapTimer) clearInterval(this.bgSwapTimer);
   }
 
+  /** Play button → show level map */
   startGame(): void {
-    this.showGame.set(true);
+    this.showLevelMap.set(true);
   }
 
+  /** Tutorial button → skip level map, go straight to game with tutorial flag */
   startTutorial(): void {
     localStorage.setItem('fjalekryq_force_tutorial', 'true');
     this.showGame.set(true);
   }
 
+  /** From level map: user picked a specific level */
+  startFromLevel(level: number): void {
+    this.level.set(level);
+    this.showGame.set(true);
+  }
+
+  /** Back from level map → home screen */
+  backToHome(): void {
+    this.showLevelMap.set(false);
+    const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
+  }
+
+  /** Back from game → level map */
   backToMenu(): void {
     const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
     this.showGame.set(false);
+    this.showLevelMap.set(true);
   }
 
   private createBgTiles(): BgTile[] {

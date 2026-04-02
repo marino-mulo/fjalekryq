@@ -1,0 +1,121 @@
+<div class="map-root">
+
+  <!-- ── Decorative background tiles ── -->
+  <div class="deco-tiles" aria-hidden="true">
+    <div class="dt dt--gold" style="left:5%;top:8%;animation-delay:0.3s">F</div>
+    <div class="dt dt--grey" style="left:86%;top:12%;animation-delay:1.1s">J</div>
+    <div class="dt dt--lime" style="left:4%;top:42%;animation-delay:2.0s">L</div>
+    <div class="dt dt--gold" style="left:88%;top:48%;animation-delay:0.7s">A</div>
+    <div class="dt dt--grey" style="left:7%;top:74%;animation-delay:1.6s">E</div>
+    <div class="dt dt--lime" style="left:84%;top:80%;animation-delay:0.9s">K</div>
+  </div>
+
+  <!-- ── Header ── -->
+  <header class="map-header">
+    <button class="map-back-btn" (click)="back.emit()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+
+    <h1 class="map-title">HARTA E LOJËS</h1>
+
+    <div class="map-stars-badge">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="#F4B400">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      <span>{{ completedCount() }}/10</span>
+    </div>
+  </header>
+
+  <!-- ── Map body ── -->
+  <div class="map-body">
+
+    <!-- Difficulty zone labels (faint, on the left edge) -->
+    <div class="zone-label" style="top:85%">LEHTË</div>
+    <div class="zone-label" style="top:57%">MESATARE</div>
+    <div class="zone-label" style="top:29%">VËSHTIRË</div>
+    <div class="zone-label" style="top:4%">EKSPERT</div>
+
+    <!-- ── SVG path overlay ── -->
+    <svg class="map-svg"
+         viewBox="0 0 100 100"
+         preserveAspectRatio="none"
+         xmlns="http://www.w3.org/2000/svg">
+
+      <!-- Base dashed path (always visible, full extent) -->
+      @for (seg of segments; track seg.from.level) {
+        <line class="seg seg-base"
+              [attr.x1]="seg.from.x" [attr.y1]="seg.from.y"
+              [attr.x2]="seg.to.x"   [attr.y2]="seg.to.y"/>
+      }
+
+      <!-- Colored overlay per segment state -->
+      @for (seg of segments; track seg.from.level) {
+        <line [class]="'seg ' + segClass(seg.from.level, seg.to.level)"
+              [attr.x1]="seg.from.x" [attr.y1]="seg.from.y"
+              [attr.x2]="seg.to.x"   [attr.y2]="seg.to.y"/>
+      }
+    </svg>
+
+    <!-- ── Level nodes ── -->
+    @for (node of nodes; track node.level) {
+      @let state = getState(node.level);
+
+      <div class="node-wrap"
+           [style.left.%]="node.x"
+           [style.top.%]="node.y">
+
+        <!-- Node button -->
+        <button
+          class="level-node"
+          [class.node-completed]="state === 'completed'"
+          [class.node-current]="state === 'current'"
+          [class.node-locked]="state === 'locked'"
+          [class.node-boss]="node.isBoss"
+          [disabled]="state === 'locked'"
+          (click)="selectLevel(node.level)">
+
+          @if (node.isBoss) {
+            <span class="boss-crown">👑</span>
+          }
+
+          @if (state === 'completed') {
+            <svg class="node-check" width="26" height="26" viewBox="0 0 24 24"
+                 fill="none" stroke="#fff" stroke-width="3.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          } @else if (state === 'locked') {
+            <svg class="node-lock" width="20" height="20" viewBox="0 0 24 24"
+                 fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+          } @else {
+            <span class="node-num">{{ node.level }}</span>
+          }
+
+          <!-- Glow ring for current level -->
+          @if (state === 'current') {
+            <div class="current-glow"></div>
+          }
+        </button>
+
+        <!-- Badge: difficulty label -->
+        <div class="node-badge badge-{{ badgeSide(node.x) }} diff-{{ node.difficulty }}"
+             [class.badge-hidden]="state === 'locked'">
+          {{ diffLabel(node.difficulty) }}
+        </div>
+
+        <!-- Special labels -->
+        @if (node.level === 1) {
+          <div class="node-special-label start-label">FILLO</div>
+        }
+      </div>
+    }
+
+  </div><!-- /map-body -->
+</div>

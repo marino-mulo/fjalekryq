@@ -1,0 +1,372 @@
+/* ══════════════════════════════════════
+   Level Map — full-screen native game map
+   ══════════════════════════════════════ */
+
+/* ── Root container ── */
+.map-root {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 50%, rgba(255,186,39,0.15) 0%, transparent 68%),
+    linear-gradient(180deg, #0C1F4A 0%, #123B86 48%, #07152F 100%);
+}
+
+/* ══════════════════════════════════════
+   Decorative floating tiles
+   ══════════════════════════════════════ */
+.deco-tiles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dt {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 18px;
+  color: #fff;
+  opacity: 0.45;
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  animation: dtFloat 4.5s ease-in-out infinite;
+
+  &.dt--gold { background: #F4B400; }
+  &.dt--lime { background: #22C55E; }
+  &.dt--grey { background: #787c7e; }
+}
+
+@keyframes dtFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-9px); }
+}
+
+/* ══════════════════════════════════════
+   Header
+   ══════════════════════════════════════ */
+.map-header {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 14px)
+    16px
+    12px;
+  flex-shrink: 0;
+}
+
+.map-back-btn {
+  position: absolute;
+  left: 16px;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  color: #fff;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  }
+}
+
+.map-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 0;
+}
+
+.map-stars-badge {
+  position: absolute;
+  right: 16px;
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 0 12px;
+  backdrop-filter: blur(6px);
+
+  span {
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 900;
+    color: #F4B400;
+  }
+}
+
+/* ══════════════════════════════════════
+   Map body — the scrollable level field
+   ══════════════════════════════════════ */
+.map-body {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* ── Difficulty zone labels (faint, left edge) ── */
+.zone-label {
+  position: absolute;
+  left: 2px;
+  transform: translateY(-50%);
+  font-family: var(--font-display);
+  font-size: 0.5rem;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  color: rgba(255, 255, 255, 0.15);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── SVG path overlay ── */
+.map-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+/* Base dashed path (full extent, all nodes) */
+.seg-base {
+  stroke: rgba(255, 255, 255, 0.1);
+  stroke-width: 2;
+  stroke-dasharray: 4 5;
+  fill: none;
+}
+
+/* Completed segment */
+.seg-done {
+  stroke: #F4B400;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0.9;
+}
+
+/* Active segment (leading to current level) */
+.seg-active {
+  stroke: #F4B400;
+  stroke-width: 3;
+  fill: none;
+  opacity: 0.7;
+  stroke-dasharray: 5 4;
+  animation: pathPulse 1.4s ease-in-out infinite;
+}
+
+/* Locked segment */
+.seg-locked {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 2;
+  stroke-dasharray: 3 6;
+  fill: none;
+}
+
+@keyframes pathPulse {
+  0%, 100% { opacity: 0.45; }
+  50%       { opacity: 0.9; }
+}
+
+/* ══════════════════════════════════════
+   Node wrapper — positions the entire node + badge
+   ══════════════════════════════════════ */
+.node-wrap {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+}
+
+/* ══════════════════════════════════════
+   Level node button
+   ══════════════════════════════════════ */
+.level-node {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+  flex-shrink: 0;
+
+  &:active:not(:disabled) {
+    transform: scale(0.9);
+  }
+}
+
+/* Boss level: slightly larger */
+.node-boss {
+  width: 74px;
+  height: 74px;
+}
+
+/* ── Completed state: gold ── */
+.node-completed {
+  background: radial-gradient(circle at 35% 30%, #FFD43B, #F4B400);
+  box-shadow:
+    0 6px 20px rgba(244, 180, 0, 0.55),
+    0 2px 0 rgba(0,0,0,0.2) inset,
+    0 -2px 0 rgba(255,255,255,0.18) inset;
+}
+
+/* ── Current state: vivid purple with pulse ── */
+.node-current {
+  background: radial-gradient(circle at 35% 30%, #C084FC, #A855F7);
+  box-shadow:
+    0 6px 24px rgba(168, 85, 247, 0.65),
+    0 2px 0 rgba(0,0,0,0.2) inset,
+    0 -2px 0 rgba(255,255,255,0.2) inset;
+  animation: nodeBounce 1.8s ease-in-out infinite;
+}
+
+/* ── Locked state: dark, dim ── */
+.node-locked {
+  background: #0F2251;
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.4),
+    0 0 0 2px rgba(255,255,255,0.06);
+  opacity: 0.55;
+}
+
+@keyframes nodeBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-5px) scale(1.06); }
+}
+
+/* ── Glow ring around current node ── */
+.current-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 186, 39, 0.55);
+  animation: glowRing 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes glowRing {
+  0%, 100% { opacity: 0.9; transform: scale(1); }
+  50%       { opacity: 0.25; transform: scale(1.18); }
+}
+
+/* ── Node number (current/locked) ── */
+.node-num {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+/* ── Boss crown (emoji, floats above) ── */
+.boss-crown {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 22px;
+  line-height: 1;
+  animation: crownFloat 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes crownFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0) rotate(-8deg); }
+  50%       { transform: translateX(-50%) translateY(-6px) rotate(8deg); }
+}
+
+/* ══════════════════════════════════════
+   Difficulty badge
+   ══════════════════════════════════════ */
+.node-badge {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  border-radius: 50px;
+  white-space: nowrap;
+  pointer-events: none;
+
+  &.badge-hidden { opacity: 0; }
+
+  /* Positioned to the right of left-column nodes */
+  &.badge-right {
+    left: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* Positioned to the left of right-column nodes */
+  &.badge-left {
+    right: calc(100% + 8px);
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: right;
+  }
+
+  /* Below center nodes */
+  &.badge-below {
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Difficulty colors */
+  &.diff-easy   { background: rgba(34, 197, 94, 0.2);  color: #4ADE80; border: 1px solid rgba(34,197,94,0.4); }
+  &.diff-medium { background: rgba(234, 179, 8, 0.2);  color: #FCD34D; border: 1px solid rgba(234,179,8,0.4); }
+  &.diff-hard   { background: rgba(239, 68, 68, 0.2);  color: #FCA5A5; border: 1px solid rgba(239,68,68,0.4); }
+  &.diff-expert { background: rgba(168, 85, 247, 0.25); color: #E879F9; border: 1px solid rgba(168,85,247,0.45); }
+}
+
+/* ── Special "FILLO" label under level 1 ── */
+.node-special-label {
+  position: absolute;
+  font-family: var(--font-display);
+  font-size: 0.55rem;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  color: rgba(255,255,255,0.4);
+  pointer-events: none;
+}
+
+.start-label {
+  bottom: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
