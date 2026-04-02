@@ -351,18 +351,28 @@ def format_puzzle(grid, placed, size):
 
 import math
 
-def compute_swap_limit(words, difficulty):
-    """Compute swap limit based on sum of all word lengths and difficulty tier."""
-    total = sum(len(w["word"]) for w in words)
+def compute_swap_limit(grid, size, difficulty):
+    """Compute swap limit based on filled cells and difficulty tier.
+
+    Theoretical minimum swaps to solve a random shuffle of L cells ≈ L × 0.632
+    (permutation-cycle theory).  We use 0.65 (just above that) then add a
+    per-difficulty buffer so average players are nudged to use the Solve-Word hint.
+
+    Easy:   ceil(filled × 0.65) + 10  ← most forgiving
+    Medium: ceil(filled × 0.65) + 8
+    Hard:   ceil(filled × 0.65) + 6
+    Expert: ceil(filled × 0.65) + 4   ← very tight
+    """
+    filled = sum(1 for r in grid for c in r if c != "X")
     if difficulty == "easy":
-        return math.ceil(total * 1.6)
+        return math.ceil(filled * 0.65) + 10
     elif difficulty == "medium":
-        return math.ceil(total * 1.5) + 5
+        return math.ceil(filled * 0.65) + 8
     elif difficulty == "hard":
-        return math.ceil(total * 1.4) + 10
+        return math.ceil(filled * 0.65) + 6
     elif difficulty == "expert":
-        return math.ceil(total * 1.2) + 15
-    return math.ceil(total * 1.5) + 5
+        return math.ceil(filled * 0.65) + 4
+    return math.ceil(filled * 0.65) + 8
 
 # =============================================
 # Generate puzzles by difficulty tier
@@ -415,7 +425,7 @@ for i, cfg in enumerate(configs_to_run):
         grid, placed = result
         grid, words = format_puzzle(grid, placed, size)
         n_letters = count_letters(grid)
-        swap_limit = compute_swap_limit(words, cfg["difficulty"])
+        swap_limit = compute_swap_limit(grid, size, cfg["difficulty"])
         print(f"  ✓ {len(words)} words, {n_letters} letters (grid {size}x{size}), swapLimit={swap_limit}")
         show(grid)
         print(f"  Words: {[w['word'] for w in words]}")
@@ -440,7 +450,7 @@ for i, cfg in enumerate(configs_to_run):
         if result:
             grid, placed = result
             grid, words = format_puzzle(grid, placed, size)
-            swap_limit = compute_swap_limit(words, cfg["difficulty"])
+            swap_limit = compute_swap_limit(grid, size, cfg["difficulty"])
             print(f"  ✓ (reduced) {len(words)} words, {count_letters(grid)} letters, swapLimit={swap_limit}")
             show(grid)
             print(f"  Words: {[w['word'] for w in words]}")

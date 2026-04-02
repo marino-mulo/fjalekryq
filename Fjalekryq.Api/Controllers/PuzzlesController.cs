@@ -29,19 +29,25 @@ public class PuzzlesController : ControllerBase
         var puzzle = Wordle7Generator.GenerateRandom(seed, excluded, normalizedDifficulty);
         var hash = Wordle7Generator.ComputePuzzleHash(puzzle.Solution);
 
-        // Swap limit = sum of all word lengths * multiplier (+ extra moves per tier)
-        // Easy:   ceil(totalLetters * 1.6)
-        // Medium: ceil(totalLetters * 1.5) + 5
-        // Hard:   ceil(totalLetters * 1.4) + 10
-        // Expert: ceil(totalLetters * 1.2) + 15
-        var totalWordLetters = puzzle.Words.Sum(w => w.Word.Length);
+        // Swap limit is based on FILLED CELLS (unique non-X cells in the grid).
+        // Theoretical minimum swaps to solve a random shuffle of L cells ≈ L × 0.63
+        // (permutation-cycle theory: expected min = L - H(L) ≈ L × 0.632).
+        // We use 0.65 (just above theoretical min) so a near-optimal player can
+        // just barely finish, then add a small per-difficulty buffer so average
+        // players are gently pushed toward using the Solve-Word hint.
+        //
+        // Easy:   ceil(filled × 0.65) + 10  ← most forgiving
+        // Medium: ceil(filled × 0.65) + 8
+        // Hard:   ceil(filled × 0.65) + 6
+        // Expert: ceil(filled × 0.65) + 4   ← very tight; hints almost required
+        var filledCells = puzzle.Solution.Sum(row => row.Count(c => c != "X"));
         var swapLimit = normalizedDifficulty switch
         {
-            "easy"   => (int)Math.Ceiling(totalWordLetters * 1.6),
-            "medium" => (int)Math.Ceiling(totalWordLetters * 1.5) + 5,
-            "hard"   => (int)Math.Ceiling(totalWordLetters * 1.4) + 10,
-            "expert" => (int)Math.Ceiling(totalWordLetters * 1.2) + 15,
-            _        => (int)Math.Ceiling(totalWordLetters * 1.5) + 5,
+            "easy"   => (int)Math.Ceiling(filledCells * 0.65) + 10,
+            "medium" => (int)Math.Ceiling(filledCells * 0.65) + 8,
+            "hard"   => (int)Math.Ceiling(filledCells * 0.65) + 6,
+            "expert" => (int)Math.Ceiling(filledCells * 0.65) + 4,
+            _        => (int)Math.Ceiling(filledCells * 0.65) + 8,
         };
 
         return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash, SwapLimit = swapLimit });
