@@ -109,27 +109,30 @@ public static class Wordle7Dictionary
     ];
     private static readonly HashSet<string> AllWordsSet;
 
-    // Pool variants for different grid sizes
-    private static readonly string[] SmallPool;  // For 7x7 (Mon-Tue)
-    private static readonly string[] MediumPool; // For 8x8 (Wed-Thu)
-    private static readonly string[] LargePool;  // For 9x9+ (Fri-Sun)
+    // Difficulty-based word pools (word length ranges per tier)
+    private static readonly string[] EasyPool;   // 3-6 letters  (Easy: 5x5/6x6/7x7)
+    private static readonly string[] MediumPool; // 5-8 letters  (Medium: 7x7/8x8/9x9)
+    private static readonly string[] HardPool;   // 7-10 letters (Hard: 9x9/10x10/11x11)
+    private static readonly string[] ExpertPool; // 10-13 letters (Expert: 10x10/11x11/12x12/13x13)
     private static readonly string[] FullPool;   // All words 3-13 letters
 
     static Wordle7Dictionary()
     {
-        SmallPool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7];
-        MediumPool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8];
-        LargePool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8, .. Words9];
-        FullPool = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8, .. Words9, .. Words10, .. Words11, .. Words12, .. Words13];
+        EasyPool   = [.. Words3, .. Words4, .. Words5, .. Words6];
+        MediumPool = [.. Words5, .. Words6, .. Words7, .. Words8];
+        HardPool   = [.. Words7, .. Words8, .. Words9, .. Words10];
+        ExpertPool = [.. Words10, .. Words11, .. Words12, .. Words13];
+        FullPool   = [.. Words3, .. Words4, .. Words5, .. Words6, .. Words7, .. Words8, .. Words9, .. Words10, .. Words11, .. Words12, .. Words13];
         AllWordsSet = new HashSet<string>(FullPool);
     }
 
-    public static string[] GetPool(string size) => size switch
+    public static string[] GetPool(string difficulty) => difficulty switch
     {
-        "small" => (string[])SmallPool.Clone(),
+        "easy"   => (string[])EasyPool.Clone(),
         "medium" => (string[])MediumPool.Clone(),
-        "large" => (string[])LargePool.Clone(),
-        "full" => (string[])FullPool.Clone(),
+        "hard"   => (string[])HardPool.Clone(),
+        "expert" => (string[])ExpertPool.Clone(),
+        "full"   => (string[])FullPool.Clone(),
         _ => (string[])FullPool.Clone()
     };
 
