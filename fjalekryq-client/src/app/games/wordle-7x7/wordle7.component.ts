@@ -49,7 +49,7 @@ export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 function getLevelDifficulty(level: number): string {
   if (level <= 3) return 'easy';
   if (level <= 6) return 'medium';
-  if (level <= 8) return 'hard';
+  if (level <= 9) return 'hard';
   return 'expert';
 }
 
