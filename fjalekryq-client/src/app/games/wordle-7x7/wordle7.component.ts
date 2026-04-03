@@ -46,13 +46,6 @@ const TUTORIAL_INITIAL_GRID = [
 //               5=interactive hint, 6=solve modal, 7=interactive solve, 8=done banner
 export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
-function getLevelDifficulty(level: number): string {
-  if (level <= 3) return 'easy';
-  if (level <= 6) return 'medium';
-  if (level <= 9) return 'hard';
-  return 'expert';
-}
-
 const BG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
 const BG_COLORS  = ['gold', 'lime', 'grey'] as const;
 
@@ -95,8 +88,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   // Puzzle / loading
   isLoading      = signal(false);
   loadingPercent = signal(0);
-  private lastWords: string[] = [];
-  private loadingInterval: ReturnType<typeof setInterval> | null = null;
 
   bgTiles = signal<BgTile[]>([]);
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
@@ -161,7 +152,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.game.destroy();
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
-    this.stopLoadingProgress();
     this.stopBgTiles();
   }
 
@@ -213,14 +203,11 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.isCompleted.set(false);
     this.game.destroy();
     Wordle7GameService.clearSavedState();
-    this.startLoadingProgress();
     this.startBgTiles();
 
     const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-    this.puzzleService.getRandomWordle7(this.lastWords, getLevelDifficulty(level)).subscribe(puzzle => {
-      this.lastWords = puzzle.words.map(w => w.word);
+    this.puzzleService.getWordle7Level(level).subscribe(puzzle => {
       this.loadingPercent.set(100);
-      this.stopLoadingProgress();
       this.stopBgTiles();
       setTimeout(() => {
         this.game.initPuzzle(puzzle);
@@ -265,18 +252,4 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.bgTiles.set([]);
   }
 
-  private startLoadingProgress(): void {
-    this.stopLoadingProgress();
-    this.loadingPercent.set(0);
-    let current = 0;
-    this.loadingInterval = setInterval(() => {
-      const rem = 90 - current;
-      current = Math.min(90, current + Math.max(0.5, rem * 0.08));
-      this.loadingPercent.set(Math.round(current));
-    }, 100);
-  }
-
-  private stopLoadingProgress(): void {
-    if (this.loadingInterval) { clearInterval(this.loadingInterval); this.loadingInterval = null; }
-  }
 }

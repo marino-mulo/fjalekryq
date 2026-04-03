@@ -1,10 +1,13 @@
 // using Fjalekryq.Api.Email; // TODO: Uncomment when email subscription is needed
+using Fjalekryq.Api.Games.Wordle7;
 using Fjalekryq.Api.Middleware;
 
 // ── Normal Web API ──
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+// Pre-generate all 10 level puzzles at startup — served instantly at runtime
+builder.Services.AddSingleton<LevelPuzzleStore>();
 // builder.Services.AddHostedService<DailyEmailHostedService>(); // TODO: Uncomment when email subscription is needed
 
 var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()
