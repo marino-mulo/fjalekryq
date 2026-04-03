@@ -128,21 +128,21 @@ def compute_swap_limit(grid, size, difficulty):
     """Compute correct swapLimit from filled-cell count and difficulty tier.
 
     Formula mirrors PuzzlesController.cs exactly:
-      Easy:   ceil(filled × 0.65) + 10
-      Medium: ceil(filled × 0.65) + 8
-      Hard:   ceil(filled × 0.65) + 6
-      Expert: ceil(filled × 0.65) + 4
+      Easy:   ceil(filled × 0.65) + 5
+      Medium: ceil(filled × 0.65) + 7
+      Hard:   ceil(filled × 0.65) + 10
+      Expert: ceil(filled × 0.65) + 12
     """
     filled = sum(1 for r in grid for c in r if c != "X")
     if difficulty == "easy":
-        return math.ceil(filled * 0.65) + 10
+        return math.ceil(filled * 0.65) + 5
     elif difficulty == "medium":
-        return math.ceil(filled * 0.65) + 8
+        return math.ceil(filled * 0.65) + 7
     elif difficulty == "hard":
-        return math.ceil(filled * 0.65) + 6
+        return math.ceil(filled * 0.65) + 10
     elif difficulty == "expert":
-        return math.ceil(filled * 0.65) + 4
-    return math.ceil(filled * 0.65) + 8
+        return math.ceil(filled * 0.65) + 12
+    return math.ceil(filled * 0.65) + 7
 
 def make_grid(size):
     return [["X"] * size for _ in range(size)]

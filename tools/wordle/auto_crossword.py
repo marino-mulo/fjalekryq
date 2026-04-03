@@ -358,21 +358,21 @@ def compute_swap_limit(grid, size, difficulty):
     (permutation-cycle theory).  We use 0.65 (just above that) then add a
     per-difficulty buffer so average players are nudged to use the Solve-Word hint.
 
-    Easy:   ceil(filled × 0.65) + 10  ← most forgiving
-    Medium: ceil(filled × 0.65) + 8
-    Hard:   ceil(filled × 0.65) + 6
-    Expert: ceil(filled × 0.65) + 4   ← very tight
+    Easy:   ceil(filled × 0.65) + 5   ← tightest
+    Medium: ceil(filled × 0.65) + 7
+    Hard:   ceil(filled × 0.65) + 10
+    Expert: ceil(filled × 0.65) + 12  ← most forgiving
     """
     filled = sum(1 for r in grid for c in r if c != "X")
     if difficulty == "easy":
-        return math.ceil(filled * 0.65) + 10
+        return math.ceil(filled * 0.65) + 5
     elif difficulty == "medium":
-        return math.ceil(filled * 0.65) + 8
+        return math.ceil(filled * 0.65) + 7
     elif difficulty == "hard":
-        return math.ceil(filled * 0.65) + 6
+        return math.ceil(filled * 0.65) + 10
     elif difficulty == "expert":
-        return math.ceil(filled * 0.65) + 4
-    return math.ceil(filled * 0.65) + 8
+        return math.ceil(filled * 0.65) + 12
+    return math.ceil(filled * 0.65) + 7
 
 # =============================================
 # Generate puzzles by difficulty tier

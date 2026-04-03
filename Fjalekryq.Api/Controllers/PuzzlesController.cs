@@ -37,17 +37,18 @@ public class PuzzlesController : ControllerBase
         // players are gently pushed toward using the Solve-Word hint.
         //
         // Easy:   ceil(filled × 0.65) + 10  ← most forgiving
-        // Medium: ceil(filled × 0.65) + 8
-        // Hard:   ceil(filled × 0.65) + 6
-        // Expert: ceil(filled × 0.65) + 4   ← very tight; hints almost required
+        // Easy:   ceil(filled × 0.65) + 5   ← tightest (simple grids, less slack)
+        // Medium: ceil(filled × 0.65) + 7
+        // Hard:   ceil(filled × 0.65) + 10
+        // Expert: ceil(filled × 0.65) + 12  ← most forgiving (complex grids)
         var filledCells = puzzle.Solution.Sum(row => row.Count(c => c != "X"));
         var swapLimit = normalizedDifficulty switch
         {
-            "easy"   => (int)Math.Ceiling(filledCells * 0.65) + 10,
-            "medium" => (int)Math.Ceiling(filledCells * 0.65) + 8,
-            "hard"   => (int)Math.Ceiling(filledCells * 0.65) + 6,
-            "expert" => (int)Math.Ceiling(filledCells * 0.65) + 4,
-            _        => (int)Math.Ceiling(filledCells * 0.65) + 8,
+            "easy"   => (int)Math.Ceiling(filledCells * 0.65) + 5,
+            "medium" => (int)Math.Ceiling(filledCells * 0.65) + 7,
+            "hard"   => (int)Math.Ceiling(filledCells * 0.65) + 10,
+            "expert" => (int)Math.Ceiling(filledCells * 0.65) + 12,
+            _        => (int)Math.Ceiling(filledCells * 0.65) + 7,
         };
 
         return Ok(new { puzzle.GridSize, puzzle.Solution, puzzle.Words, Hash = hash, SwapLimit = swapLimit });
