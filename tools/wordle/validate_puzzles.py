@@ -124,18 +124,25 @@ DIFFICULTY_PARAMS = {
     "expert": {"sizes": [10, 11, 12, 13], "min_words": 12, "max_word_len": 99},
 }
 
-def compute_swap_limit(words, difficulty):
-    """Compute correct swapLimit per difficulty formula."""
-    total = sum(len(w["word"]) for w in words)
+def compute_swap_limit(grid, size, difficulty):
+    """Compute correct swapLimit from filled-cell count and difficulty tier.
+
+    Formula mirrors PuzzlesController.cs exactly:
+      Easy:   ceil(filled × 0.65) + 10
+      Medium: ceil(filled × 0.65) + 8
+      Hard:   ceil(filled × 0.65) + 6
+      Expert: ceil(filled × 0.65) + 4
+    """
+    filled = sum(1 for r in grid for c in r if c != "X")
     if difficulty == "easy":
-        return math.ceil(total * 1.6)
+        return math.ceil(filled * 0.65) + 10
     elif difficulty == "medium":
-        return math.ceil(total * 1.5) + 5
+        return math.ceil(filled * 0.65) + 8
     elif difficulty == "hard":
-        return math.ceil(total * 1.4) + 10
+        return math.ceil(filled * 0.65) + 6
     elif difficulty == "expert":
-        return math.ceil(total * 1.2) + 15
-    return math.ceil(total * 1.5) + 5
+        return math.ceil(filled * 0.65) + 4
+    return math.ceil(filled * 0.65) + 8
 
 def make_grid(size):
     return [["X"] * size for _ in range(size)]
@@ -294,10 +301,10 @@ def check_no_isolated_letters(grid, size):
 # =============================================
 # RULE 6: Swap limit matches difficulty formula
 # =============================================
-def check_swap_limit(words, swap_limit, difficulty):
+def check_swap_limit(grid, size, swap_limit, difficulty):
     if swap_limit is None or difficulty is None:
         return True, []   # skip if not provided
-    expected = compute_swap_limit(words, difficulty)
+    expected = compute_swap_limit(grid, size, difficulty)
     if swap_limit != expected:
         return False, [f"swapLimit={swap_limit} but formula gives {expected} for difficulty='{difficulty}'"]
     return True, []
@@ -311,7 +318,7 @@ def validate_puzzle(label, grid, words, size, difficulty=None, swap_limit=None):
     print(f"{'='*55}")
     for row in grid:
         print("  " + " ".join(row))
-    wl = compute_swap_limit(words, difficulty) if difficulty else "?"
+    wl = compute_swap_limit(grid, size, difficulty) if difficulty else "?"
     print(f"  Words ({len(words)}): {[w['word'] for w in words]}")
     print(f"  swapLimit formula: {wl}")
 
@@ -322,7 +329,7 @@ def validate_puzzle(label, grid, words, size, difficulty=None, swap_limit=None):
         ("DICTIONARY",          check_dictionary(words)),
         ("GRID INTEGRITY",      check_grid_integrity(grid, words, size)),
         ("NO ISOLATED LETTERS", check_no_isolated_letters(grid, size)),
-        ("SWAP LIMIT",          check_swap_limit(words, swap_limit, difficulty)),
+        ("SWAP LIMIT",          check_swap_limit(grid, size, swap_limit, difficulty)),
     ]
     for name, (ok, errs) in checks:
         if ok:
@@ -356,7 +363,7 @@ w = [
     {"word": "ORA", "row": 0, "col": 2, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Easy 5x5", g, w, size, "easy", compute_swap_limit(w, "easy")))
+puzzles_data.append(("Easy 5x5", g, w, size, "easy", compute_swap_limit(g, size, "easy")))
 
 # ── EASY 6x6 ──────────────────────────────────────────────
 # MAMI (H r3,c0): M(3,0) A(3,1) M(3,2) I(3,3)
@@ -368,7 +375,7 @@ w = [
     {"word": "PARA", "row": 0, "col": 1, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Easy 6x6", g, w, size, "easy", compute_swap_limit(w, "easy")))
+puzzles_data.append(("Easy 6x6", g, w, size, "easy", compute_swap_limit(g, size, "easy")))
 
 # ── EASY 7x7 ──────────────────────────────────────────────
 # DARKË (H r3,c0): D(3,0) A(3,1) R(3,2) K(3,3) Ë(3,4)
@@ -380,7 +387,7 @@ w = [
     {"word": "ORAR",  "row": 0, "col": 2, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Easy 7x7", g, w, size, "easy", compute_swap_limit(w, "easy")))
+puzzles_data.append(("Easy 7x7", g, w, size, "easy", compute_swap_limit(g, size, "easy")))
 
 # ── MEDIUM 7x7 ────────────────────────────────────────────
 # BISEDË (H r3,c0): B(3,0) I(3,1) S(3,2) E(3,3) D(3,4) Ë(3,5)
@@ -392,7 +399,7 @@ w = [
     {"word": "LULE",   "row": 0, "col": 3, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Medium 7x7", g, w, size, "medium", compute_swap_limit(w, "medium")))
+puzzles_data.append(("Medium 7x7", g, w, size, "medium", compute_swap_limit(g, size, "medium")))
 
 # ── MEDIUM 8x8 ────────────────────────────────────────────
 # FLUTUR (H r4,c0): F(4,0) L(4,1) U(4,2) T(4,3) U(4,4) R(4,5)
@@ -404,7 +411,7 @@ w = [
     {"word": "NATA",   "row": 2, "col": 3, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Medium 8x8", g, w, size, "medium", compute_swap_limit(w, "medium")))
+puzzles_data.append(("Medium 8x8", g, w, size, "medium", compute_swap_limit(g, size, "medium")))
 
 # ── MEDIUM 9x9 ────────────────────────────────────────────
 # KUJDES (H r4,c1): K(4,1) U(4,2) J(4,3) D(4,4) E(4,5) S(4,6)
@@ -416,7 +423,7 @@ w = [
     {"word": "GJELI",  "row": 3, "col": 3, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Medium 9x9", g, w, size, "medium", compute_swap_limit(w, "medium")))
+puzzles_data.append(("Medium 9x9", g, w, size, "medium", compute_swap_limit(g, size, "medium")))
 
 # ── HARD 9x9 ──────────────────────────────────────────────
 # KOMPJUTER (H r4,c0): spans entire row 4 of a 9x9 grid
@@ -428,7 +435,7 @@ w = [
     {"word": "FUND",      "row": 3, "col": 5, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Hard 9x9", g, w, size, "hard", compute_swap_limit(w, "hard")))
+puzzles_data.append(("Hard 9x9", g, w, size, "hard", compute_swap_limit(g, size, "hard")))
 
 # ── HARD 10x10 ────────────────────────────────────────────
 # TELEVIZOR (H r4,c0): T(4,0)…R(4,8) — 9 letters
@@ -440,7 +447,7 @@ w = [
     {"word": "LULE",      "row": 4, "col": 2, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Hard 10x10", g, w, size, "hard", compute_swap_limit(w, "hard")))
+puzzles_data.append(("Hard 10x10", g, w, size, "hard", compute_swap_limit(g, size, "hard")))
 
 # ── HARD 11x11 ────────────────────────────────────────────
 # KOMPJUTER (H r5,c1): K(5,1) O(5,2) M(5,3) P(5,4) J(5,5) U(5,6) T(5,7) E(5,8) R(5,9)
@@ -452,7 +459,7 @@ w = [
     {"word": "NATA",      "row": 3, "col": 7, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Hard 11x11", g, w, size, "hard", compute_swap_limit(w, "hard")))
+puzzles_data.append(("Hard 11x11", g, w, size, "hard", compute_swap_limit(g, size, "hard")))
 
 # ── EXPERT 10x10 ──────────────────────────────────────────
 # FRIGORIFER (H r4,c0): spans entire row 4 (10 letters)
@@ -465,7 +472,7 @@ w = [
     {"word": "EMËR",       "row": 4, "col": 8, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Expert 10x10", g, w, size, "expert", compute_swap_limit(w, "expert")))
+puzzles_data.append(("Expert 10x10", g, w, size, "expert", compute_swap_limit(g, size, "expert")))
 
 # ── EXPERT 13x13 ──────────────────────────────────────────
 # FIZIOTERAPIST (H r6,c0): spans entire row 6 (13 letters)
@@ -478,7 +485,7 @@ w = [
     {"word": "EMËR",          "row": 6, "col": 6, "direction": "vertical"},
 ]
 for x in w: place_word(g, x["word"], x["row"], x["col"], x["direction"], size)
-puzzles_data.append(("Expert 13x13", g, w, size, "expert", compute_swap_limit(w, "expert")))
+puzzles_data.append(("Expert 13x13", g, w, size, "expert", compute_swap_limit(g, size, "expert")))
 
 # ── Run all ────────────────────────────────────────────────
 total_pass = 0
