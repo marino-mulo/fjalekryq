@@ -213,14 +213,13 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.isCompleted.set(false);
     this.game.destroy();
     Wordle7GameService.clearSavedState();
-    this.startLoadingProgress();
     this.startBgTiles();
 
     const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-    this.puzzleService.getRandomWordle7(this.lastWords, getLevelDifficulty(level)).subscribe(puzzle => {
+    // Use pre-generated level puzzle (instant) instead of on-demand generation
+    this.puzzleService.getWordle7Level(level).subscribe(puzzle => {
       this.lastWords = puzzle.words.map(w => w.word);
       this.loadingPercent.set(100);
-      this.stopLoadingProgress();
       this.stopBgTiles();
       setTimeout(() => {
         this.game.initPuzzle(puzzle);
