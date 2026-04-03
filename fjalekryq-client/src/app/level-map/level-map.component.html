@@ -104,6 +104,18 @@
           }
         </button>
 
+        <!-- Stars below completed nodes -->
+        @if (state === 'completed' && getStars(node.level) > 0) {
+          <div class="node-stars">
+            @for (i of [1, 2, 3]; track i) {
+              <svg class="node-star" [class.star-lit]="i <= getStars(node.level)"
+                   width="10" height="10" viewBox="0 0 24 24">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            }
+          </div>
+        }
+
         <!-- Badge: difficulty label -->
         <div class="node-badge badge-{{ badgeSide(node.x) }} diff-{{ node.difficulty }}"
              [class.badge-hidden]="state === 'locked'">

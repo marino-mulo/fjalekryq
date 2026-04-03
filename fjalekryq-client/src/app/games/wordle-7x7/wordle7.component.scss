@@ -550,6 +550,91 @@
   color: #FCA5A5;
 }
 
+.lost-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.btn-restart {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 16px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  border: none;
+  border-radius: 16px;
+  touch-action: manipulation;
+  color: #fff;
+  background: #15803D;
+  box-shadow: 0 6px 20px rgba(21, 128, 61, 0.45);
+  transition: transform 0.1s, box-shadow 0.1s;
+  &:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(21,128,61,0.3); }
+}
+
+/* Stars on completion screen */
+.completed-stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.star-icon {
+  fill: rgba(255, 255, 255, 0.15);
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+  transition: fill 0.2s, filter 0.2s;
+
+  &.star-filled {
+    fill: #F4B400;
+    filter: drop-shadow(0 2px 6px rgba(244, 180, 0, 0.7));
+  }
+}
+
+/* Completed actions row (play again + next level) */
+.completed-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn-play-again {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 16px;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  border: none;
+  border-radius: 18px;
+  touch-action: manipulation;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(6px);
+  transition: transform 0.1s, box-shadow 0.1s;
+  &:active { transform: translateY(2px); }
+}
+
+.btn-next-level {
+  flex: 2;
+}
+
 /* ══════════════════════════════════════
    Info Modal (dark, matching game theme)
    ══════════════════════════════════════ */

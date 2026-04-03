@@ -9,6 +9,7 @@ import { GameHeaderService } from '../../core/services/game-header.service';
 const LEVEL_KEY          = 'fjalekryq_level';
 const TUTORIAL_KEY       = 'fjalekryq_tutorial_done';
 const FORCE_TUTORIAL_KEY = 'fjalekryq_force_tutorial';
+const STARS_KEY_PREFIX   = 'fjalekryq_stars_';
 
 // 7×7 tutorial: MALI (vertical col 3), BORA (horizontal row 1), DETI (horizontal row 3)
 // Intersections: MALI∩BORA at A(1,3), MALI∩DETI at I(3,3)
@@ -85,6 +86,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   isCompleted    = signal(false);
   completedPraise = signal('Bravo!');
   completedIcon   = signal('icons/rewards/rocket.svg');
+  completedStars  = signal(0);
 
   // Puzzle / loading
   isLoading      = signal(false);
@@ -97,6 +99,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
   private pickPraise() { return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)]; }
   private pickIcon()   { return this.ICONS[Math.floor(Math.random() * this.ICONS.length)]; }
+  private computeStars(): number {
+    if (!this.game.solveWordUsed()) return 3;
+    return this.game.swapsRemaining() >= 3 ? 2 : 1;
+  }
 
   constructor() {
     // Phase 2 → 3: advance when first swap happens
@@ -139,8 +145,9 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.game.restorePuzzle(TUTORIAL_PUZZLE, TUTORIAL_INITIAL_GRID.map(r => [...r]), 0, 0, 0);
       this.setTutorialPhase(1);
     } else {
+      const currentLevel = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
       const saved = Wordle7GameService.loadSavedState();
-      if (saved && saved.puzzle.hash !== 'tutorial_v1') {
+      if (saved && saved.puzzle.hash !== 'tutorial_v1' && (saved as any).level === currentLevel) {
         this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
       } else {
         this.loadRandomPuzzle();
@@ -173,6 +180,17 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.isCompleted.set(true);
     this.completedPraise.set(this.pickPraise());
     this.completedIcon.set(this.pickIcon());
+
+    if (!this.isTutorial()) {
+      const stars = this.computeStars();
+      this.completedStars.set(stars);
+      const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+      const key = `${STARS_KEY_PREFIX}${level}`;
+      const existing = parseInt(localStorage.getItem(key) ?? '0', 10);
+      if (stars > existing) {
+        try { localStorage.setItem(key, String(stars)); } catch { /* ignore */ }
+      }
+    }
   }
 
   onHint(): void      { this.game.hint(); }
@@ -194,6 +212,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   backToMenu(): void { this.goBack.emit(); }
+
+  restartLevel(): void {
+    this.isCompleted.set(false);
+    this.game.resetPuzzle();
+  }
+
   openInfo():   void { this.showInfo = true; }
   closeInfo():  void { this.showInfo = false; }
 
