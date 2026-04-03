@@ -115,8 +115,8 @@
   font-size: 1rem;
   color: #fff;
 
-  &.hint-demo  { background: #C2410C; box-shadow: 3px 3px 0 #9A3412; }
-  &.solve-demo { background: #1D4ED8; box-shadow: 3px 3px 0 #1E3A8A; }
+  &.hint-demo  { background: #c9b458; box-shadow: 3px 3px 0 #a8943a; }
+  &.solve-demo { background: #6aaa64; box-shadow: 3px 3px 0 #4d8a48; }
 }
 
 /* Main CTA button in tutorial modal */
@@ -497,18 +497,18 @@
 }
 
 .solve-btn {
-  background: #1D4ED8;
+  background: #6aaa64;
   color: #fff;
-  box-shadow: 0 8px 24px rgba(29, 78, 216, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow: 0 8px 24px rgba(106, 170, 100, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
 
   &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
   &.cooling  { opacity: 0.45; pointer-events: none; }
 }
 
 .hint-btn {
-  background: #C2410C;
+  background: #c9b458;
   color: #fff;
-  box-shadow: 0 8px 24px rgba(194, 65, 12, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
+  box-shadow: 0 8px 24px rgba(201, 180, 88, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
 
   &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
   &.cooling  { opacity: 0.45; pointer-events: none; }

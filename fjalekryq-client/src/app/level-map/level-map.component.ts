@@ -54,6 +54,10 @@ export class LevelMapComponent implements OnInit {
     return this.levelStars[level] ?? 0;
   }
 
+  totalStars(): number {
+    return Object.values(this.levelStars).reduce((sum, s) => sum + s, 0);
+  }
+
   getState(level: number): 'completed' | 'current' | 'locked' {
     const cur = this.currentLevel();
     if (level < cur)  return 'completed';
