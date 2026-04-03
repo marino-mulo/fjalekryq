@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, inject, signal, Output, EventEmitter, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { retry } from 'rxjs/operators';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
 import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
@@ -205,14 +206,23 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.startBgTiles();
 
     const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-    this.puzzleService.getWordle7Level(level).subscribe(puzzle => {
-      this.loadingPercent.set(100);
-      this.stopBgTiles();
-      setTimeout(() => {
-        this.game.initPuzzle(puzzle);
+    this.puzzleService.getWordle7Level(level).pipe(retry(2)).subscribe({
+      next: puzzle => {
+        this.loadingPercent.set(100);
+        this.stopBgTiles();
+        setTimeout(() => {
+          this.game.initPuzzle(puzzle);
+          this.isLoading.set(false);
+          this.loadingPercent.set(0);
+        }, 300);
+      },
+      error: () => {
+        // API failed — go back to level map so user isn't stuck
+        this.stopBgTiles();
         this.isLoading.set(false);
         this.loadingPercent.set(0);
-      }, 300);
+        this.goBack.emit();
+      },
     });
   }
 
