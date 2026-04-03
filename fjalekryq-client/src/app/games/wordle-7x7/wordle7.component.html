@@ -60,7 +60,7 @@
         </svg>
         <span>Ndihmë</span>
       </div>
-      <p class="tut-desc">Ky buton vendos automatikisht <strong>një shkronjë</strong> në vendin e duhur. Çdo përdorim zbreson një lëvizje.</p>
+      <p class="tut-desc">Ky buton vendos automatikisht <strong>një shkronjë</strong> në vendin e duhur. Nuk zbreson lëvizje.</p>
       <button class="tut-btn" (click)="setTutorialPhase(5)">Kuptova, provoje!</button>
     </div>
   </div>
@@ -157,23 +157,51 @@
   }
 
   @if (isCompleted()) {
-    <button class="btn-next-level" (click)="nextLevel()">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="9 18 15 12 9 6"/>
-      </svg>
-      {{ isTutorial() ? 'Fillo lojën!' : 'Niveli tjetër' }}
-    </button>
+    @if (!isTutorial()) {
+      <div class="completed-stars">
+        @for (i of [1, 2, 3]; track i) {
+          <svg class="star-icon" [class.star-filled]="i <= completedStars()"
+               width="32" height="32" viewBox="0 0 24 24">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        }
+      </div>
+    }
+    <div class="completed-actions">
+      @if (!isTutorial()) {
+        <button class="btn-play-again" (click)="restartLevel()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.07"/>
+          </svg>
+          Riprovo
+        </button>
+      }
+      <button class="btn-next-level" (click)="nextLevel()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        {{ isTutorial() ? 'Fillo lojën!' : 'Niveli tjetër' }}
+      </button>
+    </div>
   }
 
   @if (game.gameLost()) {
     <div class="lost-card">
       <span class="lost-label">Dështove!</span>
-      <button class="btn-menu" (click)="backToMenu()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
-        </svg>
-        Menu
-      </button>
+      <div class="lost-actions">
+        <button class="btn-restart" (click)="restartLevel()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.07"/>
+          </svg>
+          Riprovo
+        </button>
+        <button class="btn-menu" (click)="backToMenu()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+          Menu
+        </button>
+      </div>
     </div>
   }
 

@@ -9,11 +9,13 @@ interface SavedGameState {
   swapCount: number;
   hintCount: number;
   totalSwapCount: number;
+  level: number;
 }
 
 const STORAGE_KEY        = 'wordle7_saved_game';
 const HINT_COOLDOWN_KEY  = 'wordle7_hint_cooldown_end';
 const SOLVE_COOLDOWN_KEY = 'wordle7_solve_cooldown_end';
+const LEVEL_KEY          = 'fjalekryq_level';
 
 @Injectable()
 export class Wordle7GameService {
@@ -59,6 +61,7 @@ export class Wordle7GameService {
   readonly solveWordCooldownRemaining = signal(0);
   private solveWordCooldownInterval: ReturnType<typeof setInterval> | null = null;
   readonly canSolveWord = computed(() => !this.gameWon() && !this.gameLost() && !this.solveWordCooldown());
+  readonly solveWordUsed = signal(false);
 
   /** Remaining swaps the player can make */
   readonly swapsRemaining = computed(() => Math.max(0, this.swapLimit() - this.swapCount()));
@@ -148,6 +151,7 @@ export class Wordle7GameService {
     this.selectedCell.set(null);
     this.swapCount.set(0);
     this.totalSwapCount.set(0);
+    this.solveWordUsed.set(false);
     this.clearHintState();
     this.solveWordCooldown.set(false);
     this.solveWordCooldownRemaining.set(0);
@@ -230,6 +234,7 @@ export class Wordle7GameService {
       swapCount: this.swapCount(),
       hintCount: this.hintCount(),
       totalSwapCount: this.totalSwapCount(),
+      level: parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10),
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -377,10 +382,19 @@ export class Wordle7GameService {
   /** Reset the puzzle: re-scramble letters */
   resetPuzzle(): void {
     this.gameWon.set(false);
+    this.gameLost.set(false);
     this.selectedCell.set(null);
     this.swapCount.set(0);
+    this.totalSwapCount.set(0);
+    this.solveWordUsed.set(false);
     this.clearHintState();
-
+    this.solveWordCooldown.set(false);
+    this.solveWordCooldownRemaining.set(0);
+    if (this.solveWordCooldownInterval) {
+      clearInterval(this.solveWordCooldownInterval);
+      this.solveWordCooldownInterval = null;
+    }
+    Wordle7GameService.clearSavedState();
     const scrambled = this.scrambleGrid(this.solutionGrid);
     this.grid.set(scrambled);
   }
@@ -437,7 +451,7 @@ export class Wordle7GameService {
 
     if (!sourceCell) return;
 
-    // Perform the swap (counts as 1 move)
+    // Perform the swap (does NOT count toward move limit)
     const newGrid = g.map(r => [...r]);
     const temp = newGrid[target.row][target.col];
     newGrid[target.row][target.col] = newGrid[sourceCell.row][sourceCell.col];
@@ -447,7 +461,6 @@ export class Wordle7GameService {
       { row: target.row, col: target.col, fromRow: sourceCell.row, fromCol: sourceCell.col },
       { row: sourceCell.row, col: sourceCell.col, fromRow: target.row, fromCol: target.col },
     ]);
-    this.swapCount.update(v => v + 1);
     this.totalSwapCount.update(v => v + 1);
     this.selectedCell.set(null);
 
@@ -461,7 +474,6 @@ export class Wordle7GameService {
 
     this.showHintMessage('Një shkronjë u vendos në vendin e duhur!');
     this.checkWin();
-    if (!this.gameWon()) this.checkLoss();
     this.saveState();
 
     // 10-second cooldown (persisted so refresh doesn't reset it)
@@ -518,6 +530,7 @@ export class Wordle7GameService {
    */
   solveWord(): void {
     if (!this.canSolveWord()) return;
+    this.solveWordUsed.set(true);
 
     // Sort words by length descending and pick the 2nd unsolved one
     const sorted = [...this.wordList].sort((a, b) => b.word.length - a.word.length);

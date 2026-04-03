@@ -9,6 +9,7 @@ export interface LevelNode {
 }
 
 const LEVEL_KEY = 'fjalekryq_level';
+const STARS_KEY_PREFIX = 'fjalekryq_stars_';
 
 // Winding path: center → left → right → left → right → center → left → right → center → center(boss)
 const NODES: LevelNode[] = [
@@ -36,12 +37,21 @@ export class LevelMapComponent implements OnInit {
   @Output() startLevel  = new EventEmitter<number>();
 
   currentLevel = signal(1);
+  levelStars: Record<number, number> = {};
   readonly nodes    = NODES;
   readonly segments = NODES.slice(0, -1).map((n, i) => ({ from: n, to: NODES[i + 1] }));
 
   ngOnInit(): void {
     const v = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.currentLevel.set(isNaN(v) || v < 1 ? 1 : v);
+    for (let level = 1; level <= 10; level++) {
+      const s = parseInt(localStorage.getItem(`${STARS_KEY_PREFIX}${level}`) ?? '0', 10);
+      this.levelStars[level] = isNaN(s) ? 0 : s;
+    }
+  }
+
+  getStars(level: number): number {
+    return this.levelStars[level] ?? 0;
   }
 
   getState(level: number): 'completed' | 'current' | 'locked' {
