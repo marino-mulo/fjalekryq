@@ -25,6 +25,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Force the puzzle store to initialise NOW (at startup) rather than lazily
+// on the first incoming request. Without this, the first user to open a level
+// would block while all 10 puzzles are generated.
+app.Services.GetRequiredService<LevelPuzzleStore>();
+
 // Serve Angular static files from wwwroot
 app.UseDefaultFiles();
 app.UseStaticFiles();
