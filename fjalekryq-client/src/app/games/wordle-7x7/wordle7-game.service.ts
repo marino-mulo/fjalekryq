@@ -584,7 +584,6 @@ export class Wordle7GameService {
 
     this.grid.set(newGrid);
     this.lastSwap.set(swapAnim.length > 0 ? swapAnim : positions.map(pos => ({ row: pos.row, col: pos.col, fromRow: pos.row, fromCol: pos.col })));
-    this.swapCount.update(v => v + target.word.length);
     this.totalSwapCount.update(v => v + target.word.length);
     this.selectedCell.set(null);
 
