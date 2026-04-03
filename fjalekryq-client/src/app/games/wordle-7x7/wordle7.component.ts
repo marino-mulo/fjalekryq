@@ -140,7 +140,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     } else {
       const saved = Wordle7GameService.loadSavedState();
       if (saved && saved.puzzle.hash !== 'tutorial_v1') {
-        this.lastWords = saved.puzzle.words.map(w => w.word);
         this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
       } else {
         this.loadRandomPuzzle();
