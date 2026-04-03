@@ -512,18 +512,18 @@ export class Wordle7GameService {
   }
 
   /**
-   * Solve the 3rd biggest word: sort words by length descending,
-   * pick the 3rd one, and place all its letters in the correct positions.
+   * Solve the 2nd biggest word: sort words by length descending,
+   * pick the 2nd one, and place all its letters in the correct positions.
    * 30s cooldown between uses.
    */
   solveWord(): void {
     if (!this.canSolveWord()) return;
 
-    // Sort words by length descending and pick the 3rd unsolved one
+    // Sort words by length descending and pick the 2nd unsolved one
     const sorted = [...this.wordList].sort((a, b) => b.word.length - a.word.length);
     const g = this.grid();
     const target = sorted.find((w, i) => {
-      if (i < 2) return false; // skip top 2
+      if (i < 1) return false; // skip top 1
       // Check if word is already fully solved
       for (let j = 0; j < w.word.length; j++) {
         const r = w.direction === 'horizontal' ? w.row : w.row + j;
@@ -531,7 +531,7 @@ export class Wordle7GameService {
         if (g[r][c] !== this.solutionGrid[r][c]) return true; // has wrong letters, pick this one
       }
       return false;
-    }) ?? sorted[Math.min(2, sorted.length - 1)];
+    }) ?? sorted[Math.min(1, sorted.length - 1)];
     if (!target) return;
 
     // Get positions of the target word
