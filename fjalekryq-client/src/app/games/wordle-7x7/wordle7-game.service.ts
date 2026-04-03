@@ -292,21 +292,38 @@ export class Wordle7GameService {
       }
     }
 
-    let attempts = 0;
-    let shuffled: string[];
-    do {
-      shuffled = [...letters];
-      for (let i = shuffled.length - 1; i > 0; i--) {
+    // Max number of letters allowed to land in their correct position at game start.
+    // Allow at most 15% correct so the puzzle isn't trivially close to solved.
+    const maxCorrect = Math.max(1, Math.floor(letters.length * 0.15));
+
+    const countCorrect = (arr: string[]) =>
+      arr.reduce((n, l, i) => n + (l === letters[i] ? 1 : 0), 0);
+
+    const shuffle = (arr: string[]): string[] => {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        [a[i], a[j]] = [a[j], a[i]];
       }
-      attempts++;
-    } while (attempts < 100 && shuffled.every((l, i) => l === letters[i]));
+      return a;
+    };
+
+    let best: string[] = shuffle(letters);
+    let bestCorrect = countCorrect(best);
+
+    for (let attempt = 0; attempt < 200 && bestCorrect > maxCorrect; attempt++) {
+      const candidate = shuffle(letters);
+      const correct = countCorrect(candidate);
+      if (correct < bestCorrect) {
+        best = candidate;
+        bestCorrect = correct;
+      }
+    }
 
     const grid = solution.map(r => [...r]);
     for (let i = 0; i < positions.length; i++) {
       const [r, c] = positions[i];
-      grid[r][c] = shuffled[i];
+      grid[r][c] = best[i];
     }
     return grid;
   }
