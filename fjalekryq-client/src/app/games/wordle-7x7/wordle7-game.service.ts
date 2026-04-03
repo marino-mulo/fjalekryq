@@ -16,6 +16,7 @@ const STORAGE_KEY        = 'wordle7_saved_game';
 const HINT_COOLDOWN_KEY  = 'wordle7_hint_cooldown_end';
 const SOLVE_COOLDOWN_KEY = 'wordle7_solve_cooldown_end';
 const LEVEL_KEY          = 'fjalekryq_level';
+const PLAYING_LEVEL_KEY  = 'fjalekryq_playing_level';
 
 @Injectable()
 export class Wordle7GameService {
@@ -234,7 +235,7 @@ export class Wordle7GameService {
       swapCount: this.swapCount(),
       hintCount: this.hintCount(),
       totalSwapCount: this.totalSwapCount(),
-      level: parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10),
+      level: parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10),
     };
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));

@@ -8,8 +8,9 @@ export interface LevelNode {
   isBoss:     boolean;
 }
 
-const LEVEL_KEY = 'fjalekryq_level';
-const STARS_KEY_PREFIX = 'fjalekryq_stars_';
+const LEVEL_KEY         = 'fjalekryq_level';
+const PLAYING_LEVEL_KEY = 'fjalekryq_playing_level';
+const STARS_KEY_PREFIX  = 'fjalekryq_stars_';
 
 // Winding path: center → left → right → left → right → center → left → right → center → center(boss)
 const NODES: LevelNode[] = [
@@ -77,7 +78,8 @@ export class LevelMapComponent implements OnInit {
 
   selectLevel(level: number): void {
     if (this.getState(level) === 'locked') return;
-    localStorage.setItem(LEVEL_KEY, String(level));
+    // Set which level to play WITHOUT touching LEVEL_KEY (player's max progress)
+    localStorage.setItem(PLAYING_LEVEL_KEY, String(level));
     this.startLevel.emit(level);
   }
 

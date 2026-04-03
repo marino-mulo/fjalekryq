@@ -6,7 +6,8 @@ import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
 import { GameHeaderService } from '../../core/services/game-header.service';
 
-const LEVEL_KEY          = 'fjalekryq_level';
+const LEVEL_KEY          = 'fjalekryq_level';         // player's max progress
+const PLAYING_LEVEL_KEY  = 'fjalekryq_playing_level'; // level currently being played
 const TUTORIAL_KEY       = 'fjalekryq_tutorial_done';
 const FORCE_TUTORIAL_KEY = 'fjalekryq_force_tutorial';
 const STARS_KEY_PREFIX   = 'fjalekryq_stars_';
@@ -145,9 +146,9 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.game.restorePuzzle(TUTORIAL_PUZZLE, TUTORIAL_INITIAL_GRID.map(r => [...r]), 0, 0, 0);
       this.setTutorialPhase(1);
     } else {
-      const currentLevel = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+      const playingLevel = parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10);
       const saved = Wordle7GameService.loadSavedState();
-      if (saved && saved.puzzle.hash !== 'tutorial_v1' && (saved as any).level === currentLevel) {
+      if (saved && saved.puzzle.hash !== 'tutorial_v1' && (saved as any).level === playingLevel) {
         this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
       } else {
         this.loadRandomPuzzle();
@@ -184,11 +185,20 @@ export class Wordle7Component implements OnInit, OnDestroy {
     if (!this.isTutorial()) {
       const stars = this.computeStars();
       this.completedStars.set(stars);
-      const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-      const key = `${STARS_KEY_PREFIX}${level}`;
-      const existing = parseInt(localStorage.getItem(key) ?? '0', 10);
+
+      const playingLevel = parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+      const progress     = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+
+      // Save stars (keep best score)
+      const starsKey = `${STARS_KEY_PREFIX}${playingLevel}`;
+      const existing = parseInt(localStorage.getItem(starsKey) ?? '0', 10);
       if (stars > existing) {
-        try { localStorage.setItem(key, String(stars)); } catch { /* ignore */ }
+        try { localStorage.setItem(starsKey, String(stars)); } catch { /* ignore */ }
+      }
+
+      // Advance progress immediately so the map shows the level as done
+      if (playingLevel >= progress && playingLevel < 10) {
+        try { localStorage.setItem(LEVEL_KEY, String(playingLevel + 1)); } catch { /* ignore */ }
       }
     }
   }
@@ -205,8 +215,9 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.game.setTutorialMode(false);
       this.loadRandomPuzzle();
     } else {
-      const current = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
-      localStorage.setItem(LEVEL_KEY, String(isNaN(current) || current < 1 ? 2 : current + 1));
+      // Progress was already advanced in onWin(); just set the playing level to it
+      const progress = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+      localStorage.setItem(PLAYING_LEVEL_KEY, String(progress));
       this.loadRandomPuzzle();
     }
   }
@@ -229,7 +240,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     Wordle7GameService.clearSavedState();
     this.startBgTiles();
 
-    const level = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    const level = parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.puzzleService.getWordle7Level(level).pipe(retry(2)).subscribe({
       next: puzzle => {
         this.loadingPercent.set(100);
