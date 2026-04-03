@@ -37,11 +37,19 @@ public class LevelPuzzleStore
 
     private void GenerateAll()
     {
-        // Use Parallel.For so all 10 puzzles generate concurrently
+        // Generate all 10 puzzles concurrently at startup.
+        // Each level is wrapped in try/catch so one failure never blocks the others.
         Parallel.For(1, 11, level =>
         {
-            var difficulty = GetDifficulty(level);
-            _store[level] = Build(level, difficulty);
+            try
+            {
+                var difficulty = GetDifficulty(level);
+                _store[level] = Build(level, difficulty);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[LevelPuzzleStore] Failed to generate level {level}: {ex.Message}");
+            }
         });
     }
 
