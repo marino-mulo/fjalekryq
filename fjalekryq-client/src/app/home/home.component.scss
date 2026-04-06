@@ -73,8 +73,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  padding-bottom: 4px;
+  width: calc(100% + 48px); /* extend to fill the parent's horizontal padding */
+  margin: -14px -24px 0;    /* pull back up and to edges */
+  padding:
+    calc(env(safe-area-inset-top, 0px) + 12px)
+    24px
+    12px;
+  background: rgba(12, 31, 74, 0.75);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .header-icon-btn {

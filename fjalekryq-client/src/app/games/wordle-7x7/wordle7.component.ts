@@ -266,21 +266,27 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   onHint(): void {
-    if (!this.coinService.canAfford(HINT_COST)) {
-      this.showInsufficientCoins('hint');
-      return;
+    // Free during tutorial
+    if (!this.isTutorial()) {
+      if (!this.coinService.canAfford(HINT_COST)) {
+        this.showInsufficientCoins('hint');
+        return;
+      }
+      this.coinService.spend(HINT_COST);
     }
     this.game.hint();
-    this.coinService.spend(HINT_COST);
   }
 
   onSolveWord(): void {
-    if (!this.coinService.canAfford(SOLVE_COST)) {
-      this.showInsufficientCoins('solve');
-      return;
+    // Free during tutorial
+    if (!this.isTutorial()) {
+      if (!this.coinService.canAfford(SOLVE_COST)) {
+        this.showInsufficientCoins('solve');
+        return;
+      }
+      this.coinService.spend(SOLVE_COST);
     }
     this.game.solveWord();
-    this.coinService.spend(SOLVE_COST);
   }
 
   private insufficientTimer: ReturnType<typeof setTimeout> | null = null;
