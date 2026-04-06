@@ -1072,17 +1072,69 @@
   align-items: center;
   gap: 5px;
   padding: 8px 14px;
-  background: var(--purple);
-  color: #fff;
+  background: rgba(168, 85, 247, 0.2);
+  color: #E2C9FF;
   font-family: var(--font-display);
   font-size: 0.78rem;
   font-weight: 900;
-  border: none;
+  border: 1.5px solid rgba(168, 85, 247, 0.5);
   border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.45);
+  box-shadow: 0 4px 14px rgba(168, 85, 247, 0.25);
+  backdrop-filter: blur(8px);
   touch-action: manipulation;
   transition: transform 0.1s;
   &:active { transform: scale(0.94); }
+}
+
+/* Win summary: praise + coins in one compact row */
+.win-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.win-bravo {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 900;
+  color: #4ADE80;
+}
+
+.win-coins {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #F4B400;
+}
+
+/* Watch badge on solve button (top-right corner) */
+.watch-badge {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  background: rgba(168, 85, 247, 0.9);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  padding: 2px 6px;
+  border-radius: 50px;
+  pointer-events: none;
+  z-index: 2;
+  border: 1px solid rgba(255,255,255,0.25);
+}
+
+/* Banner text flex-grows to push button right */
+.banner-text {
+  flex: 1;
+  min-width: 0;
 }
 
 /* Completed actions row (play again + next level) */
@@ -1121,14 +1173,15 @@
   font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 900;
-  border: none;
+  border: 1.5px solid rgba(255,255,255,0.22);
   border-radius: 18px;
   touch-action: manipulation;
-  color: #fff;
-  background: #15803D;
-  box-shadow: 0 6px 20px rgba(21, 128, 61, 0.45);
+  color: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  backdrop-filter: blur(8px);
   transition: transform 0.1s, box-shadow 0.1s;
-  &:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(21,128,61,0.3); }
+  &:active { transform: translateY(2px); box-shadow: 0 1px 6px rgba(0,0,0,0.2); }
 }
 
 /* ══════════════════════════════════════

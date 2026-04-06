@@ -496,9 +496,9 @@ export class Wordle7GameService {
     this.saveState();
 
     // 10-second cooldown (persisted so refresh doesn't reset it)
-    try { localStorage.setItem(HINT_COOLDOWN_KEY, String(Date.now() + 10000)); } catch { /* ignore */ }
+    try { localStorage.setItem(HINT_COOLDOWN_KEY, String(Date.now() + 3000)); } catch { /* ignore */ }
     this.hintCooldown.set(true);
-    this.hintCooldownRemaining.set(10);
+    this.hintCooldownRemaining.set(3);
     this.hintCooldownInterval = setInterval(() => {
       const r = this.hintCooldownRemaining() - 1;
       this.hintCooldownRemaining.set(r);
@@ -620,9 +620,9 @@ export class Wordle7GameService {
     this.saveState();
 
     // 30-second cooldown (persisted so refresh doesn't reset it)
-    try { localStorage.setItem(SOLVE_COOLDOWN_KEY, String(Date.now() + 30000)); } catch { /* ignore */ }
+    try { localStorage.setItem(SOLVE_COOLDOWN_KEY, String(Date.now() + 3000)); } catch { /* ignore */ }
     this.solveWordCooldown.set(true);
-    this.solveWordCooldownRemaining.set(30);
+    this.solveWordCooldownRemaining.set(3);
     this.solveWordCooldownInterval = setInterval(() => {
       const r = this.solveWordCooldownRemaining() - 1;
       this.solveWordCooldownRemaining.set(r);

@@ -1,30 +1,45 @@
-import { Component, OnInit, inject, signal, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, inject, signal, Output, EventEmitter, computed } from '@angular/core';
 import { CoinService } from '../core/services/coin.service';
 
 export interface LevelNode {
   level:      number;
-  x:          number;
-  y:          number;
+  letter:     string;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   isBoss:     boolean;
+  col:        0 | 1 | 2;  // left | center | right
 }
 
 const LEVEL_KEY         = 'fjalekryq_level';
 const PLAYING_LEVEL_KEY = 'fjalekryq_playing_level';
 const STARS_KEY_PREFIX  = 'fjalekryq_stars_';
+const TOTAL_LEVELS      = 500;
+const VISIBLE_LOCKED    = 5;
 
-const NODES: LevelNode[] = [
-  { level: 1,  x: 50, y: 92, difficulty: 'easy',   isBoss: false },
-  { level: 2,  x: 21, y: 82, difficulty: 'easy',   isBoss: false },
-  { level: 3,  x: 77, y: 72, difficulty: 'easy',   isBoss: false },
-  { level: 4,  x: 21, y: 62, difficulty: 'medium', isBoss: false },
-  { level: 5,  x: 77, y: 52, difficulty: 'medium', isBoss: false },
-  { level: 6,  x: 50, y: 42, difficulty: 'medium', isBoss: false },
-  { level: 7,  x: 21, y: 33, difficulty: 'hard',   isBoss: false },
-  { level: 8,  x: 77, y: 24, difficulty: 'hard',   isBoss: false },
-  { level: 9,  x: 50, y: 15, difficulty: 'hard',   isBoss: false },
-  { level: 10, x: 50, y: 5,  difficulty: 'expert', isBoss: true  },
-];
+const ALBANIAN_LETTERS = 'ABCDEFGHJKLMNOPRSTUVXZÇË'.split('');
+// zigzag column pattern: left, center, right, center, left ...
+const COL_PATTERN: (0 | 1 | 2)[] = [0, 1, 2, 1];
+
+function difficultyFor(level: number): 'easy' | 'medium' | 'hard' | 'expert' {
+  if (level <= 20)  return 'easy';
+  if (level <= 60)  return 'medium';
+  if (level <= 120) return 'hard';
+  return 'expert';
+}
+
+function generateNodes(): LevelNode[] {
+  return Array.from({ length: TOTAL_LEVELS }, (_, i) => {
+    const level = i + 1;
+    return {
+      level,
+      letter: ALBANIAN_LETTERS[i % ALBANIAN_LETTERS.length],
+      difficulty: difficultyFor(level),
+      isBoss: level % 10 === 0,
+      col: COL_PATTERN[i % COL_PATTERN.length],
+    };
+  });
+}
+
+const ALL_NODES = generateNodes();
 
 @Component({
   selector: 'app-level-map',
@@ -40,17 +55,26 @@ export class LevelMapComponent implements OnInit {
   coinService   = inject(CoinService);
   currentLevel  = signal(1);
   levelStars: Record<number, number> = {};
-  readonly nodes    = NODES;
-  readonly segments = NODES.slice(0, -1).map((n, i) => ({ from: n, to: NODES[i + 1] }));
 
   ngOnInit(): void {
     const v = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.currentLevel.set(isNaN(v) || v < 1 ? 1 : v);
-    for (let level = 1; level <= 10; level++) {
+    for (let level = 1; level <= TOTAL_LEVELS; level++) {
       const s = parseInt(localStorage.getItem(`${STARS_KEY_PREFIX}${level}`) ?? '0', 10);
       this.levelStars[level] = isNaN(s) ? 0 : s;
     }
   }
+
+  /** Nodes visible in the map: all completed + current + next VISIBLE_LOCKED locked */
+  readonly visibleNodes = computed((): LevelNode[] => {
+    const cur = this.currentLevel();
+    const lastVisible = Math.min(cur + VISIBLE_LOCKED, TOTAL_LEVELS);
+    return ALL_NODES.slice(0, lastVisible);
+  });
+
+  readonly hiddenCount = computed((): number =>
+    Math.max(0, TOTAL_LEVELS - (this.currentLevel() + VISIBLE_LOCKED))
+  );
 
   getStars(level: number): number { return this.levelStars[level] ?? 0; }
 
@@ -65,15 +89,6 @@ export class LevelMapComponent implements OnInit {
     return 'locked';
   }
 
-  segClass(from: number, to: number): string {
-    const cur = this.currentLevel();
-    if (to < cur)  return 'seg-done';
-    if (from < cur && to === cur) return 'seg-active';
-    return 'seg-locked';
-  }
-
-  completedCount(): number { return Math.max(0, this.currentLevel() - 1); }
-
   selectLevel(level: number): void {
     if (this.getState(level) === 'locked') return;
     localStorage.setItem(PLAYING_LEVEL_KEY, String(level));
@@ -84,9 +99,7 @@ export class LevelMapComponent implements OnInit {
     return ({ easy: 'E lehtë', medium: 'Mesatare', hard: 'E vështirë', expert: 'Ekspert' } as Record<string,string>)[d] ?? d;
   }
 
-  badgeSide(x: number): 'right' | 'left' | 'below' {
-    if (x < 40) return 'right';
-    if (x > 60) return 'left';
-    return 'below';
+  diffColor(d: string): string {
+    return ({ easy: '#4ADE80', medium: '#FCD34D', hard: '#FCA5A5', expert: '#E879F9' } as Record<string,string>)[d] ?? '#fff';
   }
 }

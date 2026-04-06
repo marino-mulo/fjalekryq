@@ -173,8 +173,8 @@
     </svg>
   </button>
 
-  @if (isCompleted()) {
-    <span class="completed-praise-top">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
+  @if (isCompleted() && isTutorial()) {
+    <span class="completed-praise-top">Bravo! E ke kuptuar!</span>
   }
 
   <div class="header-right-actions">
@@ -261,15 +261,15 @@
 }
 @if (insufficientCoins() === 'hint') {
   <div class="game-banner game-banner--info">
-    <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
-    <span>Ju nuk keni {{ HINT_COST }} monedha</span>
+    <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+    <span class="banner-text">Ju nuk keni {{ HINT_COST }} monedha</span>
     <button class="banner-shop-btn" (click)="showShop.set(true)">Bli tani</button>
   </div>
 }
 @if (insufficientCoins() === 'solve') {
   <div class="game-banner game-banner--info">
-    <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
-    <span>Ju nuk keni {{ SOLVE_COST }} monedha · shiko një reklamë dhe zgjidh falas</span>
+    <svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+    <span class="banner-text">Ju nuk keni {{ SOLVE_COST }} monedha · shiko një reklamë dhe zgjidh falas</span>
     <button class="banner-shop-btn">Shiko</button>
   </div>
 }
@@ -317,14 +317,19 @@
           </svg>
         }
       </div>
-      @if (coinsEarned() > 0) {
-        <div class="coins-earned">
-          <svg width="16" height="16" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
-          +{{ coinsEarned() }} monedha
-        </div>
-      }
 
-      <!-- Ad offer: double coins or bonus -->
+      <!-- Compact win message -->
+      <div class="win-summary">
+        <span class="win-bravo">{{ completedPraise() }}</span>
+        @if (coinsEarned() > 0) {
+          <span class="win-coins">
+            <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+            +{{ coinsEarned() }} monedha
+          </span>
+        }
+      </div>
+
+      <!-- Ad offer: double coins -->
       <div class="ad-offer-card">
         <div class="ad-offer-row">
           <div class="ad-offer-icon">
@@ -337,9 +342,9 @@
             <span class="ad-offer-title">Shiko një reklamë</span>
             <span class="ad-offer-sub">
               @if (coinsEarned() > 0) {
-                Dyfisho shpërblimet → +{{ coinsEarned() * 2 }} monedha
+                Merr x2 monedha → +{{ coinsEarned() * 2 }}
               } @else {
-                Merr +20 monedha bonus falas!
+                Merr +20 monedha falas!
               }
             </span>
           </div>
@@ -356,7 +361,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.07"/>
           </svg>
-          Riprovo
+          Luaj përsëri
         </button>
       }
       <button class="btn-next-level" (click)="nextLevel()">
@@ -403,22 +408,17 @@
               [disabled]="!game.canSolveWord() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 5))"
               (click)="onSolveWord(); solveBtn.blur()">
         @if (!isTutorial() && !canAffordSolve()) {
-          <!-- Watch video icon when no coins -->
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-          </svg>
-          <span>Zgjidh · Shiko</span>
-        } @else {
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-          <span>Zgjidh · {{ SOLVE_COST }}<svg width="11" height="11" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:1px"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.7)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg></span>
+          <span class="watch-badge">Shiko</span>
         }
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
+        <span>Zgjidh · {{ SOLVE_COST }}<svg width="11" height="11" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:1px"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.7)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg></span>
         @if (game.solveWordCooldown()) {
           <div class="cooldown-bar-track">
             <div class="cooldown-bar-fill"
-                 [style.width.%]="game.solveWordCooldownRemaining() / 30 * 100"
+                 [style.width.%]="game.solveWordCooldownRemaining() / 3 * 100"
                  style="transition: width 1s linear"></div>
           </div>
         }
@@ -437,7 +437,7 @@
         @if (game.hintCooldown()) {
           <div class="cooldown-bar-track">
             <div class="cooldown-bar-fill"
-                 [style.width.%]="game.hintCooldownRemaining() / 10 * 100"
+                 [style.width.%]="game.hintCooldownRemaining() / 3 * 100"
                  style="transition: width 1s linear"></div>
           </div>
         }
