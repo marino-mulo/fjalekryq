@@ -292,29 +292,33 @@
   &.hdr-star-lit { fill: #F4B400; filter: drop-shadow(0 1px 4px rgba(244,180,0,0.7)); }
 }
 
-/* ── Info row: stars · difficulty · moves ── */
+/* ── Info row: stars (left) | difficulty (center) | moves (right) ── */
 .info-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 7px;
+  justify-content: space-between;
+  width: 100%;
   margin-bottom: 8px;
-  padding: 6px 14px;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 30px;
+  padding: 4px 0;
 }
 
 .info-stars {
   display: flex;
-  gap: 2px;
+  gap: 3px;
   align-items: center;
+  flex: 1;
+  justify-content: flex-start;
 }
 
-.info-sep {
-  color: rgba(255,255,255,0.25);
-  font-size: 0.8rem;
+/* .diff-label already defined below — it sits in center naturally */
+
+.info-moves {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
 }
 
 .swap-count {
@@ -327,9 +331,9 @@
 
 .swap-label {
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.5);
+  color: rgba(255,255,255,0.45);
   letter-spacing: 0.3px;
 }
 
