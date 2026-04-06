@@ -248,7 +248,7 @@
     <div class="bottom-controls">
       <button #solveBtn class="control-btn solve-btn"
               [class.cooling]="game.solveWordCooldown()"
-              [class.no-coins]="!canAffordSolve()"
+              [class.no-coins]="!isTutorial() && !canAffordSolve()"
               [class.tut-pulsing]="isTutorial() && tutorialPhase() === 7"
               [disabled]="!game.canSolveWord() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 5))"
               (click)="onSolveWord(); solveBtn.blur()">
@@ -267,7 +267,7 @@
       </button>
       <button #hintBtn class="control-btn hint-btn"
               [class.cooling]="game.hintCooldown()"
-              [class.no-coins]="!canAffordHint()"
+              [class.no-coins]="!isTutorial() && !canAffordHint()"
               [class.tut-pulsing]="isTutorial() && tutorialPhase() === 5"
               [disabled]="!game.canHint() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 7))"
               (click)="onHint(); hintBtn.blur()">
