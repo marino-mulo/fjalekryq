@@ -1,6 +1,8 @@
-import { Component, signal, OnInit, OnDestroy } from '@angular/core';
+import { Component, signal, inject, OnInit, OnDestroy } from '@angular/core';
 import { Wordle7Component } from '../games/wordle-7x7/wordle7.component';
 import { LevelMapComponent } from '../level-map/level-map.component';
+import { SettingsModalComponent } from '../shared/settings-modal/settings-modal.component';
+import { CoinService, DAILY_REWARDS } from '../core/services/coin.service';
 
 const LEVEL_KEY = 'fjalekryq_level';
 
@@ -16,19 +18,27 @@ interface BgTile {
   delay: number;
 }
 
-
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [Wordle7Component, LevelMapComponent],
+  imports: [Wordle7Component, LevelMapComponent, SettingsModalComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit, OnDestroy {
+  coinService  = inject(CoinService);
+
   showGame     = signal(false);
   showLevelMap = signal(false);
   level        = signal(1);
   bgTiles      = signal<BgTile[]>([]);
+
+  showSettings    = signal(false);
+  showDailyModal  = signal(false);
+  dailyAvailable  = signal(false);   // whether today's reward is unclaimed
+  claimedReward   = signal<{ amount: number; day: number } | null>(null);
+
+  readonly DAILY_REWARDS = DAILY_REWARDS;
 
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -37,43 +47,56 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
     this.bgTiles.set(this.createBgTiles());
     this.startBgSwaps();
+    this.dailyAvailable.set(this.coinService.peekDaily() !== null);
   }
 
   ngOnDestroy(): void {
     if (this.bgSwapTimer) clearInterval(this.bgSwapTimer);
   }
 
-  /** Play button → show level map */
-  startGame(): void {
-    this.showLevelMap.set(true);
-  }
+  startGame():    void { this.showLevelMap.set(true); }
 
-  /** Tutorial button → skip level map, go straight to game with tutorial flag */
   startTutorial(): void {
     localStorage.setItem('fjalekryq_force_tutorial', 'true');
     this.showGame.set(true);
   }
 
-  /** From level map: user picked a specific level */
   startFromLevel(level: number): void {
     this.level.set(level);
     this.showGame.set(true);
   }
 
-  /** Back from level map → home screen */
   backToHome(): void {
     this.showLevelMap.set(false);
     const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
+    // Refresh daily availability when returning
+    this.dailyAvailable.set(this.coinService.peekDaily() !== null);
   }
 
-  /** Back from game → level map */
   backToMenu(): void {
     const saved = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
     this.level.set(isNaN(saved) || saved < 1 ? 1 : saved);
     this.showGame.set(false);
     this.showLevelMap.set(true);
   }
+
+  openSettings():   void { this.showSettings.set(true); }
+  closeSettings():  void { this.showSettings.set(false); }
+
+  openDailyModal(): void { this.showDailyModal.set(true); }
+  closeDailyModal(): void { this.showDailyModal.set(false); }
+
+  claimTodayReward(): void {
+    const result = this.coinService.claimDaily();
+    if (result) {
+      this.claimedReward.set(result);
+      this.dailyAvailable.set(false);
+    }
+  }
+
+  /** Day index (0-based) for streak display */
+  get currentDay(): number { return this.coinService.currentStreakDay(); }
 
   private createBgTiles(): BgTile[] {
     const tiles: BgTile[] = [];
@@ -107,5 +130,4 @@ export class HomeComponent implements OnInit, OnDestroy {
       }));
     }, 1200);
   }
-
 }

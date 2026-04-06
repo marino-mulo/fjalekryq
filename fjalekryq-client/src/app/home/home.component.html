@@ -1,6 +1,3 @@
-<!-- ══════════════════════════════════════
-     Home screen — title screen
-     ══════════════════════════════════════ -->
 @if (!showLevelMap() && !showGame()) {
   <div class="mobile-menu">
 
@@ -14,6 +11,24 @@
           {{ tile.letter }}
         </div>
       }
+    </div>
+
+    <!-- ── Top header: Settings + Daily Reward ── -->
+    <div class="menu-header">
+      <button class="header-icon-btn" (click)="openSettings()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+
+      <button class="daily-reward-btn" [class.available]="dailyAvailable()" (click)="openDailyModal()">
+        <span class="daily-reward-icon">🎁</span>
+        <span class="daily-reward-label">Bonus Ditor</span>
+        @if (dailyAvailable()) {
+          <span class="daily-dot"></span>
+        }
+      </button>
     </div>
 
     <!-- ── Title area ── -->
@@ -58,20 +73,67 @@
     </div>
 
   </div>
+
+  <!-- Settings modal -->
+  <app-settings-modal [isOpen]="showSettings()" (closed)="closeSettings()" />
+
+  <!-- Daily reward modal -->
+  @if (showDailyModal()) {
+    <div class="daily-overlay" (click)="closeDailyModal()">
+      <div class="daily-modal" (click)="$event.stopPropagation()">
+        <h2 class="daily-modal-title">Bonus Ditor</h2>
+        <p class="daily-modal-sub">Hyr çdo ditë për të fituar monedha!</p>
+
+        <!-- 7-day streak grid -->
+        <div class="streak-grid">
+          @for (reward of DAILY_REWARDS; track $index) {
+            @let dayNum = $index + 1;
+            @let isClaimed = dayNum < currentDay || (dayNum === currentDay && !dailyAvailable());
+            @let isActive = dayNum === currentDay && dailyAvailable();
+            <div class="streak-day"
+                 [class.claimed]="isClaimed"
+                 [class.active]="isActive"
+                 [class.future]="!isClaimed && !isActive">
+              <span class="streak-day-num">Dita {{ dayNum }}</span>
+              <svg width="18" height="18" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+              <span class="streak-coins">{{ reward }}</span>
+              @if (isClaimed) {
+                <svg class="streak-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              }
+            </div>
+          }
+        </div>
+
+        @if (dailyAvailable()) {
+          @let peek = coinService.peekDaily()!;
+          <button class="daily-claim-btn" (click)="claimTodayReward()">
+            Merr +{{ peek.amount }} Monedha Sot!
+          </button>
+        } @else if (claimedReward()) {
+          <div class="daily-claimed-msg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            +{{ claimedReward()!.amount }} monedha u shtuan!
+          </div>
+        } @else {
+          <div class="daily-wait-msg">Kthehuni nesër për bonusin e radhës!</div>
+        }
+
+        <button class="daily-close-btn" (click)="closeDailyModal()">Mbyll</button>
+      </div>
+    </div>
+  }
 }
 
-<!-- ══════════════════════════════════════
-     Level map
-     ══════════════════════════════════════ -->
+<!-- Level map -->
 @if (showLevelMap() && !showGame()) {
   <app-level-map
     (back)="backToHome()"
     (startLevel)="startFromLevel($event)" />
 }
 
-<!-- ══════════════════════════════════════
-     Game
-     ══════════════════════════════════════ -->
+<!-- Game -->
 @if (showGame()) {
   <section class="game-section">
     <app-wordle7 (goBack)="backToMenu()" />

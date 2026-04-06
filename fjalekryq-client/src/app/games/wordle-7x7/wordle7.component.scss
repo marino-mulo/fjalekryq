@@ -232,36 +232,54 @@
   }
 }
 
-/* ── Info button (right) ── */
-.info-icon-btn {
+/* ── Coin badge (absolute right) ── */
+.coin-badge {
   position: absolute;
   right: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(6px);
-  border: 1.5px solid rgba(255, 255, 255, 0.25);
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  color: rgba(255,255,255,0.85);
-  touch-action: manipulation;
-  transition: transform 0.1s, box-shadow 0.1s;
-
-  &:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-  }
 }
 
-/* ── Swap counter (center) ── */
+/* ── Center: difficulty + live stars ── */
+.header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.diff-label {
+  font-family: var(--font-display);
+  font-size: 0.65rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1.5px solid;
+
+  &.diff-easy   { color: #4ADE80; border-color: rgba(74,222,128,0.45); background: rgba(74,222,128,0.1); }
+  &.diff-medium { color: #60A5FA; border-color: rgba(96,165,250,0.45); background: rgba(96,165,250,0.1); }
+  &.diff-hard   { color: #F97316; border-color: rgba(249,115,22,0.45); background: rgba(249,115,22,0.1); }
+  &.diff-expert { color: #E879F9; border-color: rgba(232,121,249,0.45); background: rgba(232,121,249,0.1); }
+}
+
+.header-stars {
+  display: flex;
+  gap: 3px;
+}
+
+.hdr-star {
+  fill: rgba(255,255,255,0.18);
+  transition: fill 0.2s;
+  &.hdr-star-lit { fill: #F4B400; filter: drop-shadow(0 1px 4px rgba(244,180,0,0.7)); }
+}
+
+/* ── Swap counter (below header) ── */
 .swap-counter {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0;
+  margin-bottom: 8px;
 }
 
 .swap-count {
@@ -497,13 +515,36 @@
   }
 }
 
+.control-btn {
+  position: relative;  // needed for cooldown bar absolute positioning
+  overflow: hidden;
+}
+
+/* Cooldown progress bar — sits at bottom of button, depletes left→right */
+.cooldown-bar-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 0 0 18px 18px;
+  overflow: hidden;
+}
+
+.cooldown-bar-fill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.55);
+  border-radius: 0 0 18px 18px;
+}
+
 .solve-btn {
   background: #6aaa64;
   color: #fff;
   box-shadow: 0 8px 24px rgba(106, 170, 100, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
 
   &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
-  &.cooling  { opacity: 0.45; pointer-events: none; }
+  &.cooling  { pointer-events: none; }
   &.no-coins { opacity: 0.55; }
 }
 
@@ -513,7 +554,7 @@
   box-shadow: 0 8px 24px rgba(201, 180, 88, 0.5), inset 0 1px 0 rgba(255,255,255,0.15);
 
   &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
-  &.cooling  { opacity: 0.45; pointer-events: none; }
+  &.cooling  { pointer-events: none; }
   &.no-coins { opacity: 0.55; }
 }
 
@@ -584,8 +625,6 @@
 
 /* Coin badge in top strip */
 .coin-badge {
-  position: absolute;
-  right: 48px; /* just left of info button */
   display: flex;
   align-items: center;
   gap: 4px;

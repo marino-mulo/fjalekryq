@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, Output, EventEmitter, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { retry } from 'rxjs/operators';
+import { NgClass } from '@angular/common';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
 import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
@@ -74,7 +75,7 @@ interface BgTile {
 @Component({
   selector: 'app-wordle7',
   standalone: true,
-  imports: [Wordle7BoardComponent],
+  imports: [Wordle7BoardComponent, NgClass],
   providers: [Wordle7GameService],
   templateUrl: './wordle7.component.html',
   styleUrl: './wordle7.component.scss'
@@ -121,10 +122,32 @@ export class Wordle7Component implements OnInit, OnDestroy {
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
   private pickPraise() { return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)]; }
   private pickIcon()   { return this.ICONS[Math.floor(Math.random() * this.ICONS.length)]; }
+
+  /** Stars based purely on moves remaining: 7+ = 3, 3-6 = 2, 1-2 = 1 */
   private computeStars(): number {
-    if (!this.game.solveWordUsed()) return 3;
-    return this.game.swapsRemaining() >= 3 ? 2 : 1;
+    const rem = this.game.swapsRemaining();
+    if (rem >= 7) return 3;
+    if (rem >= 3) return 2;
+    return 1;
   }
+
+  /** Live star preview shown in the header during play */
+  readonly previewStars = computed(() => {
+    const rem = this.game.swapsRemaining();
+    if (rem >= 7) return 3;
+    if (rem >= 3) return 2;
+    return 1;
+  });
+
+  difficultyLabel    = '';
+  difficultyCssClass = '';
+
+  private readonly DIFF_LABELS: Record<string, string> = {
+    easy: 'E lehtë', medium: 'Mesatare', hard: 'E vështirë', expert: 'Ekspert',
+  };
+  private readonly DIFF_CSS: Record<string, string> = {
+    easy: 'diff-easy', medium: 'diff-medium', hard: 'diff-hard', expert: 'diff-expert',
+  };
 
   constructor() {
     // Phase 2 → 3: advance when first swap happens
@@ -154,6 +177,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.gameHeader.gameColor.set('#22C55E');
     this.gameHeader.dayBarVisible.set(false);
     this.subs.push(this.gameHeader.infoClicked$.subscribe(() => this.openInfo()));
+
+    // Set difficulty label from playing level
+    const playingLevel = parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10);
+    const diff = LEVEL_DIFFICULTY[playingLevel] ?? 'easy';
+    this.difficultyLabel    = this.DIFF_LABELS[diff] ?? diff;
+    this.difficultyCssClass = this.DIFF_CSS[diff] ?? 'diff-easy';
 
     const forceTutorial = localStorage.getItem(FORCE_TUTORIAL_KEY) === 'true';
     if (forceTutorial) localStorage.removeItem(FORCE_TUTORIAL_KEY);
