@@ -128,31 +128,43 @@
 
 <!-- Game Content (board-width container) -->
 <div class="game-content">
-  <!-- Top Strip: Back button + Moves remaining + Info button -->
+  <!-- ── Header: Back | Difficulty + Stars preview | Coins ── -->
   <div class="top-strip">
     <button class="back-btn" (click)="backToMenu()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="15 18 9 12 15 6"/>
       </svg>
     </button>
+
     @if (isCompleted()) {
       <span class="completed-praise-top">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
-    } @else if (!game.gameLost() && !isLoading()) {
-      <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 10 && game.swapsRemaining() > 5" [class.swap-danger]="game.swapsRemaining() <= 5">
-        <span class="swap-count">{{ game.swapsRemaining() }}</span>
-        <span class="swap-label">lëvizje të mbetura</span>
+    } @else if (!game.gameLost() && !isLoading() && !isTutorial()) {
+      <div class="header-center">
+        <span class="diff-label" [ngClass]="difficultyCssClass">{{ difficultyLabel }}</span>
+        <div class="header-stars">
+          @for (i of [1, 2, 3]; track i) {
+            <svg class="hdr-star" [class.hdr-star-lit]="i <= previewStars()"
+                 width="14" height="14" viewBox="0 0 24 24">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          }
+        </div>
       </div>
     }
+
     <div class="coin-badge">
       <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
       <span>{{ coinService.coins() }}</span>
     </div>
-    <button class="info-icon-btn" (click)="openInfo()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/>
-      </svg>
-    </button>
   </div>
+
+  <!-- Moves remaining row (below header, only during active play) -->
+  @if (!isCompleted() && !game.gameLost() && !isLoading()) {
+    <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 10 && game.swapsRemaining() > 5" [class.swap-danger]="game.swapsRemaining() <= 5">
+      <span class="swap-count">{{ game.swapsRemaining() }}</span>
+      <span class="swap-label">lëvizje të mbetura</span>
+    </div>
+  }
 
   @if (!isLoading()) {
     <div class="board-area">
@@ -240,14 +252,18 @@
               [class.tut-pulsing]="isTutorial() && tutorialPhase() === 7"
               [disabled]="!game.canSolveWord() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 5))"
               (click)="onSolveWord(); solveBtn.blur()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
           <polyline points="22 4 12 14.01 9 11.01"/>
         </svg>
-        <span>
-          @if (game.solveWordCooldown()) { {{ game.solveWordCooldownRemaining() }}s }
-          @else { Zgjidh · {{ SOLVE_COST }}<svg width="11" height="11" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:1px"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.7)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg> }
-        </span>
+        <span>Zgjidh · {{ SOLVE_COST }}<svg width="11" height="11" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:1px"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.7)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg></span>
+        @if (game.solveWordCooldown()) {
+          <div class="cooldown-bar-track">
+            <div class="cooldown-bar-fill"
+                 [style.width.%]="game.solveWordCooldownRemaining() / 30 * 100"
+                 style="transition: width 1s linear"></div>
+          </div>
+        }
       </button>
       <button #hintBtn class="control-btn hint-btn"
               [class.cooling]="game.hintCooldown()"
@@ -255,53 +271,19 @@
               [class.tut-pulsing]="isTutorial() && tutorialPhase() === 5"
               [disabled]="!game.canHint() || (isTutorial() && (tutorialPhase() === 2 || tutorialPhase() === 7))"
               (click)="onHint(); hintBtn.blur()">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 18h6"/><path d="M10 22h4"/>
           <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/>
         </svg>
-        <span>
-          @if (game.hintCooldown()) { {{ game.hintCooldownRemaining() }}s }
-          @else { Ndihmë · {{ HINT_COST }}<svg width="11" height="11" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:1px"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.7)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg> }
-        </span>
+        <span>Ndihmë · {{ HINT_COST }}<svg width="11" height="11" viewBox="0 0 24 24" style="vertical-align:middle;margin-left:1px"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.7)"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg></span>
+        @if (game.hintCooldown()) {
+          <div class="cooldown-bar-track">
+            <div class="cooldown-bar-fill"
+                 [style.width.%]="game.hintCooldownRemaining() / 10 * 100"
+                 style="transition: width 1s linear"></div>
+          </div>
+        }
       </button>
     </div>
   }
 </div>
-
-<!-- Info Modal -->
-@if (showInfo) {
-  <div class="modal-overlay active" (click)="closeInfo()">
-    <div class="modal info-modal" (click)="$event.stopPropagation()">
-      <div class="info-header">
-        <h2>Si luhet?</h2>
-        <button class="info-close" (click)="closeInfo()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-        </button>
-      </div>
-      <hr class="info-divider">
-      <span class="info-label">RREGULLAT</span>
-      <div class="info-rules">
-        <p>1. Kliko dy shkronja për t'i shkëmbyer vendin.</p>
-        <p>2. Vendos të gjitha shkronjat në vendin e duhur për të formuar fjalët.</p>
-      </div>
-      <div class="info-cycle">
-        <span>Ngjyrat:</span>
-        <div class="info-colors">
-          <div class="info-color-item">
-            <span class="color-dot color-green"></span>
-            <span>Vendi i duhur</span>
-          </div>
-          <div class="info-color-item">
-            <span class="color-dot color-yellow"></span>
-            <span>Fjala e duhur, vendi i gabuar</span>
-          </div>
-          <div class="info-color-item">
-            <span class="color-dot color-grey"></span>
-            <span>Nuk i përket fjalës</span>
-          </div>
-        </div>
-      </div>
-      <button class="btn btn--primary" (click)="closeInfo()">Luaj</button>
-    </div>
-  </div>
-}

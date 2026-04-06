@@ -1,10 +1,11 @@
 import { Component, OnInit, inject, signal, Output, EventEmitter } from '@angular/core';
 import { CoinService } from '../core/services/coin.service';
+import { SettingsModalComponent } from '../shared/settings-modal/settings-modal.component';
 
 export interface LevelNode {
   level:      number;
-  x:          number;   // SVG/CSS percentage 0–100
-  y:          number;   // SVG/CSS percentage 0–100 (from top of map body)
+  x:          number;
+  y:          number;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   isBoss:     boolean;
 }
@@ -13,7 +14,6 @@ const LEVEL_KEY         = 'fjalekryq_level';
 const PLAYING_LEVEL_KEY = 'fjalekryq_playing_level';
 const STARS_KEY_PREFIX  = 'fjalekryq_stars_';
 
-// Winding path: center → left → right → left → right → center → left → right → center → center(boss)
 const NODES: LevelNode[] = [
   { level: 1,  x: 50, y: 92, difficulty: 'easy',   isBoss: false },
   { level: 2,  x: 21, y: 82, difficulty: 'easy',   isBoss: false },
@@ -30,7 +30,7 @@ const NODES: LevelNode[] = [
 @Component({
   selector: 'app-level-map',
   standalone: true,
-  imports: [],
+  imports: [SettingsModalComponent],
   templateUrl: './level-map.component.html',
   styleUrl:    './level-map.component.scss',
 })
@@ -38,13 +38,12 @@ export class LevelMapComponent implements OnInit {
   @Output() back        = new EventEmitter<void>();
   @Output() startLevel  = new EventEmitter<number>();
 
-  coinService  = inject(CoinService);
-  currentLevel = signal(1);
+  coinService   = inject(CoinService);
+  currentLevel  = signal(1);
+  showSettings  = signal(false);
   levelStars: Record<number, number> = {};
   readonly nodes    = NODES;
   readonly segments = NODES.slice(0, -1).map((n, i) => ({ from: n, to: NODES[i + 1] }));
-
-  dailyReward = signal<{ amount: number; day: number } | null>(null);
 
   ngOnInit(): void {
     const v = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
@@ -53,16 +52,9 @@ export class LevelMapComponent implements OnInit {
       const s = parseInt(localStorage.getItem(`${STARS_KEY_PREFIX}${level}`) ?? '0', 10);
       this.levelStars[level] = isNaN(s) ? 0 : s;
     }
-    // Check and claim daily login reward
-    const reward = this.coinService.claimDaily();
-    if (reward) this.dailyReward.set(reward);
   }
 
-  dismissDaily(): void { this.dailyReward.set(null); }
-
-  getStars(level: number): number {
-    return this.levelStars[level] ?? 0;
-  }
+  getStars(level: number): number { return this.levelStars[level] ?? 0; }
 
   totalStars(): number {
     return Object.values(this.levelStars).reduce((sum, s) => sum + s, 0);
@@ -75,7 +67,6 @@ export class LevelMapComponent implements OnInit {
     return 'locked';
   }
 
-  /** CSS class for each path segment */
   segClass(from: number, to: number): string {
     const cur = this.currentLevel();
     if (to < cur)  return 'seg-done';
@@ -87,7 +78,6 @@ export class LevelMapComponent implements OnInit {
 
   selectLevel(level: number): void {
     if (this.getState(level) === 'locked') return;
-    // Set which level to play WITHOUT touching LEVEL_KEY (player's max progress)
     localStorage.setItem(PLAYING_LEVEL_KEY, String(level));
     this.startLevel.emit(level);
   }
@@ -96,7 +86,6 @@ export class LevelMapComponent implements OnInit {
     return ({ easy: 'E lehtë', medium: 'Mesatare', hard: 'E vështirë', expert: 'Ekspert' } as Record<string,string>)[d] ?? d;
   }
 
-  /** Badge side: left-positioned nodes get right badge, right-positioned get left badge */
   badgeSide(x: number): 'right' | 'left' | 'below' {
     if (x < 40) return 'right';
     if (x > 60) return 'left';
