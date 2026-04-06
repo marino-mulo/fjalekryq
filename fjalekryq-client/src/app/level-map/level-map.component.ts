@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal, Output, EventEmitter } from '@angular/core';
 import { CoinService } from '../core/services/coin.service';
-import { SettingsModalComponent } from '../shared/settings-modal/settings-modal.component';
 
 export interface LevelNode {
   level:      number;
@@ -30,7 +29,7 @@ const NODES: LevelNode[] = [
 @Component({
   selector: 'app-level-map',
   standalone: true,
-  imports: [SettingsModalComponent],
+  imports: [],
   templateUrl: './level-map.component.html',
   styleUrl:    './level-map.component.scss',
 })
@@ -40,7 +39,6 @@ export class LevelMapComponent implements OnInit {
 
   coinService   = inject(CoinService);
   currentLevel  = signal(1);
-  showSettings  = signal(false);
   levelStars: Record<number, number> = {};
   readonly nodes    = NODES;
   readonly segments = NODES.slice(0, -1).map((n, i) => ({ from: n, to: NODES[i + 1] }));

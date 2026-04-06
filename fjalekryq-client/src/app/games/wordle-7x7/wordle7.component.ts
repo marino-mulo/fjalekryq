@@ -116,6 +116,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
   loadingPercent = signal(0);
 
   bgTiles = signal<BgTile[]>([]);
+  puzzleIntroTrigger = signal(0);
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
 
   private readonly ICONS   = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
@@ -340,6 +341,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
         this.stopBgTiles();
         setTimeout(() => {
           this.game.initPuzzle(puzzle);
+          this.puzzleIntroTrigger.update(v => v + 1);
           this.isLoading.set(false);
           this.loadingPercent.set(0);
         }, 300);
