@@ -182,6 +182,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  padding: 6px 0;
+
+  & + .toggle-row {
+    margin-top: 6px;
+  }
 }
 
 .toggle-left {
