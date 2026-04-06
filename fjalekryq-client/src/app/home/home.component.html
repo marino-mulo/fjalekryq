@@ -13,7 +13,7 @@
       }
     </div>
 
-    <!-- ── Top header: Daily Reward (left) + Settings (right) ── -->
+    <!-- ── Top header: Daily Reward (left) + Shop + Settings (right) ── -->
     <div class="menu-header">
       <button class="daily-reward-btn" [class.available]="dailyAvailable()" (click)="openDailyModal()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -28,12 +28,21 @@
         }
       </button>
 
-      <button class="header-icon-btn" (click)="openSettings()">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-        </svg>
-      </button>
+      <div class="header-right-group">
+        <button class="header-icon-btn" (click)="openShop()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12 C8 9.8 9.8 8 12 8 C14.2 8 16 9.8 16 12"/>
+            <text x="12" y="16.5" text-anchor="middle" font-size="7" fill="currentColor" stroke="none" font-weight="bold" font-family="sans-serif">$</text>
+          </svg>
+        </button>
+        <button class="header-icon-btn" (click)="openSettings()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06-.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+        </button>
+      </div>
     </div>
 
     <!-- ── Title area ── -->
@@ -126,6 +135,73 @@
         }
 
         <button class="daily-close-btn" (click)="closeDailyModal()">Mbyll</button>
+      </div>
+    </div>
+  }
+  <!-- Coin shop modal -->
+  @if (showShop()) {
+    <div class="shop-overlay" (click)="closeShop()">
+      <div class="shop-modal" (click)="$event.stopPropagation()">
+        <div class="shop-modal-header">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4B400" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M8 12 C8 9.8 9.8 8 12 8 C14.2 8 16 9.8 16 12"/>
+            <text x="12" y="16.5" text-anchor="middle" font-size="7" fill="#F4B400" stroke="none" font-weight="bold" font-family="sans-serif">$</text>
+          </svg>
+          <h2 class="shop-modal-title">Bli Monedha</h2>
+        </div>
+        <p class="shop-modal-sub">Shto monedha në llogarinë tënde</p>
+
+        <div class="shop-packages">
+
+          <!-- $0.99 — 100 coins -->
+          <button class="shop-pkg">
+            <span class="shop-pkg-price">$0.99</span>
+            <div class="shop-pkg-center">
+              <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+              <span class="shop-pkg-coins">100</span>
+              <span class="shop-pkg-label">monedha</span>
+            </div>
+          </button>
+
+          <!-- $1.99 — 250 coins -->
+          <button class="shop-pkg shop-pkg--popular">
+            <span class="shop-pkg-badge">MÊ E MIRË</span>
+            <span class="shop-pkg-price">$1.99</span>
+            <div class="shop-pkg-center">
+              <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+              <span class="shop-pkg-coins">250</span>
+              <span class="shop-pkg-label">monedha</span>
+            </div>
+          </button>
+
+          <!-- $2.99 — 500 + 50 bonus -->
+          <button class="shop-pkg shop-pkg--bonus">
+            <span class="shop-pkg-price">$2.99</span>
+            <div class="shop-pkg-center">
+              <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+              <span class="shop-pkg-coins">500</span>
+              <span class="shop-pkg-label">monedha</span>
+            </div>
+            <span class="shop-pkg-bonus">+50 BONUS</span>
+          </button>
+
+          <!-- $4.99 — 1000 + 150 bonus -->
+          <button class="shop-pkg shop-pkg--best shop-pkg--bonus">
+            <span class="shop-pkg-badge shop-pkg-badge--gold">VLERA MÊ E MIRË</span>
+            <span class="shop-pkg-price">$4.99</span>
+            <div class="shop-pkg-center">
+              <svg width="34" height="34" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+              <span class="shop-pkg-coins">1000</span>
+              <span class="shop-pkg-label">monedha</span>
+            </div>
+            <span class="shop-pkg-bonus">+150 BONUS</span>
+          </button>
+
+        </div>
+
+        <button class="shop-restore-btn">Rivendos Blerjet</button>
+        <button class="daily-close-btn" (click)="closeShop()">Mbyll</button>
       </div>
     </div>
   }
