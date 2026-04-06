@@ -22,7 +22,7 @@ const LEVEL_DIFFICULTY: Record<number, string> = {
   10: 'expert',
 };
 const DIFFICULTY_COINS: Record<string, number> = {
-  easy: 10, medium: 20, hard: 35, expert: 50,
+  easy: 20, medium: 35, hard: 50, expert: 80,
 };
 
 // 7×7 tutorial: MALI (vertical col 3), BORA (horizontal row 1), DETI (horizontal row 3)

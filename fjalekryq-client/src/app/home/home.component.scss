@@ -104,15 +104,13 @@
 .daily-reward-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
   background: rgba(244, 180, 0, 0.12);
   border: 1.5px solid rgba(244, 180, 0, 0.3);
   border-radius: 12px;
   color: #FFD86B;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 0.82rem;
   touch-action: manipulation;
   transition: transform 0.1s, box-shadow 0.1s;
   position: relative;
@@ -123,11 +121,8 @@
     animation: dailyBtnPulse 2s ease-in-out infinite;
   }
 
-  &:active { transform: scale(0.95); }
+  &:active { transform: scale(0.92); }
 }
-
-.daily-reward-icon { font-size: 1rem; }
-.daily-reward-label { font-size: 0.78rem; letter-spacing: 0.3px; }
 
 .daily-dot {
   position: absolute;

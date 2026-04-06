@@ -8,7 +8,7 @@ const STARTING_COINS = 100;
 
 export const HINT_COST     = 10;
 export const SOLVE_COST    = 50;
-export const DAILY_REWARDS = [20, 25, 30, 40, 50, 75, 100]; // day 1–7 of streak
+export const DAILY_REWARDS = [20, 30, 45, 60, 80, 100, 125]; // day 1–7 of streak
 
 @Injectable({ providedIn: 'root' })
 export class CoinService {
