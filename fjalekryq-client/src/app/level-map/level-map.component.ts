@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, Output, EventEmitter, computed } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, signal, Output, EventEmitter, computed, ElementRef, ViewChild } from '@angular/core';
 import { CoinService } from '../core/services/coin.service';
 
 export interface LevelNode {
@@ -48,9 +48,10 @@ const ALL_NODES = generateNodes();
   templateUrl: './level-map.component.html',
   styleUrl:    './level-map.component.scss',
 })
-export class LevelMapComponent implements OnInit {
+export class LevelMapComponent implements OnInit, AfterViewInit {
   @Output() back        = new EventEmitter<void>();
   @Output() startLevel  = new EventEmitter<number>();
+  @ViewChild('mapBody') mapBodyRef!: ElementRef<HTMLElement>;
 
   coinService   = inject(CoinService);
   currentLevel  = signal(1);
@@ -63,6 +64,16 @@ export class LevelMapComponent implements OnInit {
       const s = parseInt(localStorage.getItem(`${STARS_KEY_PREFIX}${level}`) ?? '0', 10);
       this.levelStars[level] = isNaN(s) ? 0 : s;
     }
+  }
+
+  ngAfterViewInit(): void {
+    // Scroll so the current level node is visible (centred in view)
+    setTimeout(() => {
+      const el = this.mapBodyRef?.nativeElement?.querySelector('.tile-current');
+      if (el) {
+        el.scrollIntoView({ behavior: 'instant', block: 'center' });
+      }
+    }, 50);
   }
 
   /** Nodes visible in the map: all completed + current + next VISIBLE_LOCKED locked */

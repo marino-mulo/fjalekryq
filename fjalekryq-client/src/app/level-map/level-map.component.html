@@ -18,7 +18,7 @@
   </header>
 
   <!-- ── Scrollable map track ── -->
-  <div class="map-body">
+  <div class="map-body" #mapBody>
     <div class="map-track">
 
       @for (node of visibleNodes(); track node.level; let idx = $index) {
