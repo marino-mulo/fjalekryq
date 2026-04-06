@@ -196,11 +196,13 @@ export class Wordle7Component implements OnInit, OnDestroy {
       this.game.setTutorialMode(true);
       this.game.restorePuzzle(TUTORIAL_PUZZLE, TUTORIAL_INITIAL_GRID.map(r => [...r]), 0, 0, 0);
       this.setTutorialPhase(1);
+      setTimeout(() => this.puzzleIntroTrigger.update(v => v + 1), 50);
     } else {
       const playingLevel = parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10);
       const saved = Wordle7GameService.loadSavedState();
       if (saved && saved.puzzle.hash !== 'tutorial_v1' && (saved as any).level === playingLevel) {
         this.game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
+        setTimeout(() => this.puzzleIntroTrigger.update(v => v + 1), 50);
       } else {
         this.loadRandomPuzzle();
       }

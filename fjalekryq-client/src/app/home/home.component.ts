@@ -101,7 +101,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private createBgTiles(): BgTile[] {
     const tiles: BgTile[] = [];
     // 3 rows × 5 cols = 15 tiles, starting below the header (~18%)
-    const rows = [22, 48, 74];
+    const rows = [5, 38, 72];
     for (let r = 0; r < rows.length; r++) {
       for (let c = 0; c < 5; c++) {
         const i = r * 5 + c;
