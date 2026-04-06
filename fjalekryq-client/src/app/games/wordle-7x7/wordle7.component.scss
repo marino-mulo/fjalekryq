@@ -270,14 +270,6 @@
   &:active { transform: scale(0.92); }
 }
 
-/* ── Center: difficulty + live stars ── */
-.header-center {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
 .diff-label {
   font-family: var(--font-display);
   font-size: 0.65rem;
@@ -294,41 +286,51 @@
   &.diff-expert { color: #E879F9; border-color: rgba(168,85,247,0.45); background: rgba(168,85,247,0.25); }
 }
 
-.header-stars {
-  display: flex;
-  gap: 3px;
-}
-
 .hdr-star {
   fill: rgba(255,255,255,0.18);
   transition: fill 0.2s;
   &.hdr-star-lit { fill: #F4B400; filter: drop-shadow(0 1px 4px rgba(244,180,0,0.7)); }
 }
 
-/* ── Swap counter (below header) ── */
-.swap-counter {
+/* ── Info row: stars · difficulty · moves ── */
+.info-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 0;
+  justify-content: center;
+  gap: 7px;
   margin-bottom: 8px;
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 30px;
+}
+
+.info-stars {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.info-sep {
+  color: rgba(255,255,255,0.25);
+  font-size: 0.8rem;
 }
 
 .swap-count {
   font-family: var(--font-display);
   font-weight: 900;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #fff;
   line-height: 1;
 }
 
 .swap-label {
   font-family: var(--font-body);
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.55);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.3px;
 }
 
 /* ══════════════════════════════════════
@@ -644,8 +646,8 @@
   &.no-coins { opacity: 0.55; }
 }
 
-.swap-counter.swap-warning .swap-count { color: #FCD34D; }
-.swap-counter.swap-danger  .swap-count { color: #FCA5A5; }
+.info-row.swap-warning .swap-count { color: #FCD34D; }
+.info-row.swap-danger  .swap-count { color: #FCA5A5; }
 
 /* ══════════════════════════════════════
    Completed: praise in top strip
