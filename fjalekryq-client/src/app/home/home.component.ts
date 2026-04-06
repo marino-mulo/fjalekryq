@@ -87,7 +87,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   openShop():       void { this.showShop.set(true); }
   closeShop():      void { this.showShop.set(false); }
 
-  openDailyModal(): void { this.showDailyModal.set(true); }
+  openDailyModal(): void {
+    this.claimedReward.set(null);
+    this.showDailyModal.set(true);
+  }
   closeDailyModal(): void { this.showDailyModal.set(false); }
 
   claimTodayReward(): void {

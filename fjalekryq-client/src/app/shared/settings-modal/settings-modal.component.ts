@@ -11,6 +11,7 @@ export class SettingsModalComponent {
   isOpen = input(false);
   closed = output<void>();
 
+  musicEnabled             = signal(true);
   soundEnabled             = signal(true);
   notificationsEnabled     = signal(true);
   emailNotificationsEnabled = signal(true);
@@ -22,6 +23,9 @@ export class SettingsModalComponent {
   }
 
   private loadSavedState(): void {
+    const music = localStorage.getItem('fjalekryq_music');
+    this.musicEnabled.set(music === null ? true : music === 'true');
+
     const sound = localStorage.getItem('fjalekryq_sound');
     this.soundEnabled.set(sound === null ? true : sound === 'true');
 
@@ -30,6 +34,12 @@ export class SettingsModalComponent {
 
     const emailNotif = localStorage.getItem('fjalekryq_email_notif');
     this.emailNotificationsEnabled.set(emailNotif === null ? true : emailNotif === 'true');
+  }
+
+  toggleMusic(): void {
+    const next = !this.musicEnabled();
+    this.musicEnabled.set(next);
+    localStorage.setItem('fjalekryq_music', String(next));
   }
 
   toggleSound(): void {

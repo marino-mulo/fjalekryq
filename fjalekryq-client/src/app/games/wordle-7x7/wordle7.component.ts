@@ -115,7 +115,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   completedStars   = signal(0);
   coinsEarned      = signal(0);
   insufficientCoins  = signal<'hint' | 'solve' | null>(null);
-  showAdForSolve     = signal(false);
 
   // Puzzle / loading
   isLoading      = signal(false);
@@ -221,7 +220,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
     this.stopBgTiles();
     if (this.insufficientTimer) { clearTimeout(this.insufficientTimer); this.insufficientTimer = null; }
-    if (this.adForSolveTimer)  { clearTimeout(this.adForSolveTimer);  this.adForSolveTimer = null; }
   }
 
   // ── Tutorial ─────────────────────────────────────────────
@@ -290,22 +288,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
   onSolveWord(): void {
     if (!this.isTutorial()) {
       if (!this.coinService.canAfford(SOLVE_COST)) {
-        this.showAdForSolveOffer();
+        this.showInsufficientCoins('solve');
         return;
       }
       this.coinService.spend(SOLVE_COST);
     }
     this.game.solveWord();
-  }
-
-  private adForSolveTimer: ReturnType<typeof setTimeout> | null = null;
-  private showAdForSolveOffer(): void {
-    this.showAdForSolve.set(true);
-    if (this.adForSolveTimer) clearTimeout(this.adForSolveTimer);
-    this.adForSolveTimer = setTimeout(() => {
-      this.showAdForSolve.set(false);
-      this.adForSolveTimer = null;
-    }, 5000);
   }
 
   private insufficientTimer: ReturnType<typeof setTimeout> | null = null;
