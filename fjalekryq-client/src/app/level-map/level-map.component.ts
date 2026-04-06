@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, inject, signal, Output, EventEmitter } from '@angular/core';
+import { CoinService } from '../core/services/coin.service';
 
 export interface LevelNode {
   level:      number;
@@ -37,10 +38,13 @@ export class LevelMapComponent implements OnInit {
   @Output() back        = new EventEmitter<void>();
   @Output() startLevel  = new EventEmitter<number>();
 
+  coinService  = inject(CoinService);
   currentLevel = signal(1);
   levelStars: Record<number, number> = {};
   readonly nodes    = NODES;
   readonly segments = NODES.slice(0, -1).map((n, i) => ({ from: n, to: NODES[i + 1] }));
+
+  dailyReward = signal<{ amount: number; day: number } | null>(null);
 
   ngOnInit(): void {
     const v = parseInt(localStorage.getItem(LEVEL_KEY) ?? '1', 10);
@@ -49,7 +53,12 @@ export class LevelMapComponent implements OnInit {
       const s = parseInt(localStorage.getItem(`${STARS_KEY_PREFIX}${level}`) ?? '0', 10);
       this.levelStars[level] = isNaN(s) ? 0 : s;
     }
+    // Check and claim daily login reward
+    const reward = this.coinService.claimDaily();
+    if (reward) this.dailyReward.set(reward);
   }
+
+  dismissDaily(): void { this.dailyReward.set(null); }
 
   getStars(level: number): number {
     return this.levelStars[level] ?? 0;
