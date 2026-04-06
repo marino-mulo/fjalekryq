@@ -12,7 +12,8 @@
 }
 
 .tut-modal {
-  background: #fff;
+  background: #0f1d3a;
+  border: 1px solid rgba(255,255,255,0.12);
   border-radius: 20px;
   padding: 28px 24px 24px;
   max-width: 340px;
@@ -21,7 +22,7 @@
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
 }
 
 .tut-step-badge {
@@ -41,14 +42,14 @@
   font-weight: 900;
   text-align: center;
   margin: 0;
-  color: var(--black);
+  color: #fff;
 }
 
 .tut-desc {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.5;
-  color: #444;
+  color: rgba(255,255,255,0.7);
   text-align: center;
 }
 
@@ -76,7 +77,7 @@
     margin: 0;
     font-size: 0.88rem;
     line-height: 1.4;
-    color: #444;
+    color: rgba(255,255,255,0.7);
   }
 }
 
@@ -98,6 +99,50 @@
   &.tut-tile--green  { background: #6aaa64; }
   &.tut-tile--yellow { background: #c9b458; }
   &.tut-tile--grey   { background: #787c7e; }
+}
+
+/* Moves tutorial demo */
+.tut-moves-demo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+}
+
+.tut-moves-count {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+}
+
+.tut-moves-label {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.55);
+  letter-spacing: 0.3px;
+}
+
+.tut-moves-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.tut-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.4;
+
+  svg { flex-shrink: 0; margin-top: 1px; }
 }
 
 /* Button demo (hint / solve preview) */
@@ -150,10 +195,12 @@
 /* ── Non-blocking hint banner (phases 2, 5, 7, 8) ── */
 .tut-hint-banner {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 170px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 400;
+  width: min(calc(100vw - 32px), 398px);
+  text-align: center;
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(10px);
   color: #fff;
@@ -501,10 +548,11 @@
    ══════════════════════════════════════ */
 .game-banner {
   position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 170px);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
   left: 50%;
   transform: translateX(-50%);
   z-index: 400;
+  width: min(calc(100vw - 32px), 398px);
   display: flex;
   align-items: center;
   gap: 8px;

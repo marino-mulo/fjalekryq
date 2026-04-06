@@ -60,8 +60,8 @@ const TUTORIAL_INITIAL_GRID = [
 ];
 
 // tutorialPhase: 0=off, 1=swap modal, 2=interactive swap, 3=colors modal, 4=hint modal,
-//               5=interactive hint, 6=solve modal, 7=interactive solve, 8=done banner
-export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+//               5=interactive hint, 6=moves modal, 7=solve modal, 8=interactive solve, 9=done banner
+export type TutorialPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 const BG_LETTERS = 'ABCDEFGHJKLMNPQRSTUVWXYZ'.split('');
 const BG_COLORS  = ['gold', 'lime', 'grey'] as const;
@@ -170,10 +170,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
       }
     }, { allowSignalWrites: true });
 
-    // Phase 7 → 8: advance when solve is used (cooldown starts)
+    // Phase 8 → 9: advance when solve is used (cooldown starts)
     effect(() => {
-      if (this.isTutorial() && this.tutorialPhase() === 7 && this.game.solveWordCooldown()) {
-        this.setTutorialPhase(8);
+      if (this.isTutorial() && this.tutorialPhase() === 8 && this.game.solveWordCooldown()) {
+        this.setTutorialPhase(9);
       }
     }, { allowSignalWrites: true });
   }
