@@ -35,6 +35,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   showSettings    = signal(false);
   showDailyModal  = signal(false);
+  showShop        = signal(false);
   dailyAvailable  = signal(false);   // whether today's reward is unclaimed
   claimedReward   = signal<{ amount: number; day: number } | null>(null);
 
@@ -83,6 +84,8 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   openSettings():   void { this.showSettings.set(true); }
   closeSettings():  void { this.showSettings.set(false); }
+  openShop():       void { this.showShop.set(true); }
+  closeShop():      void { this.showShop.set(false); }
 
   openDailyModal(): void { this.showDailyModal.set(true); }
   closeDailyModal(): void { this.showDailyModal.set(false); }
