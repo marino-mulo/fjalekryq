@@ -286,10 +286,11 @@
 }
 
 .streak-cell-day {
-  font-size: 0.5rem;
+  font-size: 0.45rem;
   font-weight: 700;
   color: rgba(255, 255, 255, 0.4);
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
+  white-space: nowrap;
 }
 
 /* Today's reward highlight card */
