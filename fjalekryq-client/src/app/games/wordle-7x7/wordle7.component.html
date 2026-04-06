@@ -6,10 +6,10 @@
       <h2 class="tut-title">Shkëmbe Shkronjat</h2>
       <div class="tut-demo">
         <div class="tut-tile tut-tile--grey">F</div>
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2.5" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
         <div class="tut-tile tut-tile--grey">A</div>
       </div>
-      <p class="tut-desc">Tapto dy shkronja njëra pas tjetrës për t'i shkëmbyer vendet dhe formuar fjalët.</p>
+      <p class="tut-desc">Ke <strong>7 lëvizje</strong> dhe <strong>3 yje ⭐⭐⭐</strong> tani! Tapto dy shkronja njëra pas tjetrës për t'i shkëmbyer vendet — çdo shkëmbim zbreson 1 lëvizje.</p>
       <button class="tut-btn" (click)="setTutorialPhase(2)">Gati, po provoj!</button>
     </div>
   </div>
@@ -18,7 +18,7 @@
 <!-- ── Tutorial Phase 2: Interactive swap (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 2) {
   <div class="tut-hint-banner">
-    <span>👆 Tapto dy shkronjat e theksuara me arin</span>
+    <span>👆 Tapto dy shkronjat e theksuara me arin — kosto: 1 lëvizje</span>
   </div>
 }
 
@@ -52,7 +52,7 @@
   <div class="tut-overlay">
     <div class="tut-modal">
       <div class="tut-step-badge">HAPI 3 nga 5</div>
-      <h2 class="tut-title">Butoni "Ndihmë"</h2>
+      <h2 class="tut-title">Butoni "Ndihmë" ⭐</h2>
       <div class="tut-btn-demo hint-demo">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 18h6"/><path d="M10 22h4"/>
@@ -60,7 +60,7 @@
         </svg>
         <span>Ndihmë</span>
       </div>
-      <p class="tut-desc">Ky buton vendos automatikisht <strong>një shkronjë</strong> në vendin e duhur. Nuk zbreson lëvizje.</p>
+      <p class="tut-desc">Vendos <strong>1 shkronjë</strong> automatikisht — <strong>pa shpenzuar lëvizje!</strong> Kjo të ndihmon të mbash yjet. Ke 7 lëvizje = 3 yje. Përdor Ndihmën dhe ruaji!</p>
       <button class="tut-btn" (click)="setTutorialPhase(5)">Kuptova, provoje!</button>
     </div>
   </div>
@@ -69,32 +69,38 @@
 <!-- ── Tutorial Phase 5: Interactive hint (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 5) {
   <div class="tut-hint-banner">
-    <span>💡 Tapo butonin <strong>Ndihmë</strong> më poshtë</span>
+    <span>💡 Tapo <strong>Ndihmën</strong> — falas, pa shpenzuar lëvizje!</span>
   </div>
 }
 
-<!-- ── Tutorial Phase 6: Moves explanation (blocking modal) ── -->
+<!-- ── Tutorial Phase 6: Moves & stars explanation (blocking modal) ── -->
 @if (isTutorial() && tutorialPhase() === 6) {
   <div class="tut-overlay">
     <div class="tut-modal">
       <div class="tut-step-badge">HAPI 4 nga 5</div>
-      <h2 class="tut-title">Lëvizjet e Mbetura</h2>
-      <div class="tut-moves-demo">
-        <span class="tut-moves-count">5</span>
-        <span class="tut-moves-label">lëvizje të mbetura</span>
+      <h2 class="tut-title">Yjet & Lëvizjet</h2>
+      <div class="tut-stars-moves">
+        <div class="tut-star-row">
+          <div class="tut-star-stars">⭐⭐⭐</div>
+          <span class="tut-star-req">7+ lëvizje të mbetura</span>
+        </div>
+        <div class="tut-star-row">
+          <div class="tut-star-stars">⭐⭐</div>
+          <span class="tut-star-req">3 – 6 lëvizje</span>
+        </div>
+        <div class="tut-star-row">
+          <div class="tut-star-stars">⭐</div>
+          <span class="tut-star-req">1 – 2 lëvizje</span>
+        </div>
       </div>
       <div class="tut-moves-rules">
         <div class="tut-rule">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span>Shkëmbimi i shkronjave zbreson 1 lëvizje</span>
+          <span>Çdo shkëmbim zbreson 1 lëvizje</span>
         </div>
         <div class="tut-rule">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FCD34D" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span><strong>Ndihmë</strong> nuk zbreson lëvizje</span>
-        </div>
-        <div class="tut-rule">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-          <span><strong>Zgjidh fjalën</strong> para se të mbarojnë lëvizjet</span>
+          <span><strong>Ndihmë</strong> nuk zbreson — mbron yjet!</span>
         </div>
         <div class="tut-rule">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FCA5A5" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -119,8 +125,8 @@
         </svg>
         <span>Zgjidh</span>
       </div>
-      <p class="tut-desc">Ky buton zgjidh automatikisht <strong>një fjalë të tërë</strong>. Çdo përdorim zbreson lëvizje. Ka pritje 30 sekondash mes dy përdorimeve.</p>
-      <button class="tut-btn" (click)="setTutorialPhase(8)">Kuptova, provoje!</button>
+      <p class="tut-desc">Zgjidh automatikisht <strong>një fjalë të tërë</strong> — por zbreson lëvizje. Përdore me kujdes për të fituar <strong>2 ose 3 yje</strong>. Ka pritje 30 sek mes dy përdorimeve.</p>
+      <button class="tut-btn" (click)="setTutorialPhase(8)">Provoje tani!</button>
     </div>
   </div>
 }
@@ -128,14 +134,14 @@
 <!-- ── Tutorial Phase 8: Interactive solve (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 8) {
   <div class="tut-hint-banner">
-    <span>✅ Tani tapo butonin <strong>Zgjidh</strong> më poshtë</span>
+    <span>✅ Tapo <strong>Zgjidh</strong> — fiton fjalën, kontrollo yjet!</span>
   </div>
 }
 
 <!-- ── Tutorial Phase 9: All done banner ── -->
 @if (isTutorial() && tutorialPhase() === 9) {
   <div class="tut-hint-banner tut-done-banner">
-    <span>🎯 Shkëlqyeshëm! Tani zgjidhe vetë!</span>
+    <span>🎯 Shkëlqyeshëm! Tani zgjidhe vetë për 3 yje!</span>
   </div>
 }
 
