@@ -223,7 +223,7 @@
 
 .daily-modal-sub {
   font-size: 0.78rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.7);
   margin: -6px 0 0;
   text-align: center;
   line-height: 1.4;
@@ -280,15 +280,15 @@
   font-family: var(--font-display);
   font-weight: 900;
   font-size: 0.72rem;
-  color: #FFD86B;
+  color: #FFE580;
   line-height: 1;
-  &.claimed-text { color: #4ADE80; }
+  &.claimed-text { color: #6EF0A4; }
 }
 
 .streak-cell-day {
   font-size: 0.45rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.65);
   letter-spacing: 0.1px;
   white-space: nowrap;
 }
@@ -609,7 +609,7 @@
    ══════════════════════════════════════ */
 .menu-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: stretch;
   gap: 10px;
   width: 100%;
@@ -621,11 +621,13 @@
 /* ── Shared button base ── */
 .btn-play,
 .btn-tutorial {
+  flex: 1;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
+  padding: 16px 20px;
   border-radius: 18px;
   border: none;
   font-family: var(--font-display);
@@ -636,11 +638,12 @@
   &:active { transform: translateY(3px); }
 }
 
-/* ── Play: big primary CTA ── */
+/* ── Play: primary CTA ── */
 .btn-play {
-  padding: 18px 24px;
   background: var(--purple);
   color: #fff;
+  font-size: 1rem;
+  letter-spacing: 1.5px;
   box-shadow:
     0 8px 28px rgba(168, 85, 247, 0.55),
     inset 0 1px 0 rgba(255,255,255,0.2);
@@ -648,41 +651,8 @@
   &:active { box-shadow: 0 3px 10px rgba(168, 85, 247, 0.4); }
 }
 
-.btn-play-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.btn-play-label {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-}
-
-.btn-play-text {
-  font-size: 1.1rem;
-  letter-spacing: 1.5px;
-  line-height: 1;
-}
-
-.btn-level-badge {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.75);
-  letter-spacing: 0.5px;
-  line-height: 1;
-}
-
 /* ── Tutorial: glass secondary ── */
 .btn-tutorial {
-  padding: 14px 20px;
   background: rgba(255, 255, 255, 0.1);
   color: rgba(255, 255, 255, 0.9);
   border: 1.5px solid rgba(255, 255, 255, 0.22);
