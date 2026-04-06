@@ -15,6 +15,7 @@ const FONT_SIZE_MAP: Record<number, number> = { 5: 32, 6: 28, 7: 24, 8: 21, 9: 1
 export class Wordle7BoardComponent {
   @Input({ required: true }) game!: Wordle7GameService;
   @Input() tutorialHighlight: { row: number; col: number }[] = [];
+  @Input() disableSwap = false;
   @Output() win = new EventEmitter<void>();
 
   @Input() set introTrigger(val: number) {
@@ -38,7 +39,7 @@ export class Wordle7BoardComponent {
       if (this.introTimer) clearTimeout(this.introTimer);
       const size = this.gridSize;
       const total = size * size;
-      const duration = 500 + total * 20; // ~1s for 7x7
+      const duration = 800 + total * 25; // ~2s for 7x7
       this.introTimer = setTimeout(() => {
         this.introActive.set(false);
         this.introTimer = null;
@@ -57,7 +58,7 @@ export class Wordle7BoardComponent {
     // Cells radiate outward from centre: cells closer to centre fly first
     const cx = (this.gridSize - 1) / 2;
     const dist = Math.sqrt((row - cx) ** 2 + (col - cx) ** 2);
-    return Math.round(dist * 35);
+    return Math.round(dist * 65);
   }
 
   readonly gap = 3;
@@ -180,6 +181,7 @@ export class Wordle7BoardComponent {
 
   onCellClick(row: number, col: number): void {
     if (this.game.gameWon()) return;
+    if (this.disableSwap) return;
     if (this.isLocked(row, col)) return;
     if (this.tutorialHighlight.length > 0 && !this.isHighlighted(row, col)) return;
     this.game.selectCell(row, col);

@@ -169,7 +169,7 @@
 
   @if (!isLoading()) {
     <div class="board-area">
-      <app-wordle7-board [game]="game" [tutorialHighlight]="tutorialHighlightCells()" [introTrigger]="puzzleIntroTrigger()" (win)="onWin()" />
+      <app-wordle7-board [game]="game" [tutorialHighlight]="tutorialHighlightCells()" [introTrigger]="puzzleIntroTrigger()" [disableSwap]="isTutorial() && (tutorialPhase() === 5 || tutorialPhase() === 7)" (win)="onWin()" />
     </div>
   }
 
