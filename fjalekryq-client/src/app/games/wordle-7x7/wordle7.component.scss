@@ -1113,22 +1113,34 @@
   color: #F4B400;
 }
 
-/* Watch badge on solve button (top-right corner) */
+/* Solve button wrapper — positions the watch badge above */
+.solve-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding-top: 16px; /* reserve space for the badge above */
+}
+
+/* Watch badge — floats above the solve button */
 .watch-badge {
   position: absolute;
-  top: -6px;
-  right: -4px;
-  background: rgba(168, 85, 247, 0.9);
+  top: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(168, 85, 247, 0.92);
   color: #fff;
   font-family: var(--font-display);
   font-size: 0.6rem;
   font-weight: 900;
   letter-spacing: 0.5px;
-  padding: 2px 6px;
+  padding: 2px 8px;
   border-radius: 50px;
   pointer-events: none;
-  z-index: 2;
+  z-index: 5;
   border: 1px solid rgba(255,255,255,0.25);
+  white-space: nowrap;
 }
 
 /* Banner text flex-grows to push button right */
