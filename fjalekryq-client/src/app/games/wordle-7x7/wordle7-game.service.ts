@@ -520,7 +520,7 @@ export class Wordle7GameService {
     this.hintMessageTimer = setTimeout(() => {
       this.hintMessage.set('');
       this.hintMessageTimer = null;
-    }, 4000);
+    }, 5000);
   }
 
   private clearHintState(): void {

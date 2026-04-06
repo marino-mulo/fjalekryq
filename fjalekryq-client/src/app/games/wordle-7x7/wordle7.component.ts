@@ -7,6 +7,7 @@ import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
 import { GameHeaderService } from '../../core/services/game-header.service';
 import { CoinService, HINT_COST, SOLVE_COST } from '../../core/services/coin.service';
+import { SettingsModalComponent } from '../../shared/settings-modal/settings-modal.component';
 
 const LEVEL_KEY          = 'fjalekryq_level';         // player's max progress
 const PLAYING_LEVEL_KEY  = 'fjalekryq_playing_level'; // level currently being played
@@ -75,7 +76,7 @@ interface BgTile {
 @Component({
   selector: 'app-wordle7',
   standalone: true,
-  imports: [Wordle7BoardComponent, NgClass],
+  imports: [Wordle7BoardComponent, NgClass, SettingsModalComponent],
   providers: [Wordle7GameService],
   templateUrl: './wordle7.component.html',
   styleUrl: './wordle7.component.scss'
@@ -103,13 +104,18 @@ export class Wordle7Component implements OnInit, OnDestroy {
   tutorialPhase = signal<TutorialPhase>(0);
   tutorialHighlightCells = signal<{row: number; col: number}[]>([]);
 
+  // Shop / settings in puzzle
+  showShop     = signal(false);
+  showSettings = signal(false);
+
   // Completion
   isCompleted      = signal(false);
   completedPraise  = signal('Bravo!');
   completedIcon    = signal('icons/rewards/rocket.svg');
   completedStars   = signal(0);
   coinsEarned      = signal(0);
-  insufficientCoins = signal<'hint' | 'solve' | null>(null);
+  insufficientCoins  = signal<'hint' | 'solve' | null>(null);
+  showAdForSolve     = signal(false);
 
   // Puzzle / loading
   isLoading      = signal(false);
@@ -215,6 +221,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.subs.forEach(s => s.unsubscribe());
     this.stopBgTiles();
     if (this.insufficientTimer) { clearTimeout(this.insufficientTimer); this.insufficientTimer = null; }
+    if (this.adForSolveTimer)  { clearTimeout(this.adForSolveTimer);  this.adForSolveTimer = null; }
   }
 
   // ── Tutorial ─────────────────────────────────────────────
@@ -281,15 +288,24 @@ export class Wordle7Component implements OnInit, OnDestroy {
   }
 
   onSolveWord(): void {
-    // Free during tutorial
     if (!this.isTutorial()) {
       if (!this.coinService.canAfford(SOLVE_COST)) {
-        this.showInsufficientCoins('solve');
+        this.showAdForSolveOffer();
         return;
       }
       this.coinService.spend(SOLVE_COST);
     }
     this.game.solveWord();
+  }
+
+  private adForSolveTimer: ReturnType<typeof setTimeout> | null = null;
+  private showAdForSolveOffer(): void {
+    this.showAdForSolve.set(true);
+    if (this.adForSolveTimer) clearTimeout(this.adForSolveTimer);
+    this.adForSolveTimer = setTimeout(() => {
+      this.showAdForSolve.set(false);
+      this.adForSolveTimer = null;
+    }, 5000);
   }
 
   private insufficientTimer: ReturnType<typeof setTimeout> | null = null;
@@ -299,7 +315,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.insufficientTimer = setTimeout(() => {
       this.insufficientCoins.set(null);
       this.insufficientTimer = null;
-    }, 2500);
+    }, 5000);
   }
 
   nextLevel(): void {
