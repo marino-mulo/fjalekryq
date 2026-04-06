@@ -1,16 +1,28 @@
-import { Component, OnInit, OnDestroy, inject, signal, Output, EventEmitter, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, Output, EventEmitter, effect } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { retry } from 'rxjs/operators';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
 import { Wordle7GameService } from './wordle7-game.service';
 import { PuzzleService } from '../../core/services/puzzle.service';
 import { GameHeaderService } from '../../core/services/game-header.service';
+import { CoinService, HINT_COST, SOLVE_COST } from '../../core/services/coin.service';
 
 const LEVEL_KEY          = 'fjalekryq_level';         // player's max progress
 const PLAYING_LEVEL_KEY  = 'fjalekryq_playing_level'; // level currently being played
 const TUTORIAL_KEY       = 'fjalekryq_tutorial_done';
 const FORCE_TUTORIAL_KEY = 'fjalekryq_force_tutorial';
 const STARS_KEY_PREFIX   = 'fjalekryq_stars_';
+
+// Coins earned per level clear by difficulty (first clear only)
+const LEVEL_DIFFICULTY: Record<number, string> = {
+  1: 'easy', 2: 'easy', 3: 'easy',
+  4: 'medium', 5: 'medium', 6: 'medium',
+  7: 'hard', 8: 'hard', 9: 'hard',
+  10: 'expert',
+};
+const DIFFICULTY_COINS: Record<string, number> = {
+  easy: 10, medium: 20, hard: 35, expert: 50,
+};
 
 // 7×7 tutorial: MALI (vertical col 3), BORA (horizontal row 1), DETI (horizontal row 3)
 // Intersections: MALI∩BORA at A(1,3), MALI∩DETI at I(3,3)
@@ -70,7 +82,14 @@ interface BgTile {
 export class Wordle7Component implements OnInit, OnDestroy {
   private puzzleService = inject(PuzzleService);
   private gameHeader    = inject(GameHeaderService);
-  game = inject(Wordle7GameService);
+  coinService           = inject(CoinService);
+  game                  = inject(Wordle7GameService);
+
+  readonly HINT_COST  = HINT_COST;
+  readonly SOLVE_COST = SOLVE_COST;
+
+  readonly canAffordHint  = computed(() => this.coinService.canAfford(HINT_COST));
+  readonly canAffordSolve = computed(() => this.coinService.canAfford(SOLVE_COST));
 
   @Output() goBack = new EventEmitter<void>();
 
@@ -84,10 +103,12 @@ export class Wordle7Component implements OnInit, OnDestroy {
   tutorialHighlightCells = signal<{row: number; col: number}[]>([]);
 
   // Completion
-  isCompleted    = signal(false);
-  completedPraise = signal('Bravo!');
-  completedIcon   = signal('icons/rewards/rocket.svg');
-  completedStars  = signal(0);
+  isCompleted      = signal(false);
+  completedPraise  = signal('Bravo!');
+  completedIcon    = signal('icons/rewards/rocket.svg');
+  completedStars   = signal(0);
+  coinsEarned      = signal(0);
+  insufficientCoins = signal<'hint' | 'solve' | null>(null);
 
   // Puzzle / loading
   isLoading      = signal(false);
@@ -161,6 +182,7 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.gameHeader.leaveGame();
     this.subs.forEach(s => s.unsubscribe());
     this.stopBgTiles();
+    if (this.insufficientTimer) { clearTimeout(this.insufficientTimer); this.insufficientTimer = null; }
   }
 
   // ── Tutorial ─────────────────────────────────────────────
@@ -196,15 +218,51 @@ export class Wordle7Component implements OnInit, OnDestroy {
         try { localStorage.setItem(starsKey, String(stars)); } catch { /* ignore */ }
       }
 
+      // Award coins only on first clear of this level
+      const isFirstClear = playingLevel >= progress;
+      if (isFirstClear) {
+        const diff = LEVEL_DIFFICULTY[playingLevel] ?? 'easy';
+        const earned = DIFFICULTY_COINS[diff] ?? 10;
+        this.coinsEarned.set(earned);
+        this.coinService.add(earned);
+      } else {
+        this.coinsEarned.set(0);
+      }
+
       // Advance progress immediately so the map shows the level as done
-      if (playingLevel >= progress && playingLevel < 10) {
+      if (isFirstClear && playingLevel < 10) {
         try { localStorage.setItem(LEVEL_KEY, String(playingLevel + 1)); } catch { /* ignore */ }
       }
     }
   }
 
-  onHint(): void      { this.game.hint(); }
-  onSolveWord(): void { this.game.solveWord(); }
+  onHint(): void {
+    if (!this.coinService.canAfford(HINT_COST)) {
+      this.showInsufficientCoins('hint');
+      return;
+    }
+    this.game.hint();
+    this.coinService.spend(HINT_COST);
+  }
+
+  onSolveWord(): void {
+    if (!this.coinService.canAfford(SOLVE_COST)) {
+      this.showInsufficientCoins('solve');
+      return;
+    }
+    this.game.solveWord();
+    this.coinService.spend(SOLVE_COST);
+  }
+
+  private insufficientTimer: ReturnType<typeof setTimeout> | null = null;
+  private showInsufficientCoins(type: 'hint' | 'solve'): void {
+    this.insufficientCoins.set(type);
+    if (this.insufficientTimer) clearTimeout(this.insufficientTimer);
+    this.insufficientTimer = setTimeout(() => {
+      this.insufficientCoins.set(null);
+      this.insufficientTimer = null;
+    }, 2500);
+  }
 
   nextLevel(): void {
     if (this.isTutorial()) {

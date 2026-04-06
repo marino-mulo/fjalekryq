@@ -99,11 +99,18 @@
   margin: 0;
 }
 
-.map-stars-badge {
+.map-header-right {
   position: absolute;
   right: 16px;
   top: calc(env(safe-area-inset-top, 0px) + 14px);
-  height: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.map-stars-badge {
+  height: 36px;
   display: flex;
   align-items: center;
   gap: 5px;
@@ -119,6 +126,123 @@
     font-weight: 900;
     color: #F4B400;
   }
+}
+
+.map-coin-badge {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(244, 180, 0, 0.12);
+  border: 1.5px solid rgba(244, 180, 0, 0.35);
+  border-radius: 10px;
+  padding: 0 10px;
+  backdrop-filter: blur(6px);
+
+  span {
+    font-family: var(--font-display);
+    font-size: 0.8rem;
+    font-weight: 900;
+    color: #FFD86B;
+  }
+}
+
+/* Daily reward modal */
+.daily-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  background: rgba(0, 0, 0, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: overlayFadeIn 0.25s ease;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.daily-modal {
+  background: #0F2251;
+  border: 1.5px solid rgba(255,255,255,0.12);
+  border-radius: 22px;
+  padding: 32px 28px 28px;
+  max-width: 320px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  animation: dailyPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes dailyPop {
+  from { opacity: 0; transform: scale(0.75); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.daily-icon {
+  font-size: 3rem;
+  line-height: 1;
+  animation: dailyBounce 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes dailyBounce {
+  from { transform: scale(0); }
+  to   { transform: scale(1); }
+}
+
+.daily-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+}
+
+.daily-day {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.5);
+  margin: 0;
+}
+
+.daily-reward {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 900;
+  color: #FFD86B;
+  animation: coinsEarnedPop 0.4s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes coinsEarnedPop {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.daily-btn {
+  width: 100%;
+  background: #F4B400;
+  color: #3a2c00;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1.1rem;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(244, 180, 0, 0.5);
+  touch-action: manipulation;
+  transition: transform 0.1s, box-shadow 0.1s;
+  margin-top: 4px;
+
+  &:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(244,180,0,0.35); }
 }
 
 /* ══════════════════════════════════════

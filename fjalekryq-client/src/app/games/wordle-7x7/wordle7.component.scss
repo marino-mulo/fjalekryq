@@ -504,6 +504,7 @@
 
   &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
   &.cooling  { opacity: 0.45; pointer-events: none; }
+  &.no-coins { opacity: 0.55; }
 }
 
 .hint-btn {
@@ -513,6 +514,7 @@
 
   &:disabled { background: rgba(255,255,255,0.08); box-shadow: none; color: rgba(255,255,255,0.3); }
   &.cooling  { opacity: 0.45; pointer-events: none; }
+  &.no-coins { opacity: 0.55; }
 }
 
 .swap-counter.swap-warning .swap-count { color: #FCD34D; }
@@ -578,6 +580,62 @@
   box-shadow: 0 6px 20px rgba(21, 128, 61, 0.45);
   transition: transform 0.1s, box-shadow 0.1s;
   &:active { transform: translateY(2px); box-shadow: 0 2px 8px rgba(21,128,61,0.3); }
+}
+
+/* Coin badge in top strip */
+.coin-badge {
+  position: absolute;
+  right: 48px; /* just left of info button */
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(244, 180, 0, 0.15);
+  border: 1.5px solid rgba(244, 180, 0, 0.4);
+  border-radius: 20px;
+  padding: 4px 10px 4px 7px;
+
+  span {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 0.85rem;
+    color: #FFD86B;
+  }
+}
+
+/* Coins earned on completion */
+.coins-earned {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 1rem;
+  color: #FFD86B;
+  animation: coinsEarnedPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes coinsEarnedPop {
+  from { opacity: 0; transform: scale(0.7); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Insufficient coins toast */
+.insufficient-coins-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 9px 16px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1.5px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #FCA5A5;
+  animation: hintFadeIn 0.2s ease;
 }
 
 /* Stars on completion screen */

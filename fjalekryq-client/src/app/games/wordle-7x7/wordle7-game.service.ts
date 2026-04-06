@@ -277,7 +277,11 @@ export class Wordle7GameService {
     }
   }
 
-  /** Scramble all letter cells randomly */
+  /** Scramble all letter cells, pre-solving 15–20% to give the player
+   *  a starting foothold. The pre-solved cells are always green.
+   *  The remaining letters are shuffled randomly, which naturally produces
+   *  yellows because displaced letters often land in cells belonging to
+   *  other words that share those letters. */
   private scrambleGrid(solution: string[][]): string[][] {
     const size = this.gridSize;
     const letters: string[] = [];
@@ -292,21 +296,35 @@ export class Wordle7GameService {
       }
     }
 
-    let attempts = 0;
-    let shuffled: string[];
-    do {
-      shuffled = [...letters];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      attempts++;
-    } while (attempts < 100 && shuffled.every((l, i) => l === letters[i]));
+    const total = letters.length;
 
+    // Pick how many cells to pre-solve: 15–20% of total filled cells, min 1
+    const targetGreen = Math.max(1, Math.round(total * (0.15 + Math.random() * 0.05)));
+
+    // Choose which indices to pre-solve (random selection, no repeats)
+    const allIndices = Array.from({ length: total }, (_, i) => i);
+    for (let i = allIndices.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [allIndices[i], allIndices[j]] = [allIndices[j], allIndices[i]];
+    }
+    const preSolvedSet = new Set(allIndices.slice(0, targetGreen));
+
+    // Collect the free (non-pre-solved) indices and their letters, then shuffle them
+    const freeIndices = allIndices.slice(targetGreen); // remaining indices (already shuffled)
+    const freeLetters = freeIndices.map(i => letters[i]);
+
+    // Fisher-Yates shuffle of free letters
+    for (let i = freeLetters.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [freeLetters[i], freeLetters[j]] = [freeLetters[j], freeLetters[i]];
+    }
+
+    // Build result grid
     const grid = solution.map(r => [...r]);
-    for (let i = 0; i < positions.length; i++) {
+    let fi = 0;
+    for (let i = 0; i < total; i++) {
       const [r, c] = positions[i];
-      grid[r][c] = shuffled[i];
+      grid[r][c] = preSolvedSet.has(i) ? letters[i] : freeLetters[fi++];
     }
     return grid;
   }
