@@ -1,62 +1,262 @@
-.settings-modal {
-  max-width: 420px;
-  padding: 36px 32px;
-  position: relative;
-  text-align: left;
+/* ══════════════════════════════════════
+   Settings modal — dark navy game UI
+   ══════════════════════════════════════ */
+
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-.modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ── Overlay ── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+/* ── Modal container ── */
+.settings-modal {
+  background: linear-gradient(160deg, #0F2251 0%, #0a1a3e 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+  padding: 24px 20px 20px;
+  width: 100%;
+  max-width: 380px;
+  max-height: 85vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
+  animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  /* Thin scrollbar for overflow content */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+  &::-webkit-scrollbar { width: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+  }
+}
+
+/* ── Header ── */
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.settings-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-title {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #fff;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.settings-close-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
-  border: none;
-  background: transparent;
-  color: #aaa;
+  color: rgba(255, 255, 255, 0.55);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background 0.15s, color 0.15s, transform 0.1s;
+  flex-shrink: 0;
 
   &:hover {
-    background: #f5f5f5;
-    color: #666;
+    background: rgba(255, 255, 255, 0.14);
+    color: rgba(255, 255, 255, 0.9);
   }
+
+  &:active { transform: scale(0.9); }
 }
 
+/* ── Divider ── */
+.settings-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  margin: 0 -4px;
+}
+
+/* ── Generic section wrapper ── */
 .settings-section {
-  margin-top: 16px;
+  padding: 16px 0;
 }
 
-.section-header {
+/* ── Section label (small caps above content) ── */
+.section-label {
+  font-family: var(--font-display);
+  font-size: 0.6rem;
+  font-weight: 900;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 10px;
+}
+
+/* For email section header (icon + label inline) */
+.section-label-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
+  margin-bottom: 6px;
 
-  h2 {
-    font-family: var(--font-display);
-    font-size: 1.15rem;
-    font-weight: 800;
-    margin: 0;
-    color: var(--black);
-  }
-
-  svg {
-    flex-shrink: 0;
-    opacity: 0.7;
+  .section-label {
+    margin-bottom: 0;
   }
 }
 
+/* ── Profile row ── */
+.profile-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.profile-name {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1;
+}
+
+.profile-sub {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1;
+}
+
+/* ── Toggle row ── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.toggle-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.toggle-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toggle-label {
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* ── Toggle switch pill ── */
+.toggle-switch {
+  position: relative;
+  width: 50px;
+  height: 28px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: background 0.25s ease, border-color 0.25s ease;
+  flex-shrink: 0;
+  padding: 0;
+
+  &.on {
+    background: #22C55E;
+    border-color: #16a34a;
+  }
+
+  &:active { transform: scale(0.95); }
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  .toggle-switch.on & {
+    transform: translateX(22px);
+  }
+}
+
+/* ── Email section desc ── */
 .section-desc {
-  font-size: 0.82rem;
-  color: #777;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.4);
   line-height: 1.5;
-  margin: 6px 0 16px;
+  margin: 0 0 12px;
 }
 
+/* ── Email form ── */
 .email-form {
   display: flex;
   gap: 8px;
@@ -64,126 +264,142 @@
 
 .email-input {
   flex: 1;
+  min-width: 0;
   padding: 10px 14px;
-  border: 2px solid #e2e2e2;
-  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   font-family: var(--font-body);
-  font-size: 0.88rem;
-  background: var(--cream);
-  color: var(--black);
+  font-size: 0.85rem;
+  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 
   &::placeholder {
-    color: #b5b5b5;
+    color: rgba(255, 255, 255, 0.3);
   }
 
   &:focus {
-    border-color: var(--black);
-    background: var(--white);
+    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.1);
   }
 }
 
-.btn {
+.subscribe-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 18px;
-  border: 2px solid var(--black);
-  border-radius: 10px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  border-radius: 12px;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
+  color: #fff;
   cursor: pointer;
-  transition: all 0.15s;
   white-space: nowrap;
-  min-width: 120px;
-  box-shadow: 2px 2px 0 var(--black);
+  transition: background 0.15s, transform 0.1s;
+  min-width: 110px;
 
-  &:active {
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  &:active:not(:disabled) {
     transform: translateY(1px);
-    box-shadow: 1px 1px 0 var(--black);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
 
-.btn--subscribe {
-  background: var(--black);
-  color: var(--white);
-
-  &:hover:not(:disabled) {
-    background: #333;
-  }
-}
-
+/* ── Subscribed state ── */
 .subscribed-state {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 10px;
-
-  svg {
-    flex-shrink: 0;
-  }
+  padding: 12px 14px;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1.5px solid rgba(74, 222, 128, 0.3);
+  border-radius: 12px;
 }
 
 .subscribed-text {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #16a34a;
+  color: #4ADE80;
   word-break: break-all;
 }
 
+/* ── Status message ── */
+.status-msg {
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin: 10px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  line-height: 1.4;
+
+  &.success {
+    color: #4ADE80;
+    background: rgba(74, 222, 128, 0.1);
+    border: 1.5px solid rgba(74, 222, 128, 0.3);
+  }
+
+  &.error {
+    color: #f87171;
+    background: rgba(248, 113, 113, 0.1);
+    border: 1.5px solid rgba(248, 113, 113, 0.3);
+  }
+}
+
+/* ── Spinner ── */
 .spinner {
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: currentColor;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+/* ── Bottom close button ── */
+.settings-close-bottom {
+  margin-top: 4px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1.5px solid rgba(255, 255, 255, 0.13);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 12px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
 
-.status-msg {
-  font-size: 0.82rem;
-  font-weight: 600;
-  margin: 12px 0 0;
-  padding: 8px 12px;
-  border-radius: 8px;
-
-  &.success {
-    color: #16a34a;
-    background: #f0fdf4;
-    border: 1px solid #bbf7d0;
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
   }
 
-  &.error {
-    color: #dc2626;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
-  }
+  &:active { transform: scale(0.97); }
 }
 
+/* ── Mobile tweaks ── */
 @media (max-width: 480px) {
   .settings-modal {
-    padding: 28px 24px;
+    padding: 20px 16px 16px;
   }
 
   .email-form {
     flex-direction: column;
   }
 
-  .btn {
+  .subscribe-btn {
     min-width: unset;
+    width: 100%;
   }
 }

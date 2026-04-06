@@ -1,4 +1,4 @@
-import { Component, input, output, inject, effect } from '@angular/core';
+import { Component, input, output, inject, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SubscriptionService } from '../../core/services/subscription.service';
 
@@ -21,6 +21,9 @@ export class SettingsModalComponent {
   statusType: 'success' | 'error' | '' = '';
   loading = false;
 
+  soundEnabled = signal(true);
+  notificationsEnabled = signal(true);
+
   private emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   constructor() {
@@ -34,11 +37,30 @@ export class SettingsModalComponent {
   private loadSavedState(): void {
     this.statusMessage = '';
     this.statusType = '';
+
     const saved = localStorage.getItem('ll_subscribed_email');
     if (saved) {
       this.email = saved;
       this.subscribed = true;
     }
+
+    const sound = localStorage.getItem('fjalekryq_sound');
+    this.soundEnabled.set(sound === null ? true : sound === 'true');
+
+    const notif = localStorage.getItem('fjalekryq_notif');
+    this.notificationsEnabled.set(notif === null ? true : notif === 'true');
+  }
+
+  toggleSound(): void {
+    const next = !this.soundEnabled();
+    this.soundEnabled.set(next);
+    localStorage.setItem('fjalekryq_sound', String(next));
+  }
+
+  toggleNotifications(): void {
+    const next = !this.notificationsEnabled();
+    this.notificationsEnabled.set(next);
+    localStorage.setItem('fjalekryq_notif', String(next));
   }
 
   close(): void {
