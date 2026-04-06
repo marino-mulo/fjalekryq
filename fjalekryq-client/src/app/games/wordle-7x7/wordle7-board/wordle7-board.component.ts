@@ -17,11 +17,48 @@ export class Wordle7BoardComponent {
   @Input() tutorialHighlight: { row: number; col: number }[] = [];
   @Output() win = new EventEmitter<void>();
 
+  @Input() set introTrigger(val: number) {
+    if (val > 0) this.playIntro();
+  }
+
   private winEmitted = false;
   private previousWonState = false;
 
   readonly flyingCells = signal<Array<{ row: number; col: number; fromDx: number; fromDy: number }>>([]);
   private flyTimer: ReturnType<typeof setTimeout> | null = null;
+
+  readonly introActive = signal(false);
+  private introTimer: ReturnType<typeof setTimeout> | null = null;
+
+  playIntro(): void {
+    this.introActive.set(false);
+    // Force reflow so animation restarts cleanly
+    setTimeout(() => {
+      this.introActive.set(true);
+      if (this.introTimer) clearTimeout(this.introTimer);
+      const size = this.gridSize;
+      const total = size * size;
+      const duration = 500 + total * 20; // ~1s for 7x7
+      this.introTimer = setTimeout(() => {
+        this.introActive.set(false);
+        this.introTimer = null;
+      }, duration + 100);
+    }, 20);
+  }
+
+  /** Offset to translate cell FROM centre of board */
+  getIntroDx(col: number): number {
+    return this.svgWidth  / 2 - (this.cellX(col) + this.cellSize / 2);
+  }
+  getIntroDy(row: number): number {
+    return this.svgHeight / 2 - (this.cellY(row) + this.cellSize / 2);
+  }
+  getIntroDelay(row: number, col: number): number {
+    // Cells radiate outward from centre: cells closer to centre fly first
+    const cx = (this.gridSize - 1) / 2;
+    const dist = Math.sqrt((row - cx) ** 2 + (col - cx) ** 2);
+    return Math.round(dist * 35);
+  }
 
   readonly gap = 3;
   readonly borderWidth = 2.5;

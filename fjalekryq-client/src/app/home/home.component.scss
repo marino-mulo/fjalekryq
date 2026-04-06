@@ -24,10 +24,11 @@
     linear-gradient(180deg, #0C1F4A 0%, #123B86 48%, #07152F 100%);
 }
 
-/* ── Background animated tiles ── */
+/* ── Background animated tiles (below header) ── */
 .bg-tiles {
   position: absolute;
   inset: 0;
+  top: 15%; /* start below the header so tiles never overlap it */
   pointer-events: none;
   z-index: 0;
 }

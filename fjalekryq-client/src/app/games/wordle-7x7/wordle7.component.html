@@ -126,39 +126,40 @@
   </div>
 }
 
+<!-- ── Header (full-width, outside board container) ── -->
+<div class="top-strip">
+  <button class="back-btn" (click)="backToMenu()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="15 18 9 12 15 6"/>
+    </svg>
+  </button>
+
+  @if (isCompleted()) {
+    <span class="completed-praise-top">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
+  } @else if (!game.gameLost() && !isLoading() && !isTutorial()) {
+    <div class="header-center">
+      <span class="diff-label" [ngClass]="difficultyCssClass">{{ difficultyLabel }}</span>
+      <div class="header-stars">
+        @for (i of [1, 2, 3]; track i) {
+          <svg class="hdr-star" [class.hdr-star-lit]="i <= previewStars()"
+               width="14" height="14" viewBox="0 0 24 24">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        }
+      </div>
+    </div>
+  }
+
+  <div class="coin-badge">
+    <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+    <span>{{ coinService.coins() }}</span>
+  </div>
+</div>
+
 <!-- Game Content (board-width container) -->
 <div class="game-content">
-  <!-- ── Header: Back | Difficulty + Stars preview | Coins ── -->
-  <div class="top-strip">
-    <button class="back-btn" (click)="backToMenu()">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="15 18 9 12 15 6"/>
-      </svg>
-    </button>
 
-    @if (isCompleted()) {
-      <span class="completed-praise-top">{{ isTutorial() ? 'Bravo! E ke kuptuar!' : completedPraise() }}</span>
-    } @else if (!game.gameLost() && !isLoading() && !isTutorial()) {
-      <div class="header-center">
-        <span class="diff-label" [ngClass]="difficultyCssClass">{{ difficultyLabel }}</span>
-        <div class="header-stars">
-          @for (i of [1, 2, 3]; track i) {
-            <svg class="hdr-star" [class.hdr-star-lit]="i <= previewStars()"
-                 width="14" height="14" viewBox="0 0 24 24">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-          }
-        </div>
-      </div>
-    }
-
-    <div class="coin-badge">
-      <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
-      <span>{{ coinService.coins() }}</span>
-    </div>
-  </div>
-
-  <!-- Moves remaining row (below header, only during active play) -->
+  <!-- Moves remaining row -->
   @if (!isCompleted() && !game.gameLost() && !isLoading()) {
     <div class="swap-counter" [class.swap-warning]="game.swapsRemaining() <= 10 && game.swapsRemaining() > 5" [class.swap-danger]="game.swapsRemaining() <= 5">
       <span class="swap-count">{{ game.swapsRemaining() }}</span>
@@ -168,7 +169,7 @@
 
   @if (!isLoading()) {
     <div class="board-area">
-      <app-wordle7-board [game]="game" [tutorialHighlight]="tutorialHighlightCells()" (win)="onWin()" />
+      <app-wordle7-board [game]="game" [tutorialHighlight]="tutorialHighlightCells()" [introTrigger]="puzzleIntroTrigger()" (win)="onWin()" />
     </div>
   }
 

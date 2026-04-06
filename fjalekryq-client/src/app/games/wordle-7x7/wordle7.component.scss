@@ -186,10 +186,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* Top safe area + padding, bottom safe area + padding */
+  /* No top padding — header handles safe area */
   padding:
-    calc(env(safe-area-inset-top, 0px) + 16px)
-    16px
+    0
+    0
     calc(env(safe-area-inset-bottom, 0px) + 40px);
   min-height: 100dvh;
   width: 100%;
@@ -205,8 +205,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  width: calc(100% + 32px); /* span full width (parent has 16px padding each side) */
-  margin: calc(-1 * (env(safe-area-inset-top, 0px) + 16px)) -16px 12px;
+  width: 100%;
   padding:
     calc(env(safe-area-inset-top, 0px) + 12px)
     16px
@@ -216,12 +215,13 @@
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   min-height: calc(env(safe-area-inset-top, 0px) + 56px);
   box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 /* ── Back button (left) ── */
 .back-btn {
   position: absolute;
-  left: 0;
+  left: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -245,7 +245,7 @@
 /* ── Coin badge (absolute right) ── */
 .coin-badge {
   position: absolute;
-  right: 0;
+  right: 16px;
 }
 
 /* ── Center: difficulty + live stars ── */
@@ -318,6 +318,8 @@
   align-items: center;
   width: 100%;
   max-width: 430px;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .board-area {

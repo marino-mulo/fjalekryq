@@ -118,6 +118,30 @@
 }
 
 /* ══════════════════════════════════════
+   Puzzle start intro — letters burst from centre
+   ══════════════════════════════════════ */
+.cell-intro {
+  animation: cellIntro 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes cellIntro {
+  0% {
+    transform: translate(var(--intro-dx, 0px), var(--intro-dy, 0px)) scale(0);
+    opacity: 0;
+  }
+  70% {
+    transform: translate(0px, 0px) scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+    opacity: 1;
+  }
+}
+
+/* ══════════════════════════════════════
    Hint swap highlight
    ══════════════════════════════════════ */
 .hint-swap-ring {

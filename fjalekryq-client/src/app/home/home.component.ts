@@ -100,15 +100,16 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private createBgTiles(): BgTile[] {
     const tiles: BgTile[] = [];
-    const rows = [5, 24, 44, 64, 82];
+    // 3 rows × 5 cols = 15 tiles, starting below the header (~18%)
+    const rows = [22, 48, 74];
     for (let r = 0; r < rows.length; r++) {
-      for (let c = 0; c < 6; c++) {
-        const i = r * 6 + c;
+      for (let c = 0; c < 5; c++) {
+        const i = r * 5 + c;
         tiles.push({
           id: i,
           letter: LETTERS[Math.floor(Math.random() * LETTERS.length)],
-          x: 4 + c * 15.5 + (Math.random() - 0.5) * 6,
-          y: rows[r] + (Math.random() - 0.5) * 8,
+          x: 6 + c * 20 + (Math.random() - 0.5) * 8,
+          y: rows[r] + (Math.random() - 0.5) * 10,
           color: COLORS[i % 3],
           delay: Math.random() * 4,
         });

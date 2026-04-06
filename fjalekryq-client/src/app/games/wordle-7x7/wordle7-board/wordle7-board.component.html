@@ -14,7 +14,11 @@
         @let fly = getCellFly(cell.row, cell.col);
         <g [class.cell-flying]="fly !== null"
            [style.--from-dx]="fly ? fly.fromDx + 'px' : '0px'"
-           [style.--from-dy]="fly ? fly.fromDy + 'px' : '0px'">
+           [style.--from-dy]="fly ? fly.fromDy + 'px' : '0px'"
+           [class.cell-intro]="introActive()"
+           [style.--intro-dx.px]="getIntroDx(cell.col)"
+           [style.--intro-dy.px]="getIntroDy(cell.row)"
+           [style.animation-delay.ms]="introActive() ? getIntroDelay(cell.row, cell.col) : 0">
 
           <!-- Letter cell -->
           <rect [attr.x]="cellX(cell.col)" [attr.y]="cellY(cell.row)"
