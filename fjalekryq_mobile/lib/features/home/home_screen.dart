@@ -11,6 +11,7 @@ import '../level_map/level_map_screen.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
+import 'leaderboard_section.dart';
 
 const _levelKey = 'fjalekryq_level';
 const _letters = 'ABCÇDEHIMNOPRSTUVXZ';
@@ -227,75 +228,89 @@ class _HomeScreenState extends State<HomeScreen>
               opacity: _fadeAnim,
               child: SlideTransition(
                 position: _slideAnim,
-                child: Column(
-                  children: [
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
                     // Header row
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(
-                        children: [
-                          _HeaderButton(
-                            icon: Icons.card_giftcard,
-                            onTap: _openDailyReward,
-                            showDot: dailyAvailable,
-                          ),
-                          const Spacer(),
-                          _HeaderButton(
-                            icon: Icons.settings,
-                            onTap: _openSettings,
-                          ),
-                        ],
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: Row(
+                          children: [
+                            _HeaderButton(
+                              icon: Icons.card_giftcard,
+                              onTap: _openDailyReward,
+                              showDot: dailyAvailable,
+                            ),
+                            const Spacer(),
+                            _HeaderButton(
+                              icon: Icons.settings,
+                              onTap: _openSettings,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
-                    const Spacer(flex: 3),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                     // Logo area
-                    _buildLogoSection(),
+                    SliverToBoxAdapter(child: _buildLogoSection()),
 
-                    const Spacer(flex: 3),
+                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                     // CTA buttons
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        children: [
-                          GlassButton(
-                            label: 'LUAJ',
-                            icon: Icons.play_arrow,
-                            onTap: _openLevelMap,
-                            expanded: true,
-                            height: 54,
-                          ),
-                          const SizedBox(height: 14),
-                          GlassButton(
-                            label: 'Si të luash',
-                            icon: Icons.info_outline,
-                            onTap: _startTutorial,
-                            color: AppColors.surface,
-                            expanded: true,
-                            height: 48,
-                          ),
-                        ],
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        child: Column(
+                          children: [
+                            GlassButton(
+                              label: 'LUAJ',
+                              icon: Icons.play_arrow,
+                              onTap: _openLevelMap,
+                              expanded: true,
+                              height: 54,
+                            ),
+                            const SizedBox(height: 14),
+                            GlassButton(
+                              label: 'Si të luash',
+                              icon: Icons.info_outline,
+                              onTap: _startTutorial,
+                              color: AppColors.surface,
+                              expanded: true,
+                              height: 48,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
-                    const Spacer(flex: 4),
+                    const SliverToBoxAdapter(child: SizedBox(height: 28)),
+
+                    // Leaderboard
+                    const SliverToBoxAdapter(
+                      child: LeaderboardSection(),
+                    ),
+
+                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                     // Social icons footer
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 28),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _socialIcon(Icons.camera_alt_outlined),
-                          Container(
-                            width: 1, height: 16,
-                            color: Colors.white10,
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          _socialIcon(Icons.music_note_outlined),
-                        ],
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 28),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _socialIcon(Icons.camera_alt_outlined),
+                            Container(
+                              width: 1, height: 16,
+                              color: Colors.white10,
+                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                            ),
+                            _socialIcon(Icons.music_note_outlined),
+                          ],
+                        ),
                       ),
                     ),
                   ],
