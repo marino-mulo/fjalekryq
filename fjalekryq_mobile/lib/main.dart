@@ -5,6 +5,16 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/database/database_helper.dart';
+import 'core/database/repositories/user_repository.dart';
+import 'core/database/repositories/coins_repository.dart';
+import 'core/database/repositories/settings_repository.dart';
+import 'core/database/repositories/progress_repository.dart';
+import 'core/database/repositories/game_state_repository.dart';
+import 'core/database/repositories/level_repository.dart';
+import 'core/database/repositories/notification_repository.dart';
+import 'core/database/repositories/achievement_repository.dart';
+import 'core/database/repositories/ad_reward_repository.dart';
 import 'core/services/coin_service.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/level_puzzle_store.dart';
@@ -27,20 +37,100 @@ void main() async {
 
   final prefs = await SharedPreferences.getInstance();
 
+  // Initialize SQLite database
+  final dbHelper = DatabaseHelper();
+  await dbHelper.database; // ensure DB is created
+
+  // Create repositories
+  final userRepo = UserRepository(dbHelper);
+  final coinsRepo = CoinsRepository(dbHelper);
+  final settingsRepo = SettingsRepository(dbHelper);
+  final progressRepo = ProgressRepository(dbHelper);
+  final gameStateRepo = GameStateRepository(dbHelper);
+  final levelRepo = LevelRepository(dbHelper);
+  final notificationRepo = NotificationRepository(dbHelper);
+  final achievementRepo = AchievementRepository(dbHelper);
+  final adRewardRepo = AdRewardRepository(dbHelper);
+
+  // Get or create the local user
+  final localUser = await userRepo.getOrCreateLocalUser();
+  final userId = localUser.id!;
+
+  // Initialize services backed by SQLite
+  final coinService = CoinService(coinsRepo, userId);
+  await coinService.init();
+
+  final settingsService = SettingsService(settingsRepo, userId);
+  await settingsService.init();
+
+  // Migrate SharedPreferences data to SQLite (one-time)
+  await _migrateFromSharedPrefs(prefs, coinsRepo, settingsRepo, progressRepo, userId);
+
   final puzzleStore = LevelPuzzleStore();
   puzzleStore.generateAll();
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => CoinService(prefs)),
-        ChangeNotifierProvider(create: (_) => SettingsService(prefs)),
+        ChangeNotifierProvider.value(value: coinService),
+        ChangeNotifierProvider.value(value: settingsService),
         Provider<LevelPuzzleStore>.value(value: puzzleStore),
         Provider<SharedPreferences>.value(value: prefs),
+        Provider<DatabaseHelper>.value(value: dbHelper),
+        Provider<int>.value(value: userId),
+        Provider<ProgressRepository>.value(value: progressRepo),
+        Provider<GameStateRepository>.value(value: gameStateRepo),
+        Provider<UserRepository>.value(value: userRepo),
+        Provider<LevelRepository>.value(value: levelRepo),
+        Provider<NotificationRepository>.value(value: notificationRepo),
+        Provider<AchievementRepository>.value(value: achievementRepo),
+        Provider<AdRewardRepository>.value(value: adRewardRepo),
       ],
       child: const FjalekryqApp(),
     ),
   );
+}
+
+/// One-time migration from SharedPreferences to SQLite.
+Future<void> _migrateFromSharedPrefs(
+  SharedPreferences prefs,
+  CoinsRepository coinsRepo,
+  SettingsRepository settingsRepo,
+  ProgressRepository progressRepo,
+  int userId,
+) async {
+  const migrationKey = 'fjalekryq_sqlite_migrated';
+  if (prefs.getBool(migrationKey) == true) return;
+
+  // Migrate coins
+  final oldCoins = prefs.getInt('fjalekryq_coins');
+  if (oldCoins != null) {
+    final coins = await coinsRepo.getOrCreate(userId);
+    coins.balance = oldCoins;
+    coins.lastDailyClaim = prefs.getString('fjalekryq_last_login');
+    coins.streakDay = prefs.getInt('fjalekryq_login_streak') ?? 0;
+    await coinsRepo.update(coins.id!, coins);
+  }
+
+  // Migrate settings
+  final hasMusicPref = prefs.containsKey('fjalekryq_music');
+  if (hasMusicPref) {
+    final settings = await settingsRepo.getOrCreate(userId);
+    settings.music = prefs.getBool('fjalekryq_music') ?? true;
+    settings.sound = prefs.getBool('fjalekryq_sound') ?? true;
+    settings.notification = prefs.getBool('fjalekryq_notif') ?? true;
+    settings.emailNotification = prefs.getBool('fjalekryq_email_notif') ?? true;
+    await settingsRepo.saveSettings(settings);
+  }
+
+  // Migrate progress/stars
+  final currentLevel = prefs.getInt('fjalekryq_level') ?? 1;
+  for (int level = 1; level < currentLevel; level++) {
+    final stars = prefs.getInt('fjalekryq_stars_$level') ?? 0;
+    await progressRepo.upsert(userId, level, stars: stars, completed: true);
+  }
+
+  await prefs.setBool(migrationKey, true);
 }
 
 class FjalekryqApp extends StatelessWidget {

@@ -7,6 +7,8 @@ import '../../core/models/level_config.dart';
 import '../../core/services/game_service.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/level_puzzle_store.dart';
+import '../../core/database/repositories/game_state_repository.dart';
+import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../tutorial/tutorial_overlay.dart';
@@ -69,6 +71,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   late GameService _game;
   late SharedPreferences _prefs;
+  late int _userId;
 
   // Tutorial state
   bool _isTutorial = false;
@@ -91,7 +94,10 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _prefs = context.read<SharedPreferences>();
-    _game = GameService(_prefs);
+    _userId = context.read<int>();
+    final gameStateRepo = context.read<GameStateRepository>();
+    final progressRepo = context.read<ProgressRepository>();
+    _game = GameService(_prefs, gameStateRepo, progressRepo, _userId);
     _game.addListener(_onGameChanged);
 
     _initializeGame();
@@ -128,7 +134,7 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {});
   }
 
-  void _initializeGame() {
+  void _initializeGame() async {
     final forceTutorial = _prefs.getBool('fjalekryq_force_tutorial') ?? false;
     if (forceTutorial) _prefs.remove('fjalekryq_force_tutorial');
 
@@ -146,9 +152,9 @@ class _GameScreenState extends State<GameScreen> {
       _setTutorialPhase(1);
     } else {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
-      final saved = _game.loadSavedState();
+      final saved = await _game.loadSavedState(playingLevel);
       if (saved != null && saved.puzzle.hash != 'tutorial_v1' && saved.level == playingLevel) {
-        _game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount);
+        _game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount, playingLevel);
       } else {
         _loadPuzzle();
       }
@@ -165,14 +171,14 @@ class _GameScreenState extends State<GameScreen> {
     final puzzle = puzzleStore.get(level);
 
     if (puzzle != null) {
-      _game.initPuzzle(puzzle);
+      _game.initPuzzle(puzzle, level: level);
       setState(() => _isLoading = false);
     } else {
       // Puzzle not ready — try to generate on-the-fly
       puzzleStore.regenerate(level);
       final retryPuzzle = puzzleStore.get(level);
       if (retryPuzzle != null) {
-        _game.initPuzzle(retryPuzzle);
+        _game.initPuzzle(retryPuzzle, level: level);
       }
       setState(() => _isLoading = false);
     }
@@ -221,12 +227,12 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
 
-      // Save stars (keep best)
+      // Save stars (keep best) — both SharedPrefs (for quick reads) and SQLite
       final starsKey = '$_starsKeyPrefix$playingLevel';
       final existing = _prefs.getInt(starsKey) ?? 0;
-      if (stars > existing) {
-        _prefs.setInt(starsKey, stars);
-      }
+      final bestStars = stars > existing ? stars : existing;
+      _prefs.setInt(starsKey, bestStars);
+      _game.saveProgress(playingLevel, stars: bestStars, completed: true);
 
       // Award coins on first clear
       final isFirstClear = playingLevel >= progress;

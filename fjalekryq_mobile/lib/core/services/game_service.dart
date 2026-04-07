@@ -3,6 +3,9 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/puzzle.dart';
+import '../database/repositories/game_state_repository.dart';
+import '../database/repositories/progress_repository.dart';
+import '../database/models/game_state_model.dart';
 
 /// Cell color in Wordle style.
 enum CellColor { green, yellow, grey }
@@ -53,9 +56,13 @@ class SwapAnimation {
 }
 
 /// Core game logic service managing grid state, swaps, hints, solve.
-/// Ported from wordle7-game.service.ts
+/// Persistence now uses SQLite via GameStateRepository + ProgressRepository.
+/// SharedPreferences still used for cooldown timers only.
 class GameService extends ChangeNotifier {
   final SharedPreferences _prefs;
+  final GameStateRepository _gameStateRepo;
+  final ProgressRepository _progressRepo;
+  final int _userId;
 
   // Puzzle data
   List<List<String>> _solutionGrid = [];
@@ -93,7 +100,10 @@ class GameService extends ChangeNotifier {
   // Pre-computed: which words pass through each cell
   final Map<String, List<int>> _cellToWords = {};
 
-  GameService(this._prefs);
+  // Current playing level (for save/restore)
+  int _currentLevel = 1;
+
+  GameService(this._prefs, this._gameStateRepo, this._progressRepo, this._userId);
 
   // ── Getters ──────────────────────────────────────────────
   List<List<String>> get grid => _grid;
@@ -188,8 +198,9 @@ class GameService extends ChangeNotifier {
 
   // ── Initialize ───────────────────────────────────────────
 
-  void initPuzzle(Wordle7Puzzle puzzle) {
+  void initPuzzle(Wordle7Puzzle puzzle, {int level = 1}) {
     _currentPuzzle = puzzle;
+    _currentLevel = level;
     _gridSize = puzzle.gridSize;
     _solutionGrid = puzzle.solution.map((r) => List<String>.from(r)).toList();
     _wordList = puzzle.words;
@@ -217,8 +228,10 @@ class GameService extends ChangeNotifier {
     int swapCount,
     int hintCount, [
     int? totalSwapCount,
+    int level = 1,
   ]) {
     _currentPuzzle = puzzle;
+    _currentLevel = level;
     _gridSize = puzzle.gridSize;
     _solutionGrid = puzzle.solution.map((r) => List<String>.from(r)).toList();
     _wordList = puzzle.words;
@@ -289,14 +302,14 @@ class GameService extends ChangeNotifier {
       }
     }
     _gameWon = true;
-    clearSavedState();
+    _clearSavedState();
   }
 
   void _checkLoss() {
     if (_swapCount >= _swapLimit) {
       _gameLost = true;
       _selectedCell = null;
-      clearSavedState();
+      _clearSavedState();
     }
   }
 
@@ -312,7 +325,7 @@ class GameService extends ChangeNotifier {
     _clearHintState();
     _solveWordCooldown = false;
     _solveWordCooldownRemaining = 0;
-    clearSavedState();
+    _clearSavedState();
     _grid = _scrambleGrid(_solutionGrid);
     notifyListeners();
   }
@@ -595,39 +608,58 @@ class GameService extends ChangeNotifier {
     return grid;
   }
 
-  // ── Persistence ──────────────────────────────────────────
+  // ── Persistence (SQLite) ────────────────────────────────
 
   void _saveState() {
     if (_tutorialMode || _currentPuzzle == null || _gameWon) return;
-    final playingLevel = _prefs.getInt('fjalekryq_playing_level') ??
-        _prefs.getInt('fjalekryq_level') ?? 1;
     final state = SavedGameState(
       puzzle: _currentPuzzle!,
       grid: _grid.map((r) => List<String>.from(r)).toList(),
       swapCount: _swapCount,
       hintCount: _hintCount,
       totalSwapCount: _totalSwapCount,
-      level: playingLevel,
+      level: _currentLevel,
     );
     try {
-      _prefs.setString('wordle7_saved_game', jsonEncode(state.toJson()));
+      final jsonStr = jsonEncode(state.toJson());
+      _gameStateRepo.upsert(GameStateModel(
+        userId: _userId,
+        level: _currentLevel,
+        gridJson: jsonStr,
+        swapsUsed: _swapCount,
+      ));
     } catch (_) {}
   }
 
-  SavedGameState? loadSavedState() {
+  Future<SavedGameState?> loadSavedState(int level) async {
     try {
-      final raw = _prefs.getString('wordle7_saved_game');
-      if (raw == null) return null;
-      return SavedGameState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+      final model = await _gameStateRepo.getByUserAndLevel(_userId, level);
+      if (model == null) return null;
+      final json = jsonDecode(model.gridJson) as Map<String, dynamic>;
+      return SavedGameState.fromJson(json);
     } catch (_) {
       return null;
     }
   }
 
   void clearSavedState() {
-    _prefs.remove('wordle7_saved_game');
+    _clearSavedState();
+  }
+
+  void _clearSavedState() {
+    _gameStateRepo.clearState(_userId, _currentLevel);
     _prefs.remove('wordle7_hint_cooldown_end');
     _prefs.remove('wordle7_solve_cooldown_end');
+  }
+
+  /// Save level completion progress to database.
+  Future<void> saveProgress(int level, {int stars = 0, bool completed = true}) async {
+    await _progressRepo.upsert(_userId, level, stars: stars, completed: completed);
+  }
+
+  /// Get the highest completed level from database.
+  Future<int> getHighestCompletedLevel() async {
+    return _progressRepo.getHighestCompletedLevel(_userId);
   }
 
   void clearLastSwap() {

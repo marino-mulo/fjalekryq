@@ -1,26 +1,29 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
-const String _musicKey = 'fjalekryq_music';
-const String _soundKey = 'fjalekryq_sound';
-const String _notifKey = 'fjalekryq_notif';
-const String _emailNotifKey = 'fjalekryq_email_notif';
+import '../database/repositories/settings_repository.dart';
+import '../database/models/settings_model.dart';
 
 /// Manages user settings (music, sound, notifications).
-/// Ported from settings-modal.component.ts
+/// Now backed by SQLite via SettingsRepository.
 class SettingsService extends ChangeNotifier {
-  final SharedPreferences _prefs;
+  final SettingsRepository _repo;
+  final int _userId;
 
   bool _musicEnabled = true;
   bool _soundEnabled = true;
   bool _notificationsEnabled = true;
   bool _emailNotificationsEnabled = true;
+  SettingsModel? _model;
 
-  SettingsService(this._prefs) {
-    _musicEnabled = _prefs.getBool(_musicKey) ?? true;
-    _soundEnabled = _prefs.getBool(_soundKey) ?? true;
-    _notificationsEnabled = _prefs.getBool(_notifKey) ?? true;
-    _emailNotificationsEnabled = _prefs.getBool(_emailNotifKey) ?? true;
+  SettingsService(this._repo, this._userId);
+
+  /// Load settings from database. Must be called after construction.
+  Future<void> init() async {
+    _model = await _repo.getOrCreate(_userId);
+    _musicEnabled = _model!.music;
+    _soundEnabled = _model!.sound;
+    _notificationsEnabled = _model!.notification;
+    _emailNotificationsEnabled = _model!.emailNotification;
+    notifyListeners();
   }
 
   bool get musicEnabled => _musicEnabled;
@@ -30,25 +33,34 @@ class SettingsService extends ChangeNotifier {
 
   void toggleMusic() {
     _musicEnabled = !_musicEnabled;
-    _prefs.setBool(_musicKey, _musicEnabled);
+    _saveAll();
     notifyListeners();
   }
 
   void toggleSound() {
     _soundEnabled = !_soundEnabled;
-    _prefs.setBool(_soundKey, _soundEnabled);
+    _saveAll();
     notifyListeners();
   }
 
   void toggleNotifications() {
     _notificationsEnabled = !_notificationsEnabled;
-    _prefs.setBool(_notifKey, _notificationsEnabled);
+    _saveAll();
     notifyListeners();
   }
 
   void toggleEmailNotifications() {
     _emailNotificationsEnabled = !_emailNotificationsEnabled;
-    _prefs.setBool(_emailNotifKey, _emailNotificationsEnabled);
+    _saveAll();
     notifyListeners();
+  }
+
+  void _saveAll() {
+    if (_model == null) return;
+    _model!.music = _musicEnabled;
+    _model!.sound = _soundEnabled;
+    _model!.notification = _notificationsEnabled;
+    _model!.emailNotification = _emailNotificationsEnabled;
+    _repo.saveSettings(_model!);
   }
 }
