@@ -1,34 +1,26 @@
-# .NET
-**/bin/
-**/obj/
-*.user
-*.suo
-*.cache
-*.vs/
+# Flutter
+**/build/
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.packages
+**/.pub-cache/
+**/.pub/
+**/pubspec.lock
 
-# Angular / Node
-**/node_modules/
-**/dist/
-**/.angular/
-npm-debug.log
-yarn-error.log
-
-# Python
-__pycache__/
-*.pyc
-*.pyo
-.venv/
-venv/
-
-# IDEs
+# IDE
 .idea/
 .vscode/
+*.iml
 *.sublime-workspace
 
 # OS files
 .DS_Store
 Thumbs.db
-nul
 
-# Dictionary file (large)
-sq_AL.dic
+# Generated
+*.g.dart
+*.freezed.dart
+
+# Misc
+*.log
