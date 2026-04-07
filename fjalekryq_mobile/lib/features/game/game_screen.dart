@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/puzzle.dart';
@@ -204,6 +205,7 @@ class _GameScreenState extends State<GameScreen> {
 
   void _onWin() {
     if (_isCompleted) return;
+    HapticFeedback.heavyImpact();
     final coinService = context.read<CoinService>();
     _tutorialPhase = 0;
     _tutorialHighlightCells = [];
@@ -245,9 +247,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onHint() {
+    HapticFeedback.mediumImpact();
     final coinService = context.read<CoinService>();
     if (!_isTutorial) {
       if (!coinService.canAfford(hintCost)) {
+        HapticFeedback.heavyImpact();
         _showInsufficientCoins('hint');
         return;
       }
@@ -257,9 +261,11 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _onSolveWord() {
+    HapticFeedback.mediumImpact();
     final coinService = context.read<CoinService>();
     if (!_isTutorial) {
       if (!coinService.canAfford(solveCost)) {
+        HapticFeedback.heavyImpact();
         _showInsufficientCoins('solve');
         return;
       }
@@ -406,14 +412,18 @@ class _GameScreenState extends State<GameScreen> {
       child: Row(
         children: [
           GestureDetector(
-            onTap: () => Navigator.pop(context),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              Navigator.pop(context);
+            },
             child: Container(
-              width: 40, height: 40,
+              width: 42, height: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
-              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 18),
             ),
           ),
           const Spacer(),
@@ -423,14 +433,18 @@ class _GameScreenState extends State<GameScreen> {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: () => _openShop(),
+            onTap: () {
+              HapticFeedback.selectionClick();
+              _openShop();
+            },
             child: Container(
-              width: 40, height: 40,
+              width: 42, height: 42,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.white.withValues(alpha: 0.07),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
               ),
-              child: const Icon(Icons.shopping_cart, color: Colors.white70, size: 18),
+              child: const Icon(Icons.shopping_cart, color: Colors.white60, size: 18),
             ),
           ),
         ],

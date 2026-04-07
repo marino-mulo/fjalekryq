@@ -6,6 +6,7 @@ class AppColors {
 
   // Backgrounds
   static const Color background = Color(0xFF0D1B40);
+  static const Color backgroundDark = Color(0xFF07152F);
   static const Color backgroundLight = Color(0xFF142452);
   static const Color surface = Color(0xFF1A2D5A);
   static const Color surfaceLight = Color(0xFF213568);
@@ -73,3 +74,15 @@ class AppTextStyles {
     letterSpacing: 1.2,
   );
 }
+
+/// Standard gradient used across the app.
+const appBackgroundGradient = LinearGradient(
+  begin: Alignment.topCenter,
+  end: Alignment.bottomCenter,
+  colors: [Color(0xFF07152F), Color(0xFF0D1B40), Color(0xFF142452)],
+  stops: [0.0, 0.4, 1.0],
+);
+
+/// Standard border for glass-style containers.
+Border glassBorder = Border.all(color: Colors.white.withValues(alpha: 0.06));
+BorderRadius glassBorderRadius = BorderRadius.circular(13);
