@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, inject, signal, computed, Output, EventEmitter, effect } from '@angular/core';
-import { Subscription } from 'rxjs';
 import { retry } from 'rxjs/operators';
 import { NgClass } from '@angular/common';
 import { Wordle7BoardComponent } from './wordle7-board/wordle7-board.component';
@@ -95,10 +94,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
   @Output() goBack = new EventEmitter<void>();
 
-  private subs: Subscription[] = [];
-
-  showInfo = false;
-
   // Tutorial
   isTutorial    = signal(false);
   tutorialPhase = signal<TutorialPhase>(0);
@@ -109,11 +104,10 @@ export class Wordle7Component implements OnInit, OnDestroy {
   showSettings = signal(false);
 
   // Completion
-  isCompleted      = signal(false);
-  completedPraise  = signal('Bravo!');
-  completedIcon    = signal('icons/rewards/rocket.svg');
-  completedStars   = signal(0);
-  coinsEarned      = signal(0);
+  isCompleted     = signal(false);
+  completedPraise = signal('Bravo!');
+  completedStars  = signal(0);
+  coinsEarned     = signal(0);
   insufficientCoins  = signal<'hint' | 'solve' | null>(null);
 
   // Puzzle / loading
@@ -124,10 +118,8 @@ export class Wordle7Component implements OnInit, OnDestroy {
   puzzleIntroTrigger = signal(0);
   private bgSwapTimer: ReturnType<typeof setInterval> | null = null;
 
-  private readonly ICONS   = ['icons/rewards/rocket.svg', 'icons/rewards/fire.svg', 'icons/rewards/trophy.svg'];
   private readonly PRAISES = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
   private pickPraise() { return this.PRAISES[Math.floor(Math.random() * this.PRAISES.length)]; }
-  private pickIcon()   { return this.ICONS[Math.floor(Math.random() * this.ICONS.length)]; }
 
   /** Stars based purely on moves remaining: 7+ = 3, 3-6 = 2, 1-2 = 1 */
   private computeStars(): number {
@@ -182,7 +174,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.gameHeader.enterGame();
     this.gameHeader.gameColor.set('#22C55E');
     this.gameHeader.dayBarVisible.set(false);
-    this.subs.push(this.gameHeader.infoClicked$.subscribe(() => this.openInfo()));
 
     // Set difficulty label from playing level
     const playingLevel = parseInt(localStorage.getItem(PLAYING_LEVEL_KEY) ?? localStorage.getItem(LEVEL_KEY) ?? '1', 10);
@@ -217,7 +208,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.game.destroy();
     this.gameHeader.leaveGame();
-    this.subs.forEach(s => s.unsubscribe());
     this.stopBgTiles();
     if (this.insufficientTimer) { clearTimeout(this.insufficientTimer); this.insufficientTimer = null; }
   }
@@ -240,7 +230,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.tutorialHighlightCells.set([]);
     this.isCompleted.set(true);
     this.completedPraise.set(this.pickPraise());
-    this.completedIcon.set(this.pickIcon());
 
     if (this.isTutorial()) {
       // Tutorial win: award 20 coins (same as easy level) and show stars
@@ -335,9 +324,6 @@ export class Wordle7Component implements OnInit, OnDestroy {
     this.isCompleted.set(false);
     this.game.resetPuzzle();
   }
-
-  openInfo():   void { this.showInfo = true; }
-  closeInfo():  void { this.showInfo = false; }
 
   // ── Puzzle loading ────────────────────────────────────────
   private loadRandomPuzzle(): void {
