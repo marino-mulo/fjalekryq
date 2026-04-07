@@ -50,14 +50,15 @@ const _avatarColors = [
   Color(0xFFA78BFA),
 ];
 
-class LeaderboardSection extends StatefulWidget {
-  const LeaderboardSection({super.key});
+/// Bottom sheet modal showing leaderboard with Level / Stars tabs.
+class LeaderboardSheet extends StatefulWidget {
+  const LeaderboardSheet({super.key});
 
   @override
-  State<LeaderboardSection> createState() => _LeaderboardSectionState();
+  State<LeaderboardSheet> createState() => _LeaderboardSheetState();
 }
 
-class _LeaderboardSectionState extends State<LeaderboardSection>
+class _LeaderboardSheetState extends State<LeaderboardSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -82,40 +83,67 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
     final isLevelTab = _tabController.index == 0;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.04),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF142452), Color(0xFF0D1B40)],
+        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Title + tabs
+          // Drag handle
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Title row
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
                 Icon(Icons.emoji_events_rounded,
-                    color: AppColors.gold, size: 20),
-                const SizedBox(width: 8),
+                    color: AppColors.gold, size: 22),
+                const SizedBox(width: 10),
                 const Text(
                   'Renditja',
                   style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
                     color: Colors.white,
                     letterSpacing: 0.5,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.close, color: Colors.white38, size: 18),
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 16),
 
           // Tab bar
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 14),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.05),
@@ -133,34 +161,34 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white38,
               labelStyle: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
               ),
               unselectedLabelStyle: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
               ),
               onTap: (_) => HapticFeedback.selectionClick(),
               tabs: const [
                 Tab(
-                  height: 34,
+                  height: 38,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.trending_up_rounded, size: 14),
-                      SizedBox(width: 5),
+                      Icon(Icons.trending_up_rounded, size: 16),
+                      SizedBox(width: 6),
                       Text('Niveli'),
                     ],
                   ),
                 ),
                 Tab(
-                  height: 34,
+                  height: 38,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.star_rounded, size: 14),
-                      SizedBox(width: 5),
+                      Icon(Icons.star_rounded, size: 16),
+                      SizedBox(width: 6),
                       Text('Yjet'),
                     ],
                   ),
@@ -168,22 +196,22 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
 
           // Top 3 podium
           _buildPodium(entries.take(3).toList(), isLevelTab),
 
           // Divider
           Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
+            margin: const EdgeInsets.symmetric(horizontal: 20),
             height: 1,
-            color: Colors.white.withValues(alpha: 0.04),
+            color: Colors.white.withValues(alpha: 0.05),
           ),
 
           // Rest of the list
           ...entries.skip(3).map((e) => _buildRow(e, isLevelTab)),
 
-          const SizedBox(height: 10),
+          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
       ),
     );
@@ -193,16 +221,16 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
     if (top3.length < 3) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // 2nd place
           Expanded(child: _podiumItem(top3[1], isLevel, 60)),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           // 1st place
-          Expanded(child: _podiumItem(top3[0], isLevel, 76)),
-          const SizedBox(width: 8),
+          Expanded(child: _podiumItem(top3[0], isLevel, 80)),
+          const SizedBox(width: 10),
           // 3rd place
           Expanded(child: _podiumItem(top3[2], isLevel, 52)),
         ],
@@ -223,18 +251,18 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Crown for top 3
+        // Crown
         Icon(
           Icons.workspace_premium_rounded,
           color: crownColor,
-          size: isFirst ? 22 : 18,
+          size: isFirst ? 26 : 20,
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
 
         // Avatar
         Container(
-          width: isFirst ? 48 : 40,
-          height: isFirst ? 48 : 40,
+          width: isFirst ? 54 : 44,
+          height: isFirst ? 54 : 44,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: avatarColor.withValues(alpha: 0.2),
@@ -242,40 +270,40 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
               color: entry.isCurrentUser
                   ? AppColors.cellGreen
                   : avatarColor.withValues(alpha: 0.4),
-              width: entry.isCurrentUser ? 2 : 1.5,
+              width: entry.isCurrentUser ? 2.5 : 1.5,
             ),
           ),
           child: Center(
             child: Text(
               entry.name[0].toUpperCase(),
               style: TextStyle(
-                fontSize: isFirst ? 20 : 16,
+                fontSize: isFirst ? 22 : 18,
                 fontWeight: FontWeight.w800,
                 color: avatarColor,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
 
         // Name
         Text(
           entry.isCurrentUser ? 'Ti' : entry.name,
           style: TextStyle(
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: entry.isCurrentUser ? FontWeight.w700 : FontWeight.w500,
             color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white70,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        const SizedBox(height: 3),
+        const SizedBox(height: 4),
 
         // Value pill
         Container(
           height: height * 0.35,
-          constraints: const BoxConstraints(minHeight: 22),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          constraints: const BoxConstraints(minHeight: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 10),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: bgAlpha),
             borderRadius: BorderRadius.circular(8),
@@ -289,14 +317,14 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
             children: [
               Icon(
                 isLevel ? Icons.flag_rounded : Icons.star_rounded,
-                size: 12,
+                size: 13,
                 color: isLevel ? AppColors.cellGreen : AppColors.gold,
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: 4),
               Text(
                 '${entry.value}',
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white,
                 ),
@@ -312,13 +340,13 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
     final avatarColor = _avatarColors[(entry.name.hashCode) % _avatarColors.length];
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         color: entry.isCurrentUser
             ? AppColors.cellGreen.withValues(alpha: 0.08)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: entry.isCurrentUser
             ? Border.all(color: AppColors.cellGreen.withValues(alpha: 0.15))
             : null,
@@ -327,11 +355,11 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
         children: [
           // Rank
           SizedBox(
-            width: 24,
+            width: 26,
             child: Text(
               '${entry.rank}',
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white38,
               ),
@@ -340,8 +368,8 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
 
           // Avatar circle
           Container(
-            width: 32,
-            height: 32,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: avatarColor.withValues(alpha: 0.15),
@@ -356,21 +384,21 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
               child: Text(
                 entry.name[0].toUpperCase(),
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: avatarColor,
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
 
           // Name
           Expanded(
             child: Text(
               entry.isCurrentUser ? 'Ti' : entry.name,
               style: TextStyle(
-                fontSize: 13,
+                fontSize: 14,
                 fontWeight: entry.isCurrentUser ? FontWeight.w700 : FontWeight.w500,
                 color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white70,
               ),
@@ -383,14 +411,14 @@ class _LeaderboardSectionState extends State<LeaderboardSection>
             children: [
               Icon(
                 isLevel ? Icons.flag_rounded : Icons.star_rounded,
-                size: 14,
+                size: 15,
                 color: isLevel ? AppColors.cellGreen : AppColors.gold,
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 5),
               Text(
                 '${entry.value}',
                 style: TextStyle(
-                  fontSize: 13,
+                  fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white,
                 ),

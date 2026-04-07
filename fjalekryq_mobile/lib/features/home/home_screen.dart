@@ -11,7 +11,7 @@ import '../level_map/level_map_screen.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
-import 'leaderboard_section.dart';
+import 'leaderboard_sheet.dart';
 
 const _levelKey = 'fjalekryq_level';
 const _letters = 'ABCÇDEHIMNOPRSTUVXZ';
@@ -153,6 +153,16 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _openLeaderboard() {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => const LeaderboardSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
@@ -228,89 +238,80 @@ class _HomeScreenState extends State<HomeScreen>
               opacity: _fadeAnim,
               child: SlideTransition(
                 position: _slideAnim,
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
+                child: Column(
+                  children: [
                     // Header row
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Row(
-                          children: [
-                            _HeaderButton(
-                              icon: Icons.card_giftcard,
-                              onTap: _openDailyReward,
-                              showDot: dailyAvailable,
-                            ),
-                            const Spacer(),
-                            _HeaderButton(
-                              icon: Icons.settings,
-                              onTap: _openSettings,
-                            ),
-                          ],
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      child: Row(
+                        children: [
+                          _HeaderButton(
+                            icon: Icons.card_giftcard,
+                            onTap: _openDailyReward,
+                            showDot: dailyAvailable,
+                          ),
+                          const SizedBox(width: 10),
+                          _HeaderButton(
+                            icon: Icons.leaderboard_rounded,
+                            onTap: _openLeaderboard,
+                          ),
+                          const Spacer(),
+                          _HeaderButton(
+                            icon: Icons.settings,
+                            onTap: _openSettings,
+                          ),
+                        ],
                       ),
                     ),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    const Spacer(flex: 3),
 
                     // Logo area
-                    SliverToBoxAdapter(child: _buildLogoSection()),
+                    _buildLogoSection(),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                    const Spacer(flex: 3),
 
                     // CTA buttons
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        child: Column(
-                          children: [
-                            GlassButton(
-                              label: 'LUAJ',
-                              icon: Icons.play_arrow,
-                              onTap: _openLevelMap,
-                              expanded: true,
-                              height: 54,
-                            ),
-                            const SizedBox(height: 14),
-                            GlassButton(
-                              label: 'Si të luash',
-                              icon: Icons.info_outline,
-                              onTap: _startTutorial,
-                              color: AppColors.surface,
-                              expanded: true,
-                              height: 48,
-                            ),
-                          ],
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      child: Column(
+                        children: [
+                          GlassButton(
+                            label: 'LUAJ',
+                            icon: Icons.play_arrow,
+                            onTap: _openLevelMap,
+                            expanded: true,
+                            height: 54,
+                          ),
+                          const SizedBox(height: 14),
+                          GlassButton(
+                            label: 'Si të luash',
+                            icon: Icons.info_outline,
+                            onTap: _startTutorial,
+                            color: AppColors.surface,
+                            expanded: true,
+                            height: 48,
+                          ),
+                        ],
                       ),
                     ),
 
-                    const SliverToBoxAdapter(child: SizedBox(height: 28)),
-
-                    // Leaderboard
-                    const SliverToBoxAdapter(
-                      child: LeaderboardSection(),
-                    ),
-
-                    const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                    const Spacer(flex: 4),
 
                     // Social icons footer
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 28),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            _socialIcon(Icons.camera_alt_outlined),
-                            Container(
-                              width: 1, height: 16,
-                              color: Colors.white10,
-                              margin: const EdgeInsets.symmetric(horizontal: 16),
-                            ),
-                            _socialIcon(Icons.music_note_outlined),
-                          ],
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 28),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          _socialIcon(Icons.camera_alt_outlined),
+                          Container(
+                            width: 1, height: 16,
+                            color: Colors.white10,
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                          ),
+                          _socialIcon(Icons.music_note_outlined),
+                        ],
                       ),
                     ),
                   ],
