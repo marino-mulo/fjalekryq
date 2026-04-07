@@ -45,7 +45,7 @@ const TUTORIAL_PUZZLE = {
     { word: 'DETI', row: 3, col: 0, direction: 'horizontal' as const },
   ],
   hash: 'tutorial_v1',
-  swapLimit: 7,
+  swapLimit: 8,
 };
 
 // Fixed starting grid: B↔M swapped at (0,3)/(1,0), DETI row fully scrambled as IDET
