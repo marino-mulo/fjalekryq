@@ -235,13 +235,20 @@ export class Wordle7Component implements OnInit, OnDestroy {
 
   // ── Game controls ────────────────────────────────────────
   onWin(): void {
+    if (this.isCompleted()) return; // guard against duplicate calls
     this.tutorialPhase.set(0);
     this.tutorialHighlightCells.set([]);
     this.isCompleted.set(true);
     this.completedPraise.set(this.pickPraise());
     this.completedIcon.set(this.pickIcon());
 
-    if (!this.isTutorial()) {
+    if (this.isTutorial()) {
+      // Tutorial win: award 20 coins (same as easy level) and show stars
+      const stars = this.computeStars();
+      this.completedStars.set(stars);
+      this.coinsEarned.set(DIFFICULTY_COINS['easy']);
+      this.coinService.add(DIFFICULTY_COINS['easy']);
+    } else {
       const stars = this.computeStars();
       this.completedStars.set(stars);
 

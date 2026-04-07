@@ -9,7 +9,7 @@
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2.5" stroke-linecap="round"><path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/></svg>
         <div class="tut-tile tut-tile--grey">A</div>
       </div>
-      <p class="tut-desc">Ke <strong>7 lëvizje</strong> dhe <strong>3 yje ⭐⭐⭐</strong> tani! Tapto dy shkronja njëra pas tjetrës për t'i shkëmbyer vendet — çdo shkëmbim zbreson 1 lëvizje.</p>
+      <p class="tut-desc">Ke <strong>7 lëvizje të mbetura</strong> dhe po fiton <strong>3 yje ⭐⭐⭐</strong>! Çdo shkëmbim heq 1 lëvizje.</p>
       <button class="tut-btn" (click)="setTutorialPhase(2)">Gati, po provoj!</button>
     </div>
   </div>
@@ -18,7 +18,7 @@
 <!-- ── Tutorial Phase 2: Interactive swap (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 2) {
   <div class="tut-hint-banner">
-    <span>👆 Tapto dy shkronjat e theksuara me arin — kosto: 1 lëvizje</span>
+    <span>👆 Kliko shkronjat për të bërë 1 lëvizje</span>
   </div>
 }
 
@@ -60,7 +60,7 @@
         </svg>
         <span>Ndihmë</span>
       </div>
-      <p class="tut-desc">Vendos <strong>1 shkronjë</strong> automatikisht — <strong>pa shpenzuar lëvizje!</strong> Kjo të ndihmon të mbash yjet. Ke 7 lëvizje = 3 yje. Përdor Ndihmën dhe ruaji!</p>
+      <p class="tut-desc"><strong>Ndihmë</strong> vendos 1 shkronjë në vendin e duhur pa shpenzuar lëvizje! 7 lëvizje = 3 yje. Përdor Ndihmën dhe ruaji!</p>
       <button class="tut-btn" (click)="setTutorialPhase(5)">Kuptova, provoje!</button>
     </div>
   </div>
@@ -69,7 +69,7 @@
 <!-- ── Tutorial Phase 5: Interactive hint (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 5) {
   <div class="tut-hint-banner">
-    <span>💡 Tapo <strong>Ndihmën</strong> — falas, pa shpenzuar lëvizje!</span>
+    <span>💡 Kliko <strong>Ndihmën</strong> — pa shpenzuar lëvizje!</span>
   </div>
 }
 
@@ -125,7 +125,7 @@
         </svg>
         <span>Zgjidh</span>
       </div>
-      <p class="tut-desc">Zgjidh automatikisht <strong>një fjalë të tërë</strong> — por zbreson lëvizje. Përdore me kujdes për të fituar <strong>2 ose 3 yje</strong>. Ka pritje 30 sek mes dy përdorimeve.</p>
+      <p class="tut-desc">Përdor <strong>Zgjidh</strong> kur do të zgjidhësh një fjalë të plotë pa hequr lëvizje!</p>
       <button class="tut-btn" (click)="setTutorialPhase(8)">Provoje tani!</button>
     </div>
   </div>
@@ -134,14 +134,7 @@
 <!-- ── Tutorial Phase 8: Interactive solve (non-blocking) ── -->
 @if (isTutorial() && tutorialPhase() === 8) {
   <div class="tut-hint-banner">
-    <span>✅ Tapo <strong>Zgjidh</strong> — fiton fjalën, kontrollo yjet!</span>
-  </div>
-}
-
-<!-- ── Tutorial Phase 9: All done banner ── -->
-@if (isTutorial() && tutorialPhase() === 9) {
-  <div class="tut-hint-banner tut-done-banner">
-    <span>🎯 Shkëlqyeshëm! Tani zgjidhe vetë për 3 yje!</span>
+    <span>✅ Kliko <strong>Zgjidh</strong> — zgjidhni fjalën, ruaj lëvizjet!</span>
   </div>
 }
 
@@ -172,10 +165,6 @@
       <polyline points="15 18 9 12 15 6"/>
     </svg>
   </button>
-
-  @if (isCompleted() && isTutorial()) {
-    <span class="completed-praise-top">Bravo! E ke kuptuar!</span>
-  }
 
   <div class="header-right-actions">
     <div class="coin-badge" (click)="showShop.set(true)">
@@ -308,28 +297,28 @@
   }
 
   @if (isCompleted()) {
+    <div class="completed-stars">
+      @for (i of [1, 2, 3]; track i) {
+        <svg class="star-icon" [class.star-filled]="i <= completedStars()"
+             width="32" height="32" viewBox="0 0 24 24">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      }
+    </div>
+
+    <!-- Compact win message -->
+    <div class="win-summary">
+      <span class="win-bravo">{{ completedPraise() }}</span>
+      @if (coinsEarned() > 0) {
+        <span class="win-coins">
+          +{{ coinsEarned() }}
+          <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
+        </span>
+      }
+    </div>
+
+    <!-- Ad offer: double coins (not shown in tutorial) -->
     @if (!isTutorial()) {
-      <div class="completed-stars">
-        @for (i of [1, 2, 3]; track i) {
-          <svg class="star-icon" [class.star-filled]="i <= completedStars()"
-               width="32" height="32" viewBox="0 0 24 24">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-        }
-      </div>
-
-      <!-- Compact win message -->
-      <div class="win-summary">
-        <span class="win-bravo">{{ completedPraise() }}</span>
-        @if (coinsEarned() > 0) {
-          <span class="win-coins">
-            +{{ coinsEarned() }}
-            <svg width="14" height="14" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#F4B400"/><text x="12" y="16" text-anchor="middle" font-size="11" fill="#7a5c00" font-weight="bold" font-family="sans-serif">$</text></svg>
-          </span>
-        }
-      </div>
-
-      <!-- Ad offer: double coins -->
       <div class="ad-offer-card">
         <div class="ad-offer-row">
           <div class="ad-offer-icon">
@@ -355,25 +344,19 @@
         </div>
       </div>
     }
+
     <div class="completed-actions">
-      @if (!isTutorial()) {
-        <button class="btn-play-again" (click)="restartLevel()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M2.5 12a9.5 9.5 0 1 0 1.5-5.2"/><polyline points="1 3 3 7 7 5"/>
-          </svg>
-          {{ completedStars() <= 2 ? 'Provohu përsëri' : 'Luaj përsëri' }}
-        </button>
-      }
+      <button class="btn-play-again" (click)="restartLevel()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2.5 12a9.5 9.5 0 1 0 1.5-5.2"/><polyline points="1 3 3 7 7 5"/>
+        </svg>
+        {{ completedStars() <= 2 ? 'Provohu përsëri' : 'Luaj përsëri' }}
+      </button>
       <button class="btn-next-level" (click)="nextLevel()">
-        @if (isTutorial()) {
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
-          Luaj
-        } @else {
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-          Niveli tjetër
-        }
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+        @if (isTutorial()) { Fillo Lojën } @else { Niveli tjetër }
       </button>
     </div>
   }
