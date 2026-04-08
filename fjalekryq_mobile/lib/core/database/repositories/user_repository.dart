@@ -37,12 +37,19 @@ class UserRepository extends BaseRepository<UserModel> {
     );
     if (rows.isNotEmpty) return UserModel.fromMap(rows.first);
 
-    // Create guest with random 4-digit tag
-    final tag = (Random().nextInt(9000) + 1000).toString();
+    // Create guest with random 7-digit tag
+    final tag = (Random().nextInt(9000000) + 1000000).toString();
     final user = UserModel(username: 'guest_$tag');
     final id = await insert(user);
     user.id = id;
     return user;
+  }
+
+  /// Check if a username is already taken by another user.
+  Future<bool> isUsernameTaken(String username, int excludeUserId) async {
+    final existing = await getByUsername(username);
+    if (existing == null) return false;
+    return existing.id != excludeUserId;
   }
 
   /// Update nickname (display name).

@@ -4,7 +4,12 @@ import 'package:provider/provider.dart';
 import '../../core/database/repositories/user_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../core/database/models/user_model.dart';
+import '../../core/services/coin_service.dart';
 import '../../shared/constants/theme.dart';
+
+const int _nicknameCost = 100;
+const int _nicknameMinLength = 6;
+const int _nicknameMaxLength = 12;
 
 /// Predefined avatar options — color + icon combos the user can pick.
 const _avatarOptions = [
@@ -45,6 +50,7 @@ class _ProfileSheetState extends State<ProfileSheet> {
   bool _editingName = false;
   late TextEditingController _nameController;
   bool _pickingAvatar = false;
+  String? _nameError;
 
   @override
   void initState() {
@@ -80,12 +86,45 @@ class _ProfileSheetState extends State<ProfileSheet> {
 
   Future<void> _saveName() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty || _user == null) return;
+    if (_user == null) return;
+
+    // Same name — just close editor
+    if (name == _user!.username) {
+      setState(() {
+        _editingName = false;
+        _nameError = null;
+      });
+      return;
+    }
+
+    // Length validation
+    if (name.length < _nicknameMinLength || name.length > _nicknameMaxLength) {
+      setState(() => _nameError = 'Emri duhet të jetë $_nicknameMinLength-$_nicknameMaxLength karaktere');
+      return;
+    }
+
+    // Uniqueness check
     final userRepo = context.read<UserRepository>();
+    final taken = await userRepo.isUsernameTaken(name, _user!.id!);
+    if (taken) {
+      setState(() => _nameError = 'Ky emër është i zënë');
+      return;
+    }
+
+    // Coin check
+    final coinService = context.read<CoinService>();
+    if (!coinService.canAfford(_nicknameCost)) {
+      setState(() => _nameError = 'Duhen $_nicknameCost monedha për të ndryshuar emrin');
+      return;
+    }
+
+    // Deduct coins and save
+    coinService.spend(_nicknameCost);
     await userRepo.updateNickname(_user!.id!, name);
     setState(() {
       _user!.username = name;
       _editingName = false;
+      _nameError = null;
     });
   }
 
@@ -328,52 +367,94 @@ class _ProfileSheetState extends State<ProfileSheet> {
 
   Widget _buildNameEditor() {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: TextField(
-              controller: _nameController,
-              autofocus: true,
-              maxLength: 20,
-              style: const TextStyle(
-                fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white,
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _nameController,
+                  autofocus: true,
+                  maxLength: _nicknameMaxLength,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
+                  ],
+                  style: const TextStyle(
+                    fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white,
+                  ),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: '$_nicknameMinLength-$_nicknameMaxLength karaktere',
+                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.05),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: _nameError != null
+                          ? AppColors.redAccent.withValues(alpha: 0.5)
+                          : Colors.white.withValues(alpha: 0.08)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: _nameError != null ? AppColors.redAccent : AppColors.cellGreen,
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  onChanged: (_) {
+                    if (_nameError != null) setState(() => _nameError = null);
+                  },
+                  onSubmitted: (_) => _saveName(),
+                ),
               ),
-              decoration: InputDecoration(
-                counterText: '',
-                hintText: 'Emri yt...',
-                hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2)),
-                filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.05),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.cellGreen, width: 1.5),
+              const SizedBox(width: 10),
+              GestureDetector(
+                onTap: _saveName,
+                child: Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.cellGreen,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.check, color: Colors.white, size: 20),
                 ),
               ),
-              onSubmitted: (_) => _saveName(),
-            ),
+            ],
           ),
-          const SizedBox(width: 10),
-          GestureDetector(
-            onTap: _saveName,
-            child: Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.cellGreen,
-                borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 6),
+          if (_nameError != null)
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Text(
+                _nameError!,
+                style: TextStyle(fontSize: 11, color: AppColors.redAccent),
               ),
-              child: const Icon(Icons.check, color: Colors.white, size: 20),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(left: 4),
+              child: Row(
+                children: [
+                  Icon(Icons.monetization_on, size: 13, color: AppColors.gold.withValues(alpha: 0.6)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$_nicknameCost monedha për ndryshim',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
