@@ -13,11 +13,11 @@ class AdType {
 
 /// Daily limits per ad type.
 const Map<String, int> adDailyLimits = {
-  AdType.dailyDouble: 1,
-  AdType.freeSolve: 3,
-  AdType.bonusCoins: 3,
-  AdType.continueAfterLoss: 3,
-  AdType.doubleWinCoins: 3,
+  AdType.dailyDouble: 5,
+  AdType.freeSolve: 5,
+  AdType.bonusCoins: 5,
+  AdType.continueAfterLoss: 5,
+  AdType.doubleWinCoins: 5,
 };
 
 /// Manages rewarded ad display and tracking.
