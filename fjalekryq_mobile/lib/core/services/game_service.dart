@@ -313,6 +313,17 @@ class GameService extends ChangeNotifier {
     }
   }
 
+  // ── Continue after loss (+5 extra swaps) ─────────────────
+
+  void continueGame() {
+    if (!_gameLost) return;
+    _gameLost = false;
+    _swapLimit += 5;
+    _selectedCell = null;
+    _saveState();
+    notifyListeners();
+  }
+
   // ── Reset ────────────────────────────────────────────────
 
   void resetPuzzle() {

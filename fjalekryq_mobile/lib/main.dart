@@ -18,6 +18,7 @@ import 'core/database/repositories/ad_reward_repository.dart';
 import 'core/services/coin_service.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/audio_service.dart';
+import 'core/services/ad_service.dart';
 import 'core/services/level_puzzle_store.dart';
 import 'features/home/home_screen.dart';
 import 'shared/constants/theme.dart';
@@ -70,6 +71,9 @@ void main() async {
   // Audio service
   final audioService = AudioService(settingsService);
 
+  // Ad service
+  final adService = AdService(adRewardRepo, userId);
+
   final puzzleStore = LevelPuzzleStore();
   puzzleStore.generateAll();
 
@@ -78,6 +82,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: coinService),
         ChangeNotifierProvider.value(value: settingsService),
+        ChangeNotifierProvider.value(value: adService),
         Provider<AudioService>.value(value: audioService),
         Provider<LevelPuzzleStore>.value(value: puzzleStore),
         Provider<SharedPreferences>.value(value: prefs),

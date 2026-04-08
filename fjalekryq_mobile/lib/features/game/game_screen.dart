@@ -7,6 +7,7 @@ import '../../core/models/level_config.dart';
 import '../../core/services/game_service.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
+import '../../core/services/ad_service.dart';
 import '../../core/services/level_puzzle_store.dart';
 import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
@@ -92,6 +93,11 @@ class _GameScreenState extends State<GameScreen> {
   // Insufficient coins banner
   String? _insufficientType; // 'hint' | 'solve' | null
 
+  // Ad state
+  bool _loadingAd = false;
+  bool _winCoinsDoubled = false;
+  bool _continuedAfterLoss = false;
+
   @override
   void initState() {
     super.initState();
@@ -172,6 +178,9 @@ class _GameScreenState extends State<GameScreen> {
   void _loadPuzzle() {
     setState(() => _isLoading = true);
     _isCompleted = false;
+    _winCoinsDoubled = false;
+    _continuedAfterLoss = false;
+    _loadingAd = false;
     _game.clearSavedState();
 
     final level = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
@@ -321,7 +330,12 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _restartLevel() {
-    setState(() => _isCompleted = false);
+    setState(() {
+      _isCompleted = false;
+      _winCoinsDoubled = false;
+      _continuedAfterLoss = false;
+      _loadingAd = false;
+    });
     _game.resetPuzzle();
   }
 
@@ -582,6 +596,7 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildInsufficientBanner() {
     final isHint = _insufficientType == 'hint';
+    final isSolve = _insufficientType == 'solve';
     final cost = isHint ? hintCost : solveCost;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -600,6 +615,34 @@ class _GameScreenState extends State<GameScreen> {
               style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600),
             ),
           ),
+          // Watch ad for free solve
+          if (isSolve) ...[
+            GestureDetector(
+              onTap: _loadingAd ? null : _watchAdForFreeSolve,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                margin: const EdgeInsets.only(right: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_loadingAd)
+                      const SizedBox(
+                        width: 10, height: 10,
+                        child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.gold),
+                      )
+                    else
+                      const Icon(Icons.play_arrow, color: AppColors.gold, size: 12),
+                    const SizedBox(width: 2),
+                    const Text('Falas', style: TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.w700)),
+                  ],
+                ),
+              ),
+            ),
+          ],
           GestureDetector(
             onTap: _openShop,
             child: Container(
@@ -619,7 +662,31 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  void _watchAdForFreeSolve() async {
+    final adService = context.read<AdService>();
+    setState(() => _loadingAd = true);
+
+    final success = await adService.showRewardedAd(
+      adType: AdType.freeSolve,
+      onReward: () async {
+        // Perform the solve for free
+        _audio.play(Sfx.solve);
+        _game.solveWord();
+      },
+    );
+
+    if (mounted) {
+      setState(() {
+        _loadingAd = false;
+        if (success) _insufficientType = null;
+      });
+    }
+  }
+
   Widget _buildCompletionSection() {
+    final showDoubleAd = !_isTutorial && _coinsEarned > 0 && !_winCoinsDoubled;
+    final showPlayAgain = !_isTutorial && _completedStars == 2;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Column(
@@ -650,82 +717,146 @@ class _GameScreenState extends State<GameScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  '+$_coinsEarned',
+                  _winCoinsDoubled ? '+${_coinsEarned * 2}' : '+$_coinsEarned',
                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.gold),
                 ),
                 const SizedBox(width: 4),
                 const Icon(Icons.monetization_on, color: AppColors.gold, size: 16),
+                if (_winCoinsDoubled) ...[
+                  const SizedBox(width: 4),
+                  const Text('×2', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w800, fontSize: 12)),
+                ],
               ],
             ),
           ],
           const SizedBox(height: 12),
 
-          // Ad offer (not in tutorial)
-          if (!_isTutorial)
+          // x2 coins ad offer (not in tutorial, only if coins earned and not yet doubled)
+          if (showDoubleAd)
+            GestureDetector(
+              onTap: _loadingAd ? null : _watchAdToDoubleWinCoins,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.videocam, color: Colors.white54, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Dyfisho monedhat', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                          Text(
+                            '+${_coinsEarned} monedha ekstra',
+                            style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.4)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('×2', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w800, fontSize: 14)),
+                    ),
+                    const SizedBox(width: 8),
+                    if (_loadingAd)
+                      const SizedBox(
+                        width: 20, height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.cellGreen),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.cellGreen,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.play_arrow, color: Colors.white, size: 13),
+                            SizedBox(width: 2),
+                            Text('Shiko', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+
+          // Play again for 3 stars prompt
+          if (showPlayAgain) ...[
+            const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.04),
+                color: AppColors.gold.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.videocam, color: Colors.white54, size: 20),
+                  const Icon(Icons.star, color: AppColors.gold, size: 20),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Dyfisho monedhat', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                        const Text('Merr 3 yje!', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
                         Text(
-                          '+${_coinsEarned > 0 ? _coinsEarned * 2 : 20} monedha falas',
+                          'Luaj përsëri për rezultat më të mirë',
                           style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.4)),
                         ),
                       ],
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.gold.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Text('×2', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w800, fontSize: 14)),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.cellGreen,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.play_arrow, color: Colors.white, size: 13),
-                        SizedBox(width: 2),
-                        Text('Shiko', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                      ],
+                  GestureDetector(
+                    onTap: _restartLevel,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.refresh, color: Colors.white, size: 13),
+                          SizedBox(width: 4),
+                          Text('Luaj', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+          ],
           const SizedBox(height: 12),
 
           // Action buttons
           Row(
             children: [
-              Expanded(
-                child: _actionButton(
-                  icon: Icons.refresh,
-                  label: 'Luaj përsëri',
-                  color: AppColors.surface,
-                  onTap: _restartLevel,
+              if (!showPlayAgain)
+                Expanded(
+                  child: _actionButton(
+                    icon: Icons.refresh,
+                    label: 'Luaj përsëri',
+                    color: AppColors.surface,
+                    onTap: _restartLevel,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
+              if (!showPlayAgain)
+                const SizedBox(width: 12),
               Expanded(
                 child: _actionButton(
                   icon: Icons.arrow_forward_ios,
@@ -740,6 +871,28 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
     );
+  }
+
+  void _watchAdToDoubleWinCoins() async {
+    final adService = context.read<AdService>();
+    final coinService = context.read<CoinService>();
+
+    setState(() => _loadingAd = true);
+
+    final success = await adService.showRewardedAd(
+      adType: AdType.doubleWinCoins,
+      onReward: () async {
+        coinService.add(_coinsEarned);
+        _audio.play(Sfx.coin);
+      },
+    );
+
+    if (mounted) {
+      setState(() {
+        _loadingAd = false;
+        if (success) _winCoinsDoubled = true;
+      });
+    }
   }
 
   Widget _buildLostSection() {
@@ -762,6 +915,39 @@ class _GameScreenState extends State<GameScreen> {
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.redAccent),
           ),
           const SizedBox(height: 12),
+
+          // Continue with ad (+5 swaps)
+          if (!_continuedAfterLoss)
+            GestureDetector(
+              onTap: _loadingAd ? null : _watchAdToContinue,
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_loadingAd)
+                      const SizedBox(
+                        width: 18, height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold),
+                      )
+                    else
+                      const Icon(Icons.play_arrow, color: AppColors.gold, size: 20),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Shiko reklamë — +5 lëvizje ekstra',
+                      style: TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
           _actionButton(
             icon: Icons.refresh,
             label: 'Luaj përsëri',
@@ -772,6 +958,28 @@ class _GameScreenState extends State<GameScreen> {
         ],
       ),
     );
+  }
+
+  void _watchAdToContinue() async {
+    final adService = context.read<AdService>();
+
+    setState(() => _loadingAd = true);
+
+    final success = await adService.showRewardedAd(
+      adType: AdType.continueAfterLoss,
+      onReward: () async {
+        _game.continueGame();
+        _audio.play(Sfx.coin);
+        HapticFeedback.mediumImpact();
+      },
+    );
+
+    if (mounted) {
+      setState(() {
+        _loadingAd = false;
+        if (success) _continuedAfterLoss = true;
+      });
+    }
   }
 
   Widget _buildBottomControls(CoinService coinService) {

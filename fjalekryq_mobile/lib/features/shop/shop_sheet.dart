@@ -1,11 +1,57 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/coin_service.dart';
+import '../../core/services/ad_service.dart';
+import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 
 /// Bottom sheet for the coin shop (IAP placeholder).
-class ShopSheet extends StatelessWidget {
+class ShopSheet extends StatefulWidget {
   const ShopSheet({super.key});
+
+  @override
+  State<ShopSheet> createState() => _ShopSheetState();
+}
+
+class _ShopSheetState extends State<ShopSheet> {
+  bool _loadingAd = false;
+  int _adWatchesRemaining = 3;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAdRemaining();
+  }
+
+  void _loadAdRemaining() async {
+    final adService = context.read<AdService>();
+    final remaining = await adService.remainingToday(AdType.bonusCoins);
+    if (mounted) setState(() => _adWatchesRemaining = remaining);
+  }
+
+  void _watchAdForCoins() async {
+    if (_loadingAd || _adWatchesRemaining <= 0) return;
+    final adService = context.read<AdService>();
+    final coinService = context.read<CoinService>();
+    final audio = context.read<AudioService>();
+
+    setState(() => _loadingAd = true);
+
+    final success = await adService.showRewardedAd(
+      adType: AdType.bonusCoins,
+      onReward: () async {
+        coinService.add(30);
+        audio.play(Sfx.coin);
+        HapticFeedback.mediumImpact();
+      },
+    );
+
+    if (mounted) {
+      setState(() => _loadingAd = false);
+      if (success) _loadAdRemaining();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +99,10 @@ class ShopSheet extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
+          // Watch ad for coins
+          _buildAdRow(),
+          const SizedBox(height: 8),
+
           // Packages
           _ShopPackage(price: '\$0.99', coins: 100),
           _ShopPackage(price: '\$1.99', coins: 250, badge: 'MË E MIRË'),
@@ -90,6 +140,75 @@ class ShopSheet extends StatelessWidget {
           ),
           const SizedBox(height: 8),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAdRow() {
+    final available = _adWatchesRemaining > 0;
+    return GestureDetector(
+      onTap: available ? _watchAdForCoins : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.videocam, color: AppColors.gold, size: 28),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '30 monedha falas',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white),
+                  ),
+                  Text(
+                    available
+                        ? 'Shiko reklamë — $_adWatchesRemaining herë të mbetura sot'
+                        : 'Limiti ditor u arrit',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_loadingAd)
+              const SizedBox(
+                width: 20, height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: available ? AppColors.cellGreen : Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.play_arrow, color: available ? Colors.white : Colors.white38, size: 14),
+                    const SizedBox(width: 2),
+                    Text(
+                      'Shiko',
+                      style: TextStyle(
+                        color: available ? Colors.white : Colors.white38,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
