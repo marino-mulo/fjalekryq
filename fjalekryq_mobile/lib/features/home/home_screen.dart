@@ -12,6 +12,7 @@ import '../level_map/level_map_screen.dart';
 import '../game/game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
+import '../profile/profile_sheet.dart';
 import 'leaderboard_sheet.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -171,6 +172,16 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  void _openProfile() {
+    HapticFeedback.selectionClick();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => const ProfileSheet(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
@@ -264,6 +275,11 @@ class _HomeScreenState extends State<HomeScreen>
                             onTap: _openLeaderboard,
                           ),
                           const Spacer(),
+                          _HeaderButton(
+                            icon: Icons.person_rounded,
+                            onTap: _openProfile,
+                          ),
+                          const SizedBox(width: 10),
                           _HeaderButton(
                             icon: Icons.settings,
                             onTap: _openSettings,

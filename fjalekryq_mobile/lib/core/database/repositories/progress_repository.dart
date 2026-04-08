@@ -34,6 +34,28 @@ class ProgressRepository extends BaseRepository<ProgressModel> {
     return (rows.first['max_level'] as int?) ?? 0;
   }
 
+  /// Count total completed levels for a user.
+  Future<int> getCompletedCount(int userId) async {
+    final db = await dbHelper.database;
+    final rows = await db.rawQuery(
+      'SELECT COUNT(*) as cnt FROM progress '
+      'WHERE user_id = ? AND completed = 1 AND invalidated = ?',
+      [userId, DatabaseHelper.statusActive],
+    );
+    return (rows.first['cnt'] as int?) ?? 0;
+  }
+
+  /// Sum all stars for a user.
+  Future<int> getTotalStars(int userId) async {
+    final db = await dbHelper.database;
+    final rows = await db.rawQuery(
+      'SELECT COALESCE(SUM(stars), 0) as total FROM progress '
+      'WHERE user_id = ? AND invalidated = ?',
+      [userId, DatabaseHelper.statusActive],
+    );
+    return (rows.first['total'] as int?) ?? 0;
+  }
+
   /// Upsert progress: update if exists, insert if not.
   Future<void> upsert(int userId, int level, {int? stars, bool? completed}) async {
     final existing = await getByUserAndLevel(userId, level);
