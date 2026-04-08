@@ -17,6 +17,7 @@ import 'core/database/repositories/achievement_repository.dart';
 import 'core/database/repositories/ad_reward_repository.dart';
 import 'core/services/coin_service.dart';
 import 'core/services/settings_service.dart';
+import 'core/services/audio_service.dart';
 import 'core/services/level_puzzle_store.dart';
 import 'features/home/home_screen.dart';
 import 'shared/constants/theme.dart';
@@ -66,6 +67,9 @@ void main() async {
   // Migrate SharedPreferences data to SQLite (one-time)
   await _migrateFromSharedPrefs(prefs, coinsRepo, settingsRepo, progressRepo, userId);
 
+  // Audio service
+  final audioService = AudioService(settingsService);
+
   final puzzleStore = LevelPuzzleStore();
   puzzleStore.generateAll();
 
@@ -74,6 +78,7 @@ void main() async {
       providers: [
         ChangeNotifierProvider.value(value: coinService),
         ChangeNotifierProvider.value(value: settingsService),
+        Provider<AudioService>.value(value: audioService),
         Provider<LevelPuzzleStore>.value(value: puzzleStore),
         Provider<SharedPreferences>.value(value: prefs),
         Provider<DatabaseHelper>.value(value: dbHelper),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import '../../core/services/audio_service.dart';
 import '../constants/theme.dart';
 
 /// A semi-transparent glassmorphic button with press animation.
@@ -39,6 +41,7 @@ class _GlassButtonState extends State<GlassButton> {
       onTapUp: (_) {
         setState(() => _pressed = false);
         HapticFeedback.lightImpact();
+        context.read<AudioService>().play(Sfx.button);
         widget.onTap?.call();
       },
       onTapCancel: () => setState(() => _pressed = false),

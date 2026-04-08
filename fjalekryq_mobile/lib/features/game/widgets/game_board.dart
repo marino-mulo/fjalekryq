@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../../../core/services/game_service.dart';
+import '../../../core/services/audio_service.dart';
 import '../../../shared/constants/theme.dart';
 
 /// Cell size lookup to keep total board fitting the screen width.
@@ -149,6 +151,13 @@ class _GameBoardState extends State<GameBoard>
                           if (colors['$r,$c'] == CellColor.green) return;
                           if (widget.tutorialHighlight.isNotEmpty && !_isHighlighted(r, c)) return;
                           HapticFeedback.lightImpact();
+                          final audio = context.read<AudioService>();
+                          // Play swap sound if second cell selected, tap sound otherwise
+                          if (game.selectedCell != null && !(game.selectedCell!.row == r && game.selectedCell!.col == c)) {
+                            audio.play(Sfx.swap);
+                          } else {
+                            audio.play(Sfx.tap);
+                          }
                           game.selectCell(r, c);
                         },
                       ),

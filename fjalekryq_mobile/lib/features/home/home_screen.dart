@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/coin_service.dart';
+import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/glass_button.dart';
 import '../level_map/level_map_screen.dart';
@@ -73,6 +74,11 @@ class _HomeScreenState extends State<HomeScreen>
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
 
     _fadeController.forward();
+
+    // Start background music
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AudioService>().startMusic();
+    });
   }
 
   @override
@@ -120,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _openLevelMap() {
     HapticFeedback.lightImpact();
+    context.read<AudioService>().play(Sfx.button);
     Navigator.push(context, MaterialPageRoute(
       builder: (_) => const LevelMapScreen(),
     ));
@@ -127,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _startTutorial() {
     HapticFeedback.lightImpact();
+    context.read<AudioService>().play(Sfx.button);
     final prefs = context.read<SharedPreferences>();
     prefs.setBool('fjalekryq_force_tutorial', true);
     Navigator.push(context, MaterialPageRoute(

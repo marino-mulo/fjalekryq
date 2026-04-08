@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/level_config.dart';
 import '../../core/services/coin_service.dart';
+import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../game/game_screen.dart';
@@ -115,6 +116,7 @@ class _LevelMapScreenState extends State<LevelMapScreen>
   void _selectLevel(int level) {
     if (_getState(level) == 'locked') return;
     HapticFeedback.mediumImpact();
+    context.read<AudioService>().play(Sfx.levelSelect);
     final prefs = context.read<SharedPreferences>();
     prefs.setInt('fjalekryq_playing_level', level);
     Navigator.push(context, MaterialPageRoute(

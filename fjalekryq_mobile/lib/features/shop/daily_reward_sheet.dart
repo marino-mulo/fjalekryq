@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../core/services/coin_service.dart';
+import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 
 /// Bottom sheet for daily login reward claiming.
@@ -160,6 +162,8 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
             onPressed: () {
               final result = coinService.claimDaily();
               if (result != null) {
+                HapticFeedback.mediumImpact();
+                context.read<AudioService>().play(Sfx.dailyClaim);
                 setState(() => _claimedReward = result);
               }
             },

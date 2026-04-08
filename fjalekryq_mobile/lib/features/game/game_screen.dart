@@ -6,6 +6,7 @@ import '../../core/models/puzzle.dart';
 import '../../core/models/level_config.dart';
 import '../../core/services/game_service.dart';
 import '../../core/services/coin_service.dart';
+import '../../core/services/audio_service.dart';
 import '../../core/services/level_puzzle_store.dart';
 import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
@@ -71,6 +72,7 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   late GameService _game;
   late SharedPreferences _prefs;
+  late AudioService _audio;
   late int _userId;
 
   // Tutorial state
@@ -94,6 +96,7 @@ class _GameScreenState extends State<GameScreen> {
   void initState() {
     super.initState();
     _prefs = context.read<SharedPreferences>();
+    _audio = context.read<AudioService>();
     _userId = context.read<int>();
     final gameStateRepo = context.read<GameStateRepository>();
     final progressRepo = context.read<ProgressRepository>();
@@ -129,6 +132,11 @@ class _GameScreenState extends State<GameScreen> {
       Future.delayed(const Duration(milliseconds: 600), () {
         if (mounted) _onWin();
       });
+    }
+
+    // Detect loss
+    if (_game.gameLost && !_isCompleted) {
+      _audio.play(Sfx.lose);
     }
 
     setState(() {});
@@ -212,6 +220,7 @@ class _GameScreenState extends State<GameScreen> {
   void _onWin() {
     if (_isCompleted) return;
     HapticFeedback.heavyImpact();
+    _audio.play(Sfx.win);
     final coinService = context.read<CoinService>();
     _tutorialPhase = 0;
     _tutorialHighlightCells = [];
@@ -219,6 +228,10 @@ class _GameScreenState extends State<GameScreen> {
     _completedPraise = _praises[DateTime.now().millisecond % _praises.length];
     final stars = _computeStars();
     _completedStars = stars;
+    // Play star sounds with staggered delay
+    for (int i = 0; i < stars; i++) {
+      Future.delayed(Duration(milliseconds: 400 + i * 300), () => _audio.play(Sfx.star));
+    }
 
     if (_isTutorial) {
       _coinsEarned = _difficultyCoinMap[Difficulty.easy]!;
@@ -240,6 +253,7 @@ class _GameScreenState extends State<GameScreen> {
         final diff = difficultyForLevel(playingLevel);
         _coinsEarned = _difficultyCoinMap[diff] ?? 10;
         coinService.add(_coinsEarned);
+        Future.delayed(const Duration(milliseconds: 800), () => _audio.play(Sfx.coin));
       } else {
         _coinsEarned = 0;
       }
@@ -258,11 +272,13 @@ class _GameScreenState extends State<GameScreen> {
     if (!_isTutorial) {
       if (!coinService.canAfford(hintCost)) {
         HapticFeedback.heavyImpact();
+        _audio.play(Sfx.error);
         _showInsufficientCoins('hint');
         return;
       }
       coinService.spend(hintCost);
     }
+    _audio.play(Sfx.hint);
     _game.hint();
   }
 
@@ -272,11 +288,13 @@ class _GameScreenState extends State<GameScreen> {
     if (!_isTutorial) {
       if (!coinService.canAfford(solveCost)) {
         HapticFeedback.heavyImpact();
+        _audio.play(Sfx.error);
         _showInsufficientCoins('solve');
         return;
       }
       coinService.spend(solveCost);
     }
+    _audio.play(Sfx.solve);
     _game.solveWord();
   }
 
