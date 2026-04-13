@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,35 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
-import '../../shared/widgets/glass_button.dart';
 import '../level_map/level_map_screen.dart';
-import '../game/game_screen.dart';
+import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../profile/profile_sheet.dart';
+import '../../shared/widgets/background_tiles.dart';
 import 'leaderboard_sheet.dart';
 
 const _levelKey = 'fjalekryq_level';
-const _letters = 'ABCÇDEHIMNOPRSTUVXZ';
-const _bgColors = [AppColors.cellGreen, AppColors.gold, AppColors.cellGrey];
-
-class _BgTile {
-  final int id;
-  String letter;
-  double x, y;
-  Color color;
-  final double delay;
-
-  _BgTile({
-    required this.id,
-    required this.letter,
-    required this.x,
-    required this.y,
-    required this.color,
-    required this.delay,
-  });
-}
-
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -44,14 +22,15 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
-  final _rng = Random();
-  late List<_BgTile> _bgTiles;
-  Timer? _bgSwapTimer;
+    with TickerProviderStateMixin {
   int _level = 1;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
+  late AnimationController _logoController;
+  late Animation<double> _logoScale;
+  late AnimationController _pulseController;
+  bool _ready = false;
 
   @override
   void initState() {
@@ -59,9 +38,6 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = context.read<SharedPreferences>();
     _level = prefs.getInt(_levelKey) ?? 1;
     if (_level < 1) _level = 1;
-
-    _bgTiles = _createBgTiles();
-    _startBgSwaps();
 
     // Entrance animation
     _fadeController = AnimationController(
@@ -74,55 +50,45 @@ class _HomeScreenState extends State<HomeScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
 
-    _fadeController.forward();
+    // Logo float animation
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2800),
+    );
+    _logoScale = Tween(begin: 1.0, end: 1.03).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
+    );
 
-    // Start background music
+    // Pulse for daily reward
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+
+    // Defer ALL heavy work well after the first frame renders
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _ready = true);
+      _fadeController.forward();
+    });
+    // Delay animations and music further to let the UI settle
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (!mounted) return;
+      _logoController.repeat(reverse: true);
+      _pulseController.repeat(reverse: true);
+    });
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (!mounted) return;
       context.read<AudioService>().startMusic();
     });
   }
 
   @override
   void dispose() {
-    _bgSwapTimer?.cancel();
     _fadeController.dispose();
+    _logoController.dispose();
+    _pulseController.dispose();
     super.dispose();
-  }
-
-  List<_BgTile> _createBgTiles() {
-    final tiles = <_BgTile>[];
-    final rows = [5.0, 28.0, 52.0, 76.0];
-    for (int r = 0; r < rows.length; r++) {
-      for (int c = 0; c < 5; c++) {
-        final i = r * 5 + c;
-        tiles.add(_BgTile(
-          id: i,
-          letter: _letters[_rng.nextInt(_letters.length)],
-          x: 4 + c * 20 + (_rng.nextDouble() - 0.5) * 10,
-          y: rows[r] + (_rng.nextDouble() - 0.5) * 8,
-          color: _bgColors[i % 3],
-          delay: _rng.nextDouble() * 4,
-        ));
-      }
-    }
-    return tiles;
-  }
-
-  void _startBgSwaps() {
-    _bgSwapTimer = Timer.periodic(const Duration(milliseconds: 1200), (_) {
-      if (!mounted) return;
-      final i = _rng.nextInt(_bgTiles.length);
-      var j = _rng.nextInt(_bgTiles.length - 1);
-      if (j >= i) j++;
-      setState(() {
-        final tmpX = _bgTiles[i].x;
-        final tmpY = _bgTiles[i].y;
-        _bgTiles[i].x = _bgTiles[j].x;
-        _bgTiles[i].y = _bgTiles[j].y;
-        _bgTiles[j].x = tmpX;
-        _bgTiles[j].y = tmpY;
-      });
-    });
   }
 
   void _openLevelMap() {
@@ -133,13 +99,11 @@ class _HomeScreenState extends State<HomeScreen>
     ));
   }
 
-  void _startTutorial() {
+  void _openDailyPuzzle() {
     HapticFeedback.lightImpact();
     context.read<AudioService>().play(Sfx.button);
-    final prefs = context.read<SharedPreferences>();
-    prefs.setBool('fjalekryq_force_tutorial', true);
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => const GameScreen(),
+      builder: (_) => const DailyGameScreen(),
     ));
   }
 
@@ -148,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen>
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (_) => const SettingsSheet(),
     );
   }
@@ -191,30 +156,31 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       body: Stack(
         children: [
-          // Background gradient with subtle radial glow
+          // Background gradient (matching web: #0C1F4A → #123B86 48% → #07152F)
           Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF07152F), Color(0xFF0D1B40), Color(0xFF142452)],
-                stops: [0.0, 0.5, 1.0],
+                colors: [Color(0xFF0C1F4A), Color(0xFF123B86), Color(0xFF07152F)],
+                stops: [0.0, 0.48, 1.0],
               ),
             ),
           ),
 
-          // Subtle center glow
+          // Radial golden glow (web: rgba(255,186,39,0.28), ellipse 70% 42% at 50% 54%)
           Positioned(
-            top: screenSize.height * 0.2,
+            top: screenSize.height * 0.33,
             left: screenSize.width * 0.15,
             child: Container(
               width: screenSize.width * 0.7,
-              height: screenSize.width * 0.7,
+              height: screenSize.height * 0.42,
               decoration: BoxDecoration(
-                shape: BoxShape.circle,
+                shape: BoxShape.rectangle,
+                borderRadius: BorderRadius.circular(200),
                 gradient: RadialGradient(
                   colors: [
-                    AppColors.cellGreen.withValues(alpha: 0.04),
+                    const Color(0xFFFFBA27).withValues(alpha: 0.28),
                     Colors.transparent,
                   ],
                 ),
@@ -222,123 +188,50 @@ class _HomeScreenState extends State<HomeScreen>
             ),
           ),
 
-          // Animated background tiles
-          ..._bgTiles.map((tile) => AnimatedPositioned(
-                key: ValueKey(tile.id),
-                duration: const Duration(milliseconds: 1000),
-                curve: Curves.easeInOut,
-                left: tile.x / 100 * screenSize.width,
-                top: tile.y / 100 * screenSize.height,
-                child: Opacity(
-                  opacity: 0.10,
-                  child: Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: tile.color,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    alignment: Alignment.center,
-                    child: Text(
-                      tile.letter,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
+          // Animated background tiles (shared widget, same across all pages)
+          if (_ready) const BackgroundTiles(animate: true),
+
+          // Header pinned at top, edge-to-edge (matching web .menu-header)
+          _buildHeader(dailyAvailable, MediaQuery.of(context).padding.top),
+
+          // Main content below header
+          Positioned.fill(
+            child: SafeArea(
+              child: FadeTransition(
+                opacity: _fadeAnim,
+                child: SlideTransition(
+                  position: _slideAnim,
+                  child: Column(
+                    children: [
+                      // Space for the header
+                      const SizedBox(height: 56),
+
+                      const Spacer(flex: 3),
+
+                      // Logo area with float animation
+                      AnimatedBuilder(
+                        animation: _logoScale,
+                        builder: (context, child) => Transform.scale(
+                          scale: _logoScale.value,
+                          child: Transform.translate(
+                            offset: Offset(0, -7 * (_logoScale.value - 1) / 0.03),
+                            child: child,
+                          ),
+                        ),
+                        child: _buildLogoSection(),
                       ),
-                    ),
+
+                      const Spacer(flex: 3),
+
+                      // CTA buttons side-by-side (matching web: flex-direction: row)
+                      _buildActionButtons(),
+
+                      const Spacer(flex: 4),
+
+                      // Social icons footer
+                      _buildSocialFooter(),
+                    ],
                   ),
-                ),
-              )),
-
-          // Main content with entrance animation
-          SafeArea(
-            child: FadeTransition(
-              opacity: _fadeAnim,
-              child: SlideTransition(
-                position: _slideAnim,
-                child: Column(
-                  children: [
-                    // Header row
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Row(
-                        children: [
-                          _HeaderButton(
-                            icon: Icons.card_giftcard,
-                            onTap: _openDailyReward,
-                            showDot: dailyAvailable,
-                          ),
-                          const SizedBox(width: 10),
-                          _HeaderButton(
-                            icon: Icons.leaderboard_rounded,
-                            onTap: _openLeaderboard,
-                          ),
-                          const Spacer(),
-                          _HeaderButton(
-                            icon: Icons.person_rounded,
-                            onTap: _openProfile,
-                          ),
-                          const SizedBox(width: 10),
-                          _HeaderButton(
-                            icon: Icons.settings,
-                            onTap: _openSettings,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const Spacer(flex: 3),
-
-                    // Logo area
-                    _buildLogoSection(),
-
-                    const Spacer(flex: 3),
-
-                    // CTA buttons
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 40),
-                      child: Column(
-                        children: [
-                          GlassButton(
-                            label: 'LUAJ',
-                            icon: Icons.play_arrow,
-                            onTap: _openLevelMap,
-                            expanded: true,
-                            height: 54,
-                          ),
-                          const SizedBox(height: 14),
-                          GlassButton(
-                            label: 'Si të luash',
-                            icon: Icons.info_outline,
-                            onTap: _startTutorial,
-                            color: AppColors.surface,
-                            expanded: true,
-                            height: 48,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const Spacer(flex: 4),
-
-                    // Social icons footer
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 28),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          _socialIcon(Icons.camera_alt_outlined),
-                          Container(
-                            width: 1, height: 16,
-                            color: Colors.white10,
-                            margin: const EdgeInsets.symmetric(horizontal: 16),
-                          ),
-                          _socialIcon(Icons.music_note_outlined),
-                        ],
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),
@@ -348,130 +241,276 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildLogoSection() {
-    return Column(
-      children: [
-        // Mini crossword logo
-        _buildMiniCrossword(),
-        const SizedBox(height: 16),
-        ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
-            colors: [
-              Colors.white,
-              Colors.white.withValues(alpha: 0.85),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ).createShader(bounds),
-          child: const Text(
-            'FJALËKRYQ',
-            style: TextStyle(
-              fontSize: 38,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: 4,
+  // Web: .menu-header — full-width glass bar pinned at top
+  Widget _buildHeader(bool dailyAvailable, double statusBarHeight) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: EdgeInsets.only(
+          top: statusBarHeight + 10,
+          bottom: 10,
+          left: 20,
+          right: 20,
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0C1F4A).withValues(alpha: 0.75),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 1,
             ),
           ),
         ),
-        const SizedBox(height: 10),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            _dot(AppColors.gold),
-            const SizedBox(width: 10),
-            Text(
-              'LOJA E FJALËVE SHQIP',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.4),
-                letterSpacing: 2.5,
+            _DailyRewardButton(
+              onTap: _openDailyReward,
+              available: dailyAvailable,
+              pulseController: _pulseController,
+            ),
+            const SizedBox(width: 8),
+            _HeaderButton(
+              icon: Icons.leaderboard_rounded,
+              onTap: _openLeaderboard,
+            ),
+            const Spacer(),
+            _HeaderButton(
+              icon: Icons.person_rounded,
+              onTap: _openProfile,
+            ),
+            const SizedBox(width: 8),
+            _HeaderButton(
+              icon: Icons.settings,
+              onTap: _openSettings,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLogoSection() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Image.asset(
+          'assets/images/logo.png',
+          width: 200,
+          height: 200,
+        ),
+        const SizedBox(height: 14),
+        // Game tag: "LOJA E FJALEVE SHQIP" with dots (matching web .game-tag)
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFBA27).withValues(alpha: 0.6),
+                shape: BoxShape.circle,
               ),
             ),
-            const SizedBox(width: 10),
-            _dot(AppColors.gold),
+            const SizedBox(width: 8),
+            Text(
+              'LOJA E FJALËVE SHQIP',
+              style: AppFonts.nunito(
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 2.5,
+                color: const Color(0xFFFFBA27).withValues(alpha: 0.9),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 4,
+              height: 4,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFBA27).withValues(alpha: 0.6),
+                shape: BoxShape.circle,
+              ),
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildMiniCrossword() {
-    final tiles = [
-      [('F', AppColors.cellGreen), ('J', AppColors.cellYellow), ('A', AppColors.cellGrey)],
-      [null, ('K', AppColors.cellGreen), null],
-      [null, ('R', AppColors.cellYellow), null],
-    ];
-
-    return Column(
-      children: List.generate(3, (r) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: List.generate(3, (c) {
-          final tile = tiles[r][c];
-          if (tile == null) {
-            return const SizedBox(width: 40, height: 40);
-          }
-          return Container(
-            width: 36,
-            height: 36,
-            margin: const EdgeInsets.all(2),
-            decoration: BoxDecoration(
-              color: tile.$2,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: tile.$2.withValues(alpha: 0.3),
-                  blurRadius: 6,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              tile.$1,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
+  // Web: .menu-actions { flex-direction: row; gap: 10px; }
+  Widget _buildActionButtons() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 340),
+        child: Row(
+          children: [
+            // Play button - purple glass (flex: 1)
+            Expanded(
+              child: _ActionButton(
+                label: 'LUAJ',
+                icon: Icons.play_arrow_rounded,
+                onTap: _openLevelMap,
+                color: AppColors.purpleAccent,
               ),
             ),
-          );
-        }),
-      )),
+            const SizedBox(width: 10),
+            // Daily puzzle button - gold glass (flex: 1)
+            Expanded(
+              child: _ActionButton(
+                label: 'Fjalëkryqi i Ditës',
+                icon: Icons.today_rounded,
+                onTap: _openDailyPuzzle,
+                color: const Color(0xFFF4B400),
+                isSecondary: true,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _dot(Color color) {
-    return Container(
-      width: 5, height: 5,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+  Widget _buildSocialFooter() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 32),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _socialIcon(Icons.camera_alt_outlined), // Instagram
+          Container(
+            width: 1, height: 16,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(1),
+            ),
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          _socialIcon(Icons.music_note_outlined), // TikTok
+        ],
+      ),
     );
   }
 
   Widget _socialIcon(IconData icon) {
     return Container(
-      width: 38,
-      height: 38,
+      width: 40,
+      height: 40,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        color: Colors.white.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Icon(icon, color: Colors.white30, size: 18),
+      child: Icon(icon, color: Colors.white.withValues(alpha: 0.85), size: 20),
     );
   }
 }
 
-/// Reusable header icon button with optional notification dot.
-class _HeaderButton extends StatelessWidget {
+/// Purple/white action button matching web design.
+class _ActionButton extends StatefulWidget {
+  final String label;
   final IconData icon;
   final VoidCallback onTap;
-  final bool showDot;
+  final Color color;
+  final bool isSecondary;
 
-  const _HeaderButton({
+  const _ActionButton({
+    required this.label,
     required this.icon,
     required this.onTap,
-    this.showDot = false,
+    required this.color,
+    this.isSecondary = false,
+  });
+
+  @override
+  State<_ActionButton> createState() => _ActionButtonState();
+}
+
+class _ActionButtonState extends State<_ActionButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isPurple = !widget.isSecondary;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        HapticFeedback.lightImpact();
+        context.read<AudioService>().play(Sfx.button);
+        widget.onTap();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 100),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        transform: Matrix4.translationValues(0, _pressed ? 3 : 0, 0),
+        decoration: BoxDecoration(
+          color: isPurple
+              ? AppColors.purpleAccent.withValues(alpha: 0.22)
+              : Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isPurple
+                ? AppColors.purpleAccent.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.22),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isPurple
+                  ? AppColors.purpleAccent.withValues(alpha: _pressed ? 0.15 : 0.35)
+                  : Colors.black.withValues(alpha: _pressed ? 0.1 : 0.25),
+              blurRadius: _pressed ? 8 : 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(widget.icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                widget.label,
+                style: AppFonts.nunito(
+                  fontSize: isPurple ? 16 : 15,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: isPurple ? 1.5 : 0.3,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Daily reward button with gold tint + pulsing when available (matching web .daily-reward-btn).
+class _DailyRewardButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final bool available;
+  final AnimationController pulseController;
+
+  const _DailyRewardButton({
+    required this.onTap,
+    required this.available,
+    required this.pulseController,
   });
 
   @override
@@ -481,31 +520,90 @@ class _HeaderButton extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.07),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-            ),
-            child: Icon(icon, color: Colors.white60, size: 20),
+          AnimatedBuilder(
+            animation: pulseController,
+            builder: (context, child) {
+              return Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: available
+                      ? AppColors.gold.withValues(alpha: 0.2)
+                      : const Color(0xFFF4B400).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: available
+                        ? AppColors.gold.withValues(alpha: 0.6)
+                        : const Color(0xFFF4B400).withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
+                  boxShadow: available
+                      ? [
+                          BoxShadow(
+                            color: AppColors.gold.withValues(
+                              alpha: 0.15 + pulseController.value * 0.25,
+                            ),
+                            blurRadius: 8 + pulseController.value * 8,
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Icon(
+                  Icons.card_giftcard,
+                  color: available
+                      ? AppColors.gold
+                      : const Color(0xFFFFD86B),
+                  size: 20,
+                ),
+              );
+            },
           ),
-          if (showDot)
+          if (available)
             Positioned(
-              top: -2,
-              right: -2,
+              top: -4,
+              right: -4,
               child: Container(
                 width: 10,
                 height: 10,
                 decoration: BoxDecoration(
-                  color: AppColors.greenAccent,
+                  color: const Color(0xFF4ADE80),
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.background, width: 1.5),
+                  border: Border.all(color: const Color(0xFF0C1F4A), width: 2),
                 ),
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+/// Reusable header icon button (matching web .header-icon-btn).
+class _HeaderButton extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _HeaderButton({
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.2),
+            width: 1.5,
+          ),
+        ),
+        child: Icon(icon, color: Colors.white.withValues(alpha: 0.8), size: 20),
       ),
     );
   }

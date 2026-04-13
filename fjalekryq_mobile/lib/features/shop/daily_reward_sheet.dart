@@ -5,6 +5,7 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/shiko_button.dart';
 
 /// Bottom sheet for daily login reward claiming.
 class DailyRewardSheet extends StatefulWidget {
@@ -217,37 +218,11 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
         ),
         if (!_doubled) ...[
           const SizedBox(height: 8),
-          GestureDetector(
-            onTap: _loadingAd ? null : _watchAdToDouble,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (_loadingAd)
-                    const SizedBox(
-                      width: 16, height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold),
-                    )
-                  else
-                    const Icon(Icons.play_arrow, color: AppColors.gold, size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    _loadingAd ? 'Po shfaqet reklama...' : 'Shiko reklamë — dyfisho +${_claimedReward!.amount}',
-                    style: const TextStyle(
-                      color: AppColors.gold,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          ShikoButton(
+            size: ShikoSize.large,
+            loading: _loadingAd,
+            onTap: _watchAdToDouble,
+            label: _loadingAd ? 'Po shfaqet reklama...' : 'Shiko reklamë — dyfisho +${_claimedReward!.amount}',
           ),
         ],
       ],

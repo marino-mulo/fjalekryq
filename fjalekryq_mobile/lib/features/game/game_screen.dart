@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -13,6 +14,7 @@ import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/coin_badge.dart';
+import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_overlay.dart';
 import '../shop/shop_sheet.dart';
 import 'widgets/game_board.dart';
@@ -185,20 +187,18 @@ class _GameScreenState extends State<GameScreen> {
 
     final level = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
     final puzzleStore = context.read<LevelPuzzleStore>();
-    final puzzle = puzzleStore.get(level);
 
-    if (puzzle != null) {
-      _game.initPuzzle(puzzle, level: level);
-      setState(() => _isLoading = false);
-    } else {
-      // Puzzle not ready — try to generate on-the-fly
-      puzzleStore.regenerate(level);
-      final retryPuzzle = puzzleStore.get(level);
-      if (retryPuzzle != null) {
-        _game.initPuzzle(retryPuzzle, level: level);
+    puzzleStore.generate(level).then((puzzle) {
+      if (!mounted) return;
+      if (puzzle != null) {
+        _game.initPuzzle(puzzle, level: level);
       }
       setState(() => _isLoading = false);
-    }
+    }).catchError((e) {
+      if (!mounted) return;
+      debugPrint('Puzzle generation failed: $e');
+      setState(() => _isLoading = false);
+    });
   }
 
   void _setTutorialPhase(int phase) {
@@ -243,8 +243,7 @@ class _GameScreenState extends State<GameScreen> {
     }
 
     if (_isTutorial) {
-      _coinsEarned = _difficultyCoinMap[Difficulty.easy]!;
-      coinService.add(_coinsEarned);
+      _coinsEarned = 0;
     } else {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
@@ -344,145 +343,375 @@ class _GameScreenState extends State<GameScreen> {
     return difficultyLabel(difficultyForLevel(playingLevel));
   }
 
-  Color get _difficultyColor {
+  Difficulty get _difficulty {
     final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
-    final d = difficultyForLevel(playingLevel);
-    switch (d) {
-      case Difficulty.easy:   return AppColors.diffEasy;
-      case Difficulty.medium: return AppColors.diffMedium;
-      case Difficulty.hard:   return AppColors.diffHard;
-      case Difficulty.expert: return AppColors.diffExpert;
+    return difficultyForLevel(playingLevel);
+  }
+
+  Color get _difficultyColor {
+    switch (_difficulty) {
+      case Difficulty.easy:   return const Color(0xFF4ADE80);
+      case Difficulty.medium: return const Color(0xFFFCD34D);
+      case Difficulty.hard:   return const Color(0xFFFCA5A5);
+      case Difficulty.expert: return const Color(0xFFE879F9);
     }
   }
+
+  Color get _difficultyBorderColor {
+    switch (_difficulty) {
+      case Difficulty.easy:   return const Color(0xFF22C55E).withValues(alpha: 0.4);
+      case Difficulty.medium: return const Color(0xFFEAB308).withValues(alpha: 0.4);
+      case Difficulty.hard:   return const Color(0xFFEF4444).withValues(alpha: 0.4);
+      case Difficulty.expert: return const Color(0xFFA855F7).withValues(alpha: 0.45);
+    }
+  }
+
+  int get _nextLevelNumber {
+    final progress = _prefs.getInt(_levelKey) ?? 1;
+    return progress;
+  }
+
+  Color get _difficultyBgColor {
+    switch (_difficulty) {
+      case Difficulty.easy:   return const Color(0xFF22C55E).withValues(alpha: 0.2);
+      case Difficulty.medium: return const Color(0xFFEAB308).withValues(alpha: 0.2);
+      case Difficulty.hard:   return const Color(0xFFEF4444).withValues(alpha: 0.2);
+      case Difficulty.expert: return const Color(0xFFA855F7).withValues(alpha: 0.25);
+    }
+  }
+
+  // ══════════════════════════════════════
+  //  BUILD
+  // ══════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
+    final bottomPad = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0D1B40), Color(0xFF142452)],
-          ),
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  _buildHeader(coinService),
-                  if (!_isCompleted && !_game.gameLost && !_isLoading)
-                    _buildInfoRow(),
-                  const SizedBox(height: 8),
-
-                  // Hint/insufficient coins banner
-                  if (_game.hintMessage.isNotEmpty && !_isTutorial && _insufficientType == null)
-                    _buildHintBanner(),
-                  if (_insufficientType != null)
-                    _buildInsufficientBanner(),
-
-                  // Tutorial banner for interactive phases
-                  if (_isTutorial && _tutorialPhase == 2)
-                    const TutorialBanner(text: '👆 Kliko shkronjat për të bërë 1 lëvizje'),
-                  if (_isTutorial && _tutorialPhase == 5)
-                    TutorialBanner(text: '💡 Kliko Ndihmën për $hintCost\$ — shkronjat, ruaj lëvizjet!'),
-                  if (_isTutorial && _tutorialPhase == 8)
-                    TutorialBanner(text: '✅ Kliko Zgjidh për $solveCost\$ — zgjidhni fjalën, ruaj lëvizjet!'),
-
-                  const SizedBox(height: 8),
-
-                  // Game board
-                  if (!_isLoading)
-                    Expanded(
-                      child: Center(
-                        child: ListenableBuilder(
-                          listenable: _game,
-                          builder: (context, _) => GameBoard(
-                            game: _game,
-                            tutorialHighlight: _tutorialHighlightCells,
-                            disableSwap: _isTutorial && (_tutorialPhase == 5 || _tutorialPhase == 8),
-                          ),
-                        ),
-                      ),
-                    )
-                  else
-                    const Expanded(
-                      child: Center(
-                        child: CircularProgressIndicator(color: AppColors.cellGreen),
-                      ),
-                    ),
-
-                  // Completion screen
-                  if (_isCompleted)
-                    _buildCompletionSection(),
-
-                  // Lost screen
-                  if (_game.gameLost && !_isCompleted)
-                    _buildLostSection(),
-
-                  // Bottom controls (hint/solve)
-                  if (!_isCompleted && !_game.gameLost && !_isLoading)
-                    _buildBottomControls(coinService),
-
-                  const SizedBox(height: 8),
-                ],
+      body: Stack(
+        children: [
+          // ── Background: linear gradient + golden radial glow ──
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFF0C1F4A), Color(0xFF123B86), Color(0xFF07152F)],
+                stops: [0.0, 0.48, 1.0],
               ),
-
-              // Tutorial overlays (blocking modals)
-              if (_isTutorial && [1, 3, 4, 6, 7].contains(_tutorialPhase))
-                TutorialOverlay(
-                  phase: _tutorialPhase,
-                  onNext: () => _setTutorialPhase(_tutorialPhase + 1),
-                ),
-            ],
+            ),
           ),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0.0, 0.08),
+                  radius: 0.8,
+                  colors: [
+                    const Color(0xFFFFBA27).withValues(alpha: 0.18),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.72],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Main content ──
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(coinService),
+                const SizedBox(height: 12),
+                if (!_isCompleted && !_game.gameLost && !_isLoading)
+                  _buildInfoRow(),
+
+                const SizedBox(height: 12),
+
+                // Game board
+                if (!_isLoading)
+                  ListenableBuilder(
+                    listenable: _game,
+                    builder: (context, _) => GameBoard(
+                      game: _game,
+                      tutorialHighlight: _tutorialHighlightCells,
+                      disableSwap: _isTutorial && (_tutorialPhase == 5 || _tutorialPhase == 8),
+                    ),
+                  )
+                else
+                  Expanded(child: _buildLoadingOverlay()),
+
+                // Small space between board and controls
+                if (!_isCompleted && !_game.gameLost && !_isLoading)
+                  const SizedBox(height: 12),
+
+                // Bottom controls (solve/hint) — right after board
+                if (!_isCompleted && !_game.gameLost && !_isLoading)
+                  _buildBottomControls(coinService),
+
+                // Banners between buttons and completion/lost
+                if (!_isCompleted && !_game.gameLost && !_isLoading) ...[
+                  const SizedBox(height: 8),
+                  if (_game.hintMessage.isNotEmpty && !_isTutorial && _insufficientType == null)
+                    _buildInlineBanner(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.lightbulb_outline, color: Color(0xFFFFD86B), size: 15),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              _game.hintMessage,
+                              style: AppFonts.quicksand(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFFFD86B),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      bgColor: const Color(0xFFC9B458).withValues(alpha: 0.2),
+                      borderColor: const Color(0xFFFFBA27).withValues(alpha: 0.4),
+                    ),
+                  if (_insufficientType != null)
+                    _buildInlineInsufficientBanner(),
+                  if (_isTutorial && _tutorialPhase == 2)
+                    _buildInlineBanner(
+                      child: Text(
+                        '👆 Kliko shkronjat për të bërë 1 lëvizje',
+                        textAlign: TextAlign.center,
+                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      bgColor: Colors.white.withValues(alpha: 0.12),
+                      borderColor: Colors.white.withValues(alpha: 0.25),
+                    ),
+                  if (_isTutorial && _tutorialPhase == 5)
+                    _buildInlineBanner(
+                      child: Text(
+                        '💡 Kliko Ndihmën për $hintCost\$ — shkronjat, ruaj lëvizjet!',
+                        textAlign: TextAlign.center,
+                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      bgColor: Colors.white.withValues(alpha: 0.12),
+                      borderColor: Colors.white.withValues(alpha: 0.25),
+                    ),
+                  if (_isTutorial && _tutorialPhase == 8)
+                    _buildInlineBanner(
+                      child: Text(
+                        '✅ Kliko Zgjidh për $solveCost\$ — zgjidhni fjalën, ruaj lëvizjet!',
+                        textAlign: TextAlign.center,
+                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
+                      ),
+                      bgColor: Colors.white.withValues(alpha: 0.12),
+                      borderColor: Colors.white.withValues(alpha: 0.25),
+                    ),
+                ],
+
+                // Completion screen (stars + praise + ad offer + action buttons)
+                if (_isCompleted)
+                  _buildCompletionSection(),
+
+                // Lost screen (empty stars + message + ad continue + replay)
+                if (_game.gameLost && !_isCompleted)
+                  _buildLostSection(),
+
+                SizedBox(height: bottomPad > 0 ? 8 : 16),
+              ],
+            ),
+          ),
+
+          // Tutorial overlays (blocking modals)
+          if (_isTutorial && [1, 3, 4, 6, 7].contains(_tutorialPhase))
+            TutorialOverlay(
+              phase: _tutorialPhase,
+              onNext: () => _setTutorialPhase(_tutorialPhase + 1),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  Inline banner (above buttons in column)
+  // ══════════════════════════════════════
+
+  Widget _buildInlineBanner({
+    required Widget child,
+    required Color bgColor,
+    required Color borderColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  // ── Insufficient coins inline banner ──
+  Widget _buildInlineInsufficientBanner() {
+    final isSolve = _insufficientType == 'solve';
+    final cost = _insufficientType == 'hint' ? hintCost : solveCost;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+        decoration: BoxDecoration(
+          color: const Color(0xFF60A5FA).withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.35)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            const CoinIcon(size: 16),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                isSolve
+                    ? 'Ju nuk keni $cost monedha · shiko një reklamë dhe zgjidh falas'
+                    : 'Ju nuk keni $cost monedha',
+                style: AppFonts.quicksand(
+                  color: const Color(0xFFBAE0FD),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (isSolve) ...[
+              const SizedBox(width: 8),
+              ShikoButton(
+                size: ShikoSize.small,
+                loading: _loadingAd,
+                onTap: _watchAdForFreeSolve,
+              ),
+            ],
+            const SizedBox(width: 6),
+            GestureDetector(
+              onTap: _openShop,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF60A5FA).withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.5)),
+                ),
+                child: Text(
+                  'Bli tani',
+                  style: AppFonts.nunito(
+                    color: const Color(0xFFBAE0FD),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
+  // ══════════════════════════════════════
+  //  Header (glass top strip)
+  // ══════════════════════════════════════
+
   Widget _buildHeader(CoinService coinService) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0C1F4A).withValues(alpha: 0.85),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+      ),
       child: Row(
         children: [
+          // Back button (glass)
           GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
               Navigator.pop(context);
             },
             child: Container(
-              width: 42, height: 42,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white60, size: 18),
+              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
             ),
           ),
-          const Spacer(),
+
+          // Level label (true center via Expanded)
+          Expanded(
+            child: Center(
+              child: Text(
+                _isTutorial ? 'Tutorial' : 'Niveli ${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}',
+                style: AppFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+              ),
+            ),
+          ),
+
+          // Right side: coin badge + shop button (gold tinted)
           CoinBadge(
             amount: coinService.coins,
             onTap: () => _openShop(),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 6),
           GestureDetector(
             onTap: () {
               HapticFeedback.selectionClick();
               _openShop();
             },
             child: Container(
-              width: 42, height: 42,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.07),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+                color: const Color(0xFFF4B400).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: const Color(0xFFF4B400).withValues(alpha: 0.3),
+                  width: 1.5,
+                ),
               ),
-              child: const Icon(Icons.shopping_cart, color: Colors.white60, size: 18),
+              child: const Icon(Icons.shopping_cart, color: Color(0xFFFFD86B), size: 18),
             ),
           ),
         ],
@@ -499,43 +728,58 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  // ══════════════════════════════════════
+  //  Info row: stars | difficulty | moves
+  // ══════════════════════════════════════
+
   Widget _buildInfoRow() {
     final swapsRemaining = _game.swapsRemaining;
     final isWarning = swapsRemaining <= 10 && swapsRemaining > 5;
     final isDanger = swapsRemaining <= 5;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
         children: [
           // Stars preview
           if (!_isTutorial)
             Row(
-              children: List.generate(3, (i) => Icon(
-                Icons.star,
-                size: 15,
-                color: i < _previewStars ? AppColors.gold : Colors.white12,
-              )),
+              children: List.generate(3, (i) {
+                final lit = i < _previewStars;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 3),
+                  child: Icon(
+                    Icons.star,
+                    size: 15,
+                    color: lit ? const Color(0xFFF4B400) : Colors.white.withValues(alpha: 0.18),
+                    shadows: lit
+                        ? [Shadow(color: const Color(0xFFF4B400).withValues(alpha: 0.7), blurRadius: 4)]
+                        : null,
+                  ),
+                );
+              }),
             )
           else
-            const SizedBox(width: 45),
+            const SizedBox(width: 48),
 
           const Spacer(),
 
-          // Difficulty label
+          // Difficulty pill
           if (!_isTutorial)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
               decoration: BoxDecoration(
-                color: _difficultyColor.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(6),
+                color: _difficultyBgColor,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: _difficultyBorderColor, width: 1.5),
               ),
               child: Text(
-                _difficultyLabel,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                _difficultyLabel.toUpperCase(),
+                style: AppFonts.nunito(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
                   color: _difficultyColor,
+                  letterSpacing: 1.5,
                 ),
               ),
             ),
@@ -548,21 +792,22 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Text(
                 '$swapsRemaining',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
+                style: AppFonts.nunito(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
                   color: isDanger
-                      ? AppColors.redAccent
+                      ? const Color(0xFFFCA5A5)
                       : isWarning
-                          ? AppColors.yellowAccent
+                          ? const Color(0xFFFCD34D)
                           : Colors.white,
                 ),
               ),
               Text(
                 'lëvizje të mbetura',
-                style: TextStyle(
+                style: AppFonts.quicksand(
                   fontSize: 9,
-                  color: Colors.white.withValues(alpha: 0.4),
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white.withValues(alpha: 0.45),
                 ),
               ),
             ],
@@ -572,95 +817,94 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  Widget _buildHintBanner() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.gold.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.lightbulb, color: AppColors.gold, size: 15),
-          const SizedBox(width: 6),
-          Text(
-            _game.hintMessage,
-            style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600),
+  // ══════════════════════════════════════
+  //  Loading overlay (splash-style with bg tiles + progress bar)
+  // ══════════════════════════════════════
+
+  static const _loadingLetters = 'ABCÇDEHIMNOPRSTUVXZË';
+  static const _loadingTileColors = [Color(0xFFF4B400), Color(0xFF22C55E), Color(0xFF787c7e)];
+
+  Widget _buildLoadingOverlay() {
+    final size = MediaQuery.of(context).size;
+    final rng = Random(42);
+    final tiles = <Widget>[];
+
+    // 15 tiles scattered across the full area with random jitter
+    const cols = 5;
+    const rows = 3;
+    final cellW = (size.width - 40) / cols;
+    final cellH = (size.height * 0.75) / rows;
+    for (int i = 0; i < 15; i++) {
+      final col = i % cols;
+      final row = i ~/ cols;
+      final x = 20 + col * cellW + (rng.nextDouble() - 0.5) * cellW * 0.6;
+      final y = size.height * 0.15 + row * cellH + (rng.nextDouble() - 0.5) * cellH * 0.4;
+      tiles.add(Positioned(
+        left: x,
+        top: y,
+        child: Opacity(
+          opacity: 0.72,
+          child: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: _loadingTileColors[i % 3],
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.18),
+                width: 2,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              _loadingLetters[rng.nextInt(_loadingLetters.length)],
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ),
-        ],
-      ),
+        ),
+      ));
+    }
+
+    return Stack(
+      children: [
+        ...tiles,
+        Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Progress bar
+              Container(
+                width: 180,
+                height: 6,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(3),
+                ),
+                alignment: Alignment.centerLeft,
+                child: FractionallySizedBox(
+                  widthFactor: 0.6,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF4B400),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildInsufficientBanner() {
-    final isHint = _insufficientType == 'hint';
-    final isSolve = _insufficientType == 'solve';
-    final cost = isHint ? hintCost : solveCost;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.gold.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.monetization_on, color: AppColors.gold, size: 16),
-          const SizedBox(width: 6),
-          Expanded(
-            child: Text(
-              'Ju nuk keni $cost monedha',
-              style: const TextStyle(color: AppColors.gold, fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ),
-          // Watch ad for free solve
-          if (isSolve) ...[
-            GestureDetector(
-              onTap: _loadingAd ? null : _watchAdForFreeSolve,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                margin: const EdgeInsets.only(right: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (_loadingAd)
-                      const SizedBox(
-                        width: 10, height: 10,
-                        child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.gold),
-                      )
-                    else
-                      const Icon(Icons.play_arrow, color: AppColors.gold, size: 12),
-                    const SizedBox(width: 2),
-                    const Text('Falas', style: TextStyle(color: AppColors.gold, fontSize: 10, fontWeight: FontWeight.w700)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-          GestureDetector(
-            onTap: _openShop,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.cellGreen,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                'Bli tani',
-                style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ══════════════════════════════════════
+  //  Ad helpers
+  // ══════════════════════════════════════
 
   void _watchAdForFreeSolve() async {
     final adService = context.read<AdService>();
@@ -669,7 +913,6 @@ class _GameScreenState extends State<GameScreen> {
     final success = await adService.showRewardedAd(
       adType: AdType.freeSolve,
       onReward: () async {
-        // Perform the solve for free
         _audio.play(Sfx.solve);
         _game.solveWord();
       },
@@ -681,196 +924,6 @@ class _GameScreenState extends State<GameScreen> {
         if (success) _insufficientType = null;
       });
     }
-  }
-
-  Widget _buildCompletionSection() {
-    final showDoubleAd = !_isTutorial && _coinsEarned > 0 && !_winCoinsDoubled;
-    final showPlayAgain = !_isTutorial && _completedStars == 2;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          // Stars
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Icon(
-                Icons.star,
-                size: 32,
-                color: i < _completedStars ? AppColors.gold : Colors.white12,
-              ),
-            )),
-          ),
-          const SizedBox(height: 8),
-
-          // Praise + coins
-          Text(
-            _completedPraise,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
-          ),
-          if (_coinsEarned > 0) ...[
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _winCoinsDoubled ? '+${_coinsEarned * 2}' : '+$_coinsEarned',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.gold),
-                ),
-                const SizedBox(width: 4),
-                const Icon(Icons.monetization_on, color: AppColors.gold, size: 16),
-                if (_winCoinsDoubled) ...[
-                  const SizedBox(width: 4),
-                  const Text('×2', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w800, fontSize: 12)),
-                ],
-              ],
-            ),
-          ],
-          const SizedBox(height: 12),
-
-          // x2 coins ad offer (not in tutorial, only if coins earned and not yet doubled)
-          if (showDoubleAd)
-            GestureDetector(
-              onTap: _loadingAd ? null : _watchAdToDoubleWinCoins,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.videocam, color: Colors.white54, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text('Dyfisho monedhat', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                          Text(
-                            '+${_coinsEarned} monedha ekstra',
-                            style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.4)),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text('×2', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w800, fontSize: 14)),
-                    ),
-                    const SizedBox(width: 8),
-                    if (_loadingAd)
-                      const SizedBox(
-                        width: 20, height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.cellGreen),
-                      )
-                    else
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.cellGreen,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.play_arrow, color: Colors.white, size: 13),
-                            SizedBox(width: 2),
-                            Text('Shiko', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-          // Play again for 3 stars prompt
-          if (showPlayAgain) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.star, color: AppColors.gold, size: 20),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('Merr 3 yje!', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
-                        Text(
-                          'Luaj përsëri për rezultat më të mirë',
-                          style: TextStyle(fontSize: 11, color: Colors.white.withValues(alpha: 0.4)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    onTap: _restartLevel,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.refresh, color: Colors.white, size: 13),
-                          SizedBox(width: 4),
-                          Text('Luaj', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 12),
-
-          // Action buttons
-          Row(
-            children: [
-              if (!showPlayAgain)
-                Expanded(
-                  child: _actionButton(
-                    icon: Icons.refresh,
-                    label: 'Luaj përsëri',
-                    color: AppColors.surface,
-                    onTap: _restartLevel,
-                  ),
-                ),
-              if (!showPlayAgain)
-                const SizedBox(width: 12),
-              Expanded(
-                child: _actionButton(
-                  icon: Icons.arrow_forward_ios,
-                  label: _isTutorial ? 'Fillo Lojën' : 'Niveli tjetër',
-                  color: AppColors.cellGreen,
-                  onTap: _nextLevel,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
   }
 
   void _watchAdToDoubleWinCoins() async {
@@ -895,71 +948,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  Widget _buildLostSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        children: [
-          const SizedBox(height: 16),
-          // Empty stars
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(3, (i) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Icon(Icons.star, size: 32, color: Colors.white12),
-            )),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Dështove!',
-            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.redAccent),
-          ),
-          const SizedBox(height: 12),
-
-          // Continue with ad (+5 swaps)
-          if (!_continuedAfterLoss)
-            GestureDetector(
-              onTap: _loadingAd ? null : _watchAdToContinue,
-              child: Container(
-                margin: const EdgeInsets.only(bottom: 10),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.25)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_loadingAd)
-                      const SizedBox(
-                        width: 18, height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.gold),
-                      )
-                    else
-                      const Icon(Icons.play_arrow, color: AppColors.gold, size: 20),
-                    const SizedBox(width: 8),
-                    const Text(
-                      'Shiko reklamë — +5 lëvizje ekstra',
-                      style: TextStyle(color: AppColors.gold, fontSize: 13, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-          _actionButton(
-            icon: Icons.refresh,
-            label: 'Luaj përsëri',
-            color: AppColors.surface,
-            onTap: _restartLevel,
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
   void _watchAdToContinue() async {
     final adService = context.read<AdService>();
 
@@ -982,44 +970,398 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  Widget _buildBottomControls(CoinService coinService) {
-    final canAffordHint = _isTutorial || coinService.canAfford(hintCost);
-    final canAffordSolve = _isTutorial || coinService.canAfford(solveCost);
+  // ══════════════════════════════════════
+  //  Completion section
+  // ══════════════════════════════════════
+
+  Widget _buildCompletionSection() {
+    final showDoubleAd = !_isTutorial && _coinsEarned > 0 && !_winCoinsDoubled;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          // Solve button
-          Expanded(
-            child: _controlButton(
-              icon: Icons.check_circle_outline,
-              label: 'Zgjidh · $solveCost',
-              enabled: _game.canSolveWord &&
-                  !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 5)),
-              cooling: _game.solveWordCooldown,
-              cooldownRemaining: _game.solveWordCooldownRemaining,
-              pulsing: _isTutorial && _tutorialPhase == 8,
-              onTap: _onSolveWord,
-              showWatchBadge: !_isTutorial && !canAffordSolve,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+
+            // ── Stars ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (i) {
+                final filled = i < _completedStars;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
+                  child: Icon(
+                    Icons.star,
+                    size: 32,
+                    color: filled ? const Color(0xFFF4B400) : Colors.white.withValues(alpha: 0.15),
+                    shadows: filled
+                        ? [Shadow(color: const Color(0xFFF4B400).withValues(alpha: 0.7), blurRadius: 6)]
+                        : [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 2)],
+                  ),
+                );
+              }),
             ),
-          ),
-          const SizedBox(width: 10),
-          // Hint button
-          Expanded(
-            child: _controlButton(
-              icon: Icons.lightbulb_outline,
-              label: 'Ndihmë · $hintCost',
-              enabled: _game.canHint &&
-                  !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 8)),
-              cooling: _game.hintCooldown,
-              cooldownRemaining: _game.hintCooldownRemaining,
-              pulsing: _isTutorial && _tutorialPhase == 5,
-              onTap: _onHint,
-              showWatchBadge: false,
+
+            // ── Win summary row: praise + coins ──
+            const SizedBox(height: 4),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  _completedPraise,
+                  style: AppFonts.nunito(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF4ADE80),
+                  ),
+                ),
+                if (_coinsEarned > 0) ...[
+                  const SizedBox(width: 10),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _winCoinsDoubled ? '+${_coinsEarned * 2}' : '+$_coinsEarned',
+                        style: AppFonts.nunito(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFF4B400),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const CoinIcon(size: 14),
+                    ],
+                  ),
+                ],
+              ],
             ),
-          ),
-        ],
+
+            // ── Ad offer card: double coins ──
+            if (showDoubleAd) ...[
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: _loadingAd ? null : _watchAdToDoubleWinCoins,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      // Purple icon
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35), width: 1.5),
+                        ),
+                        child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      // Text
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dyfisho monedhat',
+                              style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
+                            ),
+                            Text(
+                              '+${_coinsEarned > 0 ? _coinsEarned * 2 : 20} monedha falas',
+                              style: AppFonts.quicksand(
+                                fontSize: 10,
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Watch button with x2 badge
+                      ShikoButton(
+                        size: ShikoSize.medium,
+                        loading: _loadingAd,
+                        onTap: _watchAdToDoubleWinCoins,
+                        badge: '×2',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // ── Action buttons row: play again + next level ──
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                // Play again (white glass)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _audio.play(Sfx.button);
+                      _restartLevel();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.refresh, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Luaj përsëri',
+                            style: AppFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Next level (purple glass)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _audio.play(Sfx.button);
+                      _nextLevel();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AppColors.purpleAccent.withValues(alpha: 0.22),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.5), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            _isTutorial ? 'Fillo Lojën' : 'Luaj nivelin $_nextLevelNumber',
+                            style: AppFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  Lost section
+  // ══════════════════════════════════════
+
+  Widget _buildLostSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+
+            // ── Empty stars ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (i) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 3),
+                child: Icon(
+                  Icons.star,
+                  size: 32,
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 2)],
+                ),
+              )),
+            ),
+
+            // ── "Dështove!" ──
+            const SizedBox(height: 4),
+            Text(
+              'Dështove!',
+              style: AppFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFFFCA5A5),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ── Continue with ad (+5 swaps) ──
+            if (!_continuedAfterLoss)
+              GestureDetector(
+                onTap: _loadingAd ? null : _watchAdToContinue,
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 1.5),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35), width: 1.5),
+                        ),
+                        child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Vazhdo lojën', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900)),
+                            Text(
+                              '+5 lëvizje ekstra',
+                              style: AppFonts.quicksand(fontSize: 10, color: Colors.white.withValues(alpha: 0.5)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ShikoButton(
+                        size: ShikoSize.medium,
+                        loading: _loadingAd,
+                        onTap: _watchAdToContinue,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+            // ── Play again button (white glass) ──
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      _audio.play(Sfx.button);
+                      _restartLevel();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1.5),
+                        boxShadow: [
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.refresh, color: Colors.white, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Luaj përsëri',
+                            style: AppFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.white.withValues(alpha: 0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  Bottom controls (Solve + Hint)
+  // ══════════════════════════════════════
+
+  Widget _buildBottomControls(CoinService coinService) {
+    final canAffordHintNow = _isTutorial || coinService.canAfford(hintCost);
+    final canAffordSolveNow = _isTutorial || coinService.canAfford(solveCost);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 430),
+        child: Row(
+          children: [
+            // Solve button (green glass)
+            Expanded(
+              child: _controlButton(
+                icon: Icons.check_circle_outline,
+                label: 'Zgjidh · $solveCost',
+                enabled: _game.canSolveWord &&
+                    !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 5)),
+                cooling: _game.solveWordCooldown,
+                cooldownRemaining: _game.solveWordCooldownRemaining,
+                pulsing: _isTutorial && _tutorialPhase == 8,
+                onTap: _onSolveWord,
+                showWatchBadge: !_isTutorial && !canAffordSolveNow,
+                isSolve: true,
+              ),
+            ),
+            const SizedBox(width: 10),
+            // Hint button (yellow glass)
+            Expanded(
+              child: _controlButton(
+                icon: Icons.lightbulb_outline,
+                label: 'Ndihmë · $hintCost',
+                enabled: _game.canHint &&
+                    !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 8)),
+                cooling: _game.hintCooldown,
+                cooldownRemaining: _game.hintCooldownRemaining,
+                pulsing: _isTutorial && _tutorialPhase == 5,
+                onTap: _onHint,
+                showWatchBadge: false,
+                noCoins: !_isTutorial && !canAffordHintNow,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1033,107 +1375,100 @@ class _GameScreenState extends State<GameScreen> {
     required bool pulsing,
     required VoidCallback onTap,
     bool showWatchBadge = false,
+    bool isSolve = false,
+    bool noCoins = false,
   }) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        GestureDetector(
-          onTap: enabled ? onTap : null,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            height: 50,
-            decoration: BoxDecoration(
-              color: enabled
-                  ? AppColors.surface
-                  : AppColors.surface.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(14),
-              border: pulsing
-                  ? Border.all(color: AppColors.gold, width: 2)
-                  : Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: Stack(
-              children: [
-                // Cooldown bar
-                if (cooling)
-                  Positioned(
-                    bottom: 0, left: 0, right: 0,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(14)),
-                      child: LinearProgressIndicator(
-                        value: cooldownRemaining / 3,
-                        backgroundColor: Colors.transparent,
-                        valueColor: AlwaysStoppedAnimation(Colors.white.withValues(alpha: 0.1)),
-                        minHeight: 4,
-                      ),
+    final baseColor = isSolve
+        ? const Color(0xFF6AAA64)
+        : const Color(0xFFC9B458);
+
+    final isDisabled = !enabled && !cooling;
+    final effectiveOpacity = noCoins ? 0.55 : 1.0;
+
+    return Opacity(
+      opacity: effectiveOpacity,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          GestureDetector(
+            onTap: enabled ? onTap : null,
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+              decoration: BoxDecoration(
+                color: cooling
+                    ? baseColor.withValues(alpha: 0.08)
+                    : isDisabled
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : baseColor.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: cooling
+                      ? baseColor.withValues(alpha: 0.2)
+                      : isDisabled
+                          ? Colors.white.withValues(alpha: 0.1)
+                          : baseColor.withValues(alpha: 0.5),
+                  width: 1.5,
+                ),
+                boxShadow: (enabled && !cooling)
+                    ? [BoxShadow(color: baseColor.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, 4))]
+                    : null,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Button content
+                  Opacity(
+                    opacity: (isDisabled && !cooling) ? 0.28 : (cooling ? 0.4 : 1.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(icon, color: Colors.white, size: 22),
+                        const SizedBox(width: 8),
+                        Text(
+                          label,
+                          style: AppFonts.nunito(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(width: 2),
+                        const CoinIcon(size: 11),
+                      ],
                     ),
                   ),
-                Center(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(icon, color: enabled ? Colors.white : Colors.white38, size: 20),
-                      const SizedBox(width: 6),
-                      Text(
-                        label,
-                        style: TextStyle(
-                          color: enabled ? Colors.white : Colors.white38,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                  // Cooldown bar centered below label inside button
+                  if (cooling) ...[
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: Container(
+                        height: 4,
+                        color: Colors.black.withValues(alpha: 0.2),
+                        alignment: Alignment.centerLeft,
+                        child: FractionallySizedBox(
+                          widthFactor: cooldownRemaining / 3,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: baseColor.withValues(alpha: 0.7),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 2),
-                      Icon(Icons.monetization_on, color: Colors.white.withValues(alpha: 0.5), size: 11),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (showWatchBadge)
-          Positioned(
-            top: -8, right: -4,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.cellGreen,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: const Text(
-                '▶ Shiko',
-                style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),
-      ],
-    );
-  }
-
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: color,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14),
+          // Watch badge (glass style, top-right)
+          if (showWatchBadge)
+            Positioned(
+              top: -7,
+              right: -5,
+              child: ShikoButton(size: ShikoSize.small),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

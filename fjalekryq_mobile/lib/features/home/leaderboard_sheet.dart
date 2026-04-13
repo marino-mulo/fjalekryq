@@ -7,7 +7,7 @@ class LeaderboardEntry {
   final int rank;
   final String name;
   final String? avatarUrl;
-  final int value; // level or stars depending on tab
+  final int value; // level, stars, or streak depending on tab
   final bool isCurrentUser;
 
   const LeaderboardEntry({
@@ -40,6 +40,16 @@ final _mockStarsLeaderboard = [
   const LeaderboardEntry(rank: 7, name: 'Besiana', value: 6),
 ];
 
+final _mockStreakLeaderboard = [
+  const LeaderboardEntry(rank: 1, name: 'Dritan', value: 42),
+  const LeaderboardEntry(rank: 2, name: 'Arben', value: 31),
+  const LeaderboardEntry(rank: 3, name: 'Elira', value: 25),
+  const LeaderboardEntry(rank: 4, name: 'Gentian', value: 18),
+  const LeaderboardEntry(rank: 5, name: 'Ti', value: 12, isCurrentUser: true),
+  const LeaderboardEntry(rank: 6, name: 'Fjolla', value: 8),
+  const LeaderboardEntry(rank: 7, name: 'Besiana', value: 5),
+];
+
 const _avatarColors = [
   Color(0xFF22C55E),
   Color(0xFFF4B400),
@@ -50,7 +60,18 @@ const _avatarColors = [
   Color(0xFFA78BFA),
 ];
 
-/// Bottom sheet modal showing leaderboard with Level / Stars tabs.
+/// Tab configuration for leaderboard.
+enum _LeaderboardTab {
+  level(icon: Icons.emoji_events_outlined, label: 'Niveli'),
+  stars(icon: Icons.star_rounded, label: 'Yjet'),
+  streak(icon: Icons.local_fire_department_rounded, label: 'Ditore');
+
+  final IconData icon;
+  final String label;
+  const _LeaderboardTab({required this.icon, required this.label});
+}
+
+/// Bottom sheet modal showing leaderboard with Level / Stars / Streak tabs.
 class LeaderboardSheet extends StatefulWidget {
   const LeaderboardSheet({super.key});
 
@@ -65,7 +86,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(() => setState(() {}));
   }
 
@@ -75,12 +96,20 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
     super.dispose();
   }
 
+  List<LeaderboardEntry> get _currentEntries {
+    switch (_tabController.index) {
+      case 0: return _mockLevelLeaderboard;
+      case 1: return _mockStarsLeaderboard;
+      case 2: return _mockStreakLeaderboard;
+      default: return _mockLevelLeaderboard;
+    }
+  }
+
+  _LeaderboardTab get _currentTab => _LeaderboardTab.values[_tabController.index];
+
   @override
   Widget build(BuildContext context) {
-    final entries = _tabController.index == 0
-        ? _mockLevelLeaderboard
-        : _mockStarsLeaderboard;
-    final isLevelTab = _tabController.index == 0;
+    final entries = _currentEntries;
 
     return Container(
       decoration: const BoxDecoration(
@@ -141,7 +170,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
           ),
           const SizedBox(height: 16),
 
-          // Tab bar
+          // Tab bar — 3 tabs
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.all(3),
@@ -161,45 +190,33 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
               labelColor: Colors.white,
               unselectedLabelColor: Colors.white38,
               labelStyle: const TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.3,
               ),
               unselectedLabelStyle: const TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w500,
               ),
+              labelPadding: EdgeInsets.zero,
               onTap: (_) => HapticFeedback.selectionClick(),
-              tabs: const [
-                Tab(
-                  height: 38,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.trending_up_rounded, size: 16),
-                      SizedBox(width: 6),
-                      Text('Niveli'),
-                    ],
-                  ),
+              tabs: _LeaderboardTab.values.map((tab) => Tab(
+                height: 38,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(tab.icon, size: 14),
+                    const SizedBox(width: 4),
+                    Text(tab.label),
+                  ],
                 ),
-                Tab(
-                  height: 38,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.star_rounded, size: 16),
-                      SizedBox(width: 6),
-                      Text('Yjet'),
-                    ],
-                  ),
-                ),
-              ],
+              )).toList(),
             ),
           ),
           const SizedBox(height: 12),
 
           // Top 3 podium
-          _buildPodium(entries.take(3).toList(), isLevelTab),
+          _buildPodium(entries.take(3).toList()),
 
           // Divider
           Container(
@@ -209,7 +226,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
           ),
 
           // Rest of the list
-          ...entries.skip(3).map((e) => _buildRow(e, isLevelTab)),
+          ...entries.skip(3).map((e) => _buildRow(e)),
 
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
@@ -217,7 +234,19 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
     );
   }
 
-  Widget _buildPodium(List<LeaderboardEntry> top3, bool isLevel) {
+  /// Icon + color for the current tab's value column.
+  IconData get _valueIcon => _currentTab.icon;
+
+  Color get _valueColor {
+    switch (_tabController.index) {
+      case 0: return AppColors.cellGreen;
+      case 1: return AppColors.gold;
+      case 2: return const Color(0xFFFF6B35); // fire orange
+      default: return AppColors.cellGreen;
+    }
+  }
+
+  Widget _buildPodium(List<LeaderboardEntry> top3) {
     if (top3.length < 3) return const SizedBox.shrink();
 
     return Padding(
@@ -226,19 +255,19 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // 2nd place
-          Expanded(child: _podiumItem(top3[1], isLevel, 60)),
+          Expanded(child: _podiumItem(top3[1], 60)),
           const SizedBox(width: 10),
           // 1st place
-          Expanded(child: _podiumItem(top3[0], isLevel, 80)),
+          Expanded(child: _podiumItem(top3[0], 80)),
           const SizedBox(width: 10),
           // 3rd place
-          Expanded(child: _podiumItem(top3[2], isLevel, 52)),
+          Expanded(child: _podiumItem(top3[2], 52)),
         ],
       ),
     );
   }
 
-  Widget _podiumItem(LeaderboardEntry entry, bool isLevel, double height) {
+  Widget _podiumItem(LeaderboardEntry entry, double height) {
     final isFirst = entry.rank == 1;
     final crownColor = entry.rank == 1
         ? AppColors.gold
@@ -315,11 +344,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                isLevel ? Icons.flag_rounded : Icons.star_rounded,
-                size: 13,
-                color: isLevel ? AppColors.cellGreen : AppColors.gold,
-              ),
+              Icon(_valueIcon, size: 13, color: _valueColor),
               const SizedBox(width: 4),
               Text(
                 '${entry.value}',
@@ -336,7 +361,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
     );
   }
 
-  Widget _buildRow(LeaderboardEntry entry, bool isLevel) {
+  Widget _buildRow(LeaderboardEntry entry) {
     final avatarColor = _avatarColors[(entry.name.hashCode) % _avatarColors.length];
 
     return Container(
@@ -409,11 +434,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                isLevel ? Icons.flag_rounded : Icons.star_rounded,
-                size: 15,
-                color: isLevel ? AppColors.cellGreen : AppColors.gold,
-              ),
+              Icon(_valueIcon, size: 15, color: _valueColor),
               const SizedBox(width: 5),
               Text(
                 '${entry.value}',
