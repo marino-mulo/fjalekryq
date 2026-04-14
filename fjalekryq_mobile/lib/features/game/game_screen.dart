@@ -1095,6 +1095,10 @@ class _GameScreenState extends State<GameScreen> {
           onDoubleCoins: () async {
             await _watchAdToDoubleWinCoins();
           },
+          onPlayAgainRestart: () {
+            Navigator.pop(ctx);
+            Future.microtask(_restartLevel);
+          },
           onRestart: () {
             Navigator.pop(ctx);
             Future.microtask(_restartLevel);
@@ -1372,6 +1376,8 @@ class _WinModal extends StatefulWidget {
   final bool isTutorial;
   final int nextLevelNumber;
   final Future<void> Function() onDoubleCoins;
+  /// Called after watching "play again for 3 stars" ad (closes modal + restarts).
+  final VoidCallback? onPlayAgainRestart;
   final VoidCallback onRestart;
   final VoidCallback onNextLevel;
   final VoidCallback? onSaveProgress;
@@ -1384,6 +1390,7 @@ class _WinModal extends StatefulWidget {
     required this.isTutorial,
     required this.nextLevelNumber,
     required this.onDoubleCoins,
+    this.onPlayAgainRestart,
     required this.onRestart,
     required this.onNextLevel,
     this.onSaveProgress,
@@ -1396,7 +1403,8 @@ class _WinModal extends StatefulWidget {
 class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
   late final List<AnimationController> _starCtrl;
   late final List<Animation<double>> _starScale;
-  bool _loadingAd = false;
+  // Tracks which ad slot is currently loading
+  _AdLoading _adLoading = _AdLoading.none;
   bool _doubled = false;
 
   @override
@@ -1424,9 +1432,37 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  Future<void> _watchDoubleCoinsAd() async {
+    if (_adLoading != _AdLoading.none) return;
+    setState(() => _adLoading = _AdLoading.doubleCoins);
+    await widget.onDoubleCoins();
+    if (mounted) setState(() {
+      _adLoading = _AdLoading.none;
+      _doubled = true;
+    });
+  }
+
+  Future<void> _watchPlayAgainAd() async {
+    if (_adLoading != _AdLoading.none) return;
+    setState(() => _adLoading = _AdLoading.playAgain);
+    final adService = context.read<AdService>();
+    final success = await adService.showRewardedAd(
+      adType: AdType.playAgainFor3Stars,
+      onReward: () async {},
+    );
+    if (mounted) {
+      setState(() => _adLoading = _AdLoading.none);
+      if (success) widget.onPlayAgainRestart?.call();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final showDoubleAd = !widget.isTutorial && widget.coinsEarned > 0 && !_doubled;
+    // 3 stars → only show 2x reward; < 3 stars → show both offers
+    final showDoubleAd =
+        !widget.isTutorial && widget.coinsEarned > 0 && !_doubled;
+    final showPlayAgainAd =
+        !widget.isTutorial && widget.stars < 3 && widget.onPlayAgainRestart != null;
 
     return Material(
       color: Colors.transparent,
@@ -1440,7 +1476,10 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
             colors: [Color(0xFF112660), Color(0xFF0A1A3E)],
           ),
           borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.25), width: 1.5),
+          border: Border.all(
+            color: const Color(0xFF22C55E).withValues(alpha: 0.25),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF22C55E).withValues(alpha: 0.18),
@@ -1465,7 +1504,9 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
                 return Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 6),
                   child: ScaleTransition(
-                    scale: filled ? _starScale[i] : const AlwaysStoppedAnimation(1.0),
+                    scale: filled
+                        ? _starScale[i]
+                        : const AlwaysStoppedAnimation(1.0),
                     child: Icon(
                       Icons.star_rounded,
                       size: 52,
@@ -1475,7 +1516,8 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
                       shadows: filled
                           ? [
                               Shadow(
-                                color: const Color(0xFFF4B400).withValues(alpha: 0.7),
+                                color: const Color(0xFFF4B400)
+                                    .withValues(alpha: 0.7),
                                 blurRadius: 12,
                               )
                             ]
@@ -1519,71 +1561,43 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
               ),
             ],
 
-            // ── Double-coins ad offer ──
-            if (showDoubleAd) ...[
+            // ── Ad offers section ──
+            if (showDoubleAd || showPlayAgainAd) ...[
               const SizedBox(height: 14),
-              GestureDetector(
-                onTap: _loadingAd
-                    ? null
-                    : () async {
-                        setState(() => _loadingAd = true);
-                        await widget.onDoubleCoins();
-                        if (mounted) setState(() {
-                          _loadingAd = false;
-                          _doubled = true;
-                        });
-                      },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.purpleAccent.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                            color: AppColors.purpleAccent.withValues(alpha: 0.35),
-                          ),
-                        ),
-                        child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Dyfisho monedhat',
-                              style: AppFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900),
-                            ),
-                            Text(
-                              '+${widget.coinsEarned * 2} monedha falas',
-                              style: AppFonts.quicksand(
-                                fontSize: 11,
-                                color: Colors.white.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ShikoButton(
-                        size: ShikoSize.medium,
-                        loading: _loadingAd,
-                        badge: '×2',
-                        onTap: null,
-                      ),
-                    ],
-                  ),
+
+              // 2× reward — shown for any win (3 or < 3 stars)
+              if (showDoubleAd)
+                _adOfferTile(
+                  loading: _adLoading == _AdLoading.doubleCoins,
+                  iconBg: AppColors.purpleAccent.withValues(alpha: 0.18),
+                  iconBorder: AppColors.purpleAccent.withValues(alpha: 0.35),
+                  icon: Icons.videocam,
+                  iconColor: const Color(0xFFC084FC),
+                  title: 'Dyfisho monedhat',
+                  subtitle: '+${widget.coinsEarned * 2} monedha falas',
+                  badgeLabel: '×2',
+                  onTap: _watchDoubleCoinsAd,
                 ),
-              ),
+
+              // Spacer between tiles
+              if (showDoubleAd && showPlayAgainAd)
+                const SizedBox(height: 10),
+
+              // Play again for 3 stars — only shown when stars < 3
+              if (showPlayAgainAd)
+                _adOfferTile(
+                  loading: _adLoading == _AdLoading.playAgain,
+                  iconBg: const Color(0xFFF4B400).withValues(alpha: 0.16),
+                  iconBorder: const Color(0xFFF4B400).withValues(alpha: 0.35),
+                  icon: Icons.replay_rounded,
+                  iconColor: const Color(0xFFF4B400),
+                  title: 'Luaj sërish për 3 yje',
+                  subtitle: 'Provoni të arrini rezultatin maksimal',
+                  badgeLabel: '★3',
+                  badgeColor: const Color(0xFFF4B400),
+                  badgeTextColor: const Color(0xFF7A3F00),
+                  onTap: _watchPlayAgainAd,
+                ),
             ],
 
             // ── Action buttons ──
@@ -1658,7 +1672,72 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
       ),
     );
   }
+
+  Widget _adOfferTile({
+    required bool loading,
+    required Color iconBg,
+    required Color iconBorder,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required String badgeLabel,
+    Color badgeColor = const Color(0xFFF4B400),
+    Color badgeTextColor = const Color(0xFF7A3F00),
+    required Future<void> Function() onTap,
+  }) {
+    return GestureDetector(
+      onTap: (_adLoading != _AdLoading.none) ? null : onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: iconBg,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: iconBorder),
+              ),
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: AppFonts.nunito(
+                          fontSize: 13, fontWeight: FontWeight.w900)),
+                  Text(subtitle,
+                      style: AppFonts.quicksand(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.5))),
+                ],
+              ),
+            ),
+            ShikoButton(
+              size: ShikoSize.medium,
+              loading: loading,
+              badge: badgeLabel,
+              onTap: null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
+
+/// Tracks which ad slot is currently loading in the win modal.
+enum _AdLoading { none, doubleCoins, playAgain }
 
 // ══════════════════════════════════════════════════════
 //  FAIL MODAL
