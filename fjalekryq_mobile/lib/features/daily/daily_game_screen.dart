@@ -16,7 +16,7 @@ import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/shiko_button.dart';
-import '../shop/shop_sheet.dart';
+import '../shop/shop_screen.dart';
 import '../game/widgets/game_board.dart';
 
 const _dailyCoins = 20;
@@ -286,11 +286,10 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   }
 
   void _openShop() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const ShopSheet(),
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ShopScreen()),
     );
   }
 

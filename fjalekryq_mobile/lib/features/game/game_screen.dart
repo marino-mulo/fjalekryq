@@ -16,7 +16,7 @@ import '../../shared/constants/theme.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_overlay.dart';
-import '../shop/shop_sheet.dart';
+import '../shop/shop_screen.dart';
 import 'widgets/game_board.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -104,6 +104,8 @@ class _GameScreenState extends State<GameScreen> {
   bool _fiveMovesWarningShown = false;
   // Prevents double fail-modal triggers
   bool _showingFailModal = false;
+  // Counts fails on the same level — unlocks Special Offer after 2+
+  int _failCount = 0;
 
   @override
   void initState() {
@@ -162,6 +164,7 @@ class _GameScreenState extends State<GameScreen> {
     // Auto-trigger fail modal (once)
     if (_game.gameLost && !_isCompleted && !_showingFailModal) {
       _showingFailModal = true;
+      _failCount++;
       _audio.play(Sfx.lose);
       Future.delayed(const Duration(milliseconds: 400), () {
         if (mounted) _showFailModal();
@@ -206,6 +209,7 @@ class _GameScreenState extends State<GameScreen> {
     _loadingAd = false;
     _fiveMovesWarningShown = false;
     _showingFailModal = false;
+    _failCount = 0;
     _game.clearSavedState();
 
     final level = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
@@ -752,11 +756,12 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _openShop() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const ShopSheet(),
+    HapticFeedback.selectionClick();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ShopScreen(specialOffer: _failCount >= 2),
+      ),
     );
   }
 
