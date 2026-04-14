@@ -218,7 +218,12 @@ class _LevelMapScreenState extends State<LevelMapScreen>
           ),
 
           // Header (matching web .map-header)
-          _buildHeader(statusBarHeight),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildHeader(statusBarHeight),
+          ),
 
           // Tutorial button (bottom-right)
           Positioned(

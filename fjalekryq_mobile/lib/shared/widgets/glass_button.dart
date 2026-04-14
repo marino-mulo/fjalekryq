@@ -34,7 +34,7 @@ class _GlassButtonState extends State<GlassButton> {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = widget.color ?? AppColors.buttonPrimary;
+    final bgColor = widget.color ?? AppColors.purpleAccent;
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -45,47 +45,42 @@ class _GlassButtonState extends State<GlassButton> {
         widget.onTap?.call();
       },
       onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedScale(
-        scale: _pressed ? 0.96 : 1.0,
+      child: AnimatedContainer(
         duration: const Duration(milliseconds: 100),
         curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          height: widget.height,
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          decoration: BoxDecoration(
-            color: _pressed
-                ? bgColor.withValues(alpha: 0.95)
-                : bgColor.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: _pressed ? 0.15 : 0.08),
+        height: widget.height,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        transform: Matrix4.translationValues(0, _pressed ? 2 : 0, 0),
+        decoration: BoxDecoration(
+          color: _pressed
+              ? bgColor.withValues(alpha: 0.3)
+              : bgColor.withValues(alpha: 0.22),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: bgColor.withValues(alpha: 0.5),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: bgColor.withValues(alpha: _pressed ? 0.15 : 0.4),
+              blurRadius: _pressed ? 6 : 16,
+              offset: Offset(0, _pressed ? 2 : 4),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: bgColor.withValues(alpha: _pressed ? 0.15 : 0.25),
-                blurRadius: _pressed ? 6 : 14,
-                offset: Offset(0, _pressed ? 2 : 4),
-              ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: widget.expanded ? MainAxisSize.max : MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (widget.iconWidget != null) ...[
+              widget.iconWidget!,
+              const SizedBox(width: 8),
+            ] else if (widget.icon != null) ...[
+              Icon(widget.icon, color: Colors.white, size: 18),
+              const SizedBox(width: 8),
             ],
-          ),
-          child: Row(
-            mainAxisSize: widget.expanded ? MainAxisSize.max : MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (widget.iconWidget != null) ...[
-                widget.iconWidget!,
-                const SizedBox(width: 8),
-              ] else if (widget.icon != null) ...[
-                Icon(widget.icon, color: Colors.white, size: 18),
-                const SizedBox(width: 8),
-              ],
-              Text(
-                widget.label,
-                style: AppTextStyles.button,
-              ),
-            ],
-          ),
+            Text(widget.label, style: AppTextStyles.button),
+          ],
         ),
       ),
     );

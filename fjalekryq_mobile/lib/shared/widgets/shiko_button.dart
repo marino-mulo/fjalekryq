@@ -168,12 +168,15 @@ class ShikoButton extends StatelessWidget {
             else
               const Icon(Icons.play_arrow, color: Color(0xFFE2C9FF), size: 18),
             const SizedBox(width: 8),
-            Text(
-              label ?? 'Shiko reklamë',
-              style: AppFonts.nunito(
-                color: const Color(0xFFE2C9FF),
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
+            Flexible(
+              child: Text(
+                label ?? 'Shiko reklamë',
+                style: AppFonts.nunito(
+                  color: const Color(0xFFE2C9FF),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

@@ -35,41 +35,44 @@ class PuzzleGenerator {
     final cfg = _diffConfigs[difficulty] ?? _diffConfigs[Difficulty.medium]!;
 
     // Pick a random grid size for this difficulty
-    final size = cfg.sizes[rng.nextInt(cfg.sizes.length)];
+    var usedSize = cfg.sizes[rng.nextInt(cfg.sizes.length)];
 
     var result = _generatePuzzle(
-      rng, size, cfg.minWords, cfg.minLetters, cfg.attempts,
+      rng, usedSize, cfg.minWords, cfg.minLetters, cfg.attempts,
       difficulty, cfg.featuredLen, excludeWords,
     );
 
+    // Retry with relaxed requirements, same size
     if (result == null) {
-      // Fallback with relaxed requirements
       result = _generatePuzzle(
-        rng, size,
+        rng, usedSize,
         max(3, cfg.minWords - 3),
-        max(10, cfg.minLetters - 10),
+        max(8, cfg.minLetters - 10),
         cfg.attempts * 2,
         difficulty, cfg.featuredLen, excludeWords,
       );
     }
 
-    // Try smallest grid for this difficulty
+    // Try each size in the difficulty range with very relaxed requirements
     if (result == null) {
-      final fallbackSize = cfg.sizes[0];
-      result = _generatePuzzle(
-        rng, fallbackSize,
-        max(3, cfg.minWords - 3), 10, 1500,
-        difficulty, cfg.featuredLen, excludeWords,
-      );
+      for (final fallbackSize in cfg.sizes) {
+        result = _generatePuzzle(
+          rng, fallbackSize, 3, 8, 2000,
+          difficulty, min(fallbackSize, cfg.featuredLen), null,
+        );
+        if (result != null) {
+          usedSize = fallbackSize;
+          break;
+        }
+      }
     }
 
-    // Last resort: ignore exclusions
+    // Absolute last resort: easy difficulty pool, smallest grid, minimal words
     if (result == null) {
-      final fallbackSize = cfg.sizes[0];
+      usedSize = 5;
       result = _generatePuzzle(
-        rng, fallbackSize,
-        max(3, cfg.minWords - 3), 10, 1500,
-        difficulty, cfg.featuredLen, null,
+        rng, 5, 3, 8, 2000,
+        Difficulty.easy, 5, null,
       );
     }
 
@@ -78,7 +81,7 @@ class PuzzleGenerator {
     }
 
     return Wordle7Puzzle(
-      gridSize: size,
+      gridSize: usedSize,
       solution: result.grid,
       words: result.words,
       swapLimit: result.swapLimit,
@@ -343,16 +346,24 @@ class PuzzleGenerator {
 
         // Horizontal run length
         int hStart = c;
-        while (hStart > 0 && grid[r][hStart - 1] != 'X') hStart--;
+        while (hStart > 0 && grid[r][hStart - 1] != 'X') {
+          hStart--;
+        }
         int hEnd = c;
-        while (hEnd < size - 1 && grid[r][hEnd + 1] != 'X') hEnd++;
+        while (hEnd < size - 1 && grid[r][hEnd + 1] != 'X') {
+          hEnd++;
+        }
         final hLen = hEnd - hStart + 1;
 
         // Vertical run length
         int vStart = r;
-        while (vStart > 0 && grid[vStart - 1][c] != 'X') vStart--;
+        while (vStart > 0 && grid[vStart - 1][c] != 'X') {
+          vStart--;
+        }
         int vEnd = r;
-        while (vEnd < size - 1 && grid[vEnd + 1][c] != 'X') vEnd++;
+        while (vEnd < size - 1 && grid[vEnd + 1][c] != 'X') {
+          vEnd++;
+        }
         final vLen = vEnd - vStart + 1;
 
         if (hLen < 2 && vLen < 2) return true;
