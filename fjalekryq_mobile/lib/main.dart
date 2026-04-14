@@ -24,10 +24,13 @@ import 'core/services/daily_puzzle_service.dart';
 import 'core/database/repositories/daily_puzzle_repository.dart';
 import 'core/database/repositories/daily_streak_repository.dart';
 import 'features/home/home_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
 import 'shared/widgets/background_tiles.dart';
 
 late final Future<_AppServices> _initFuture;
+
+const _onboardingDoneKey = 'fjalekryq_onboarding_done';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -240,7 +243,11 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
       builder: s != null
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
-      home: s == null ? const SplashScreen() : const HomeScreen(),
+      home: s == null
+          ? const SplashScreen()
+          : (s.prefs.getBool(_onboardingDoneKey) ?? false)
+              ? const HomeScreen()
+              : const OnboardingScreen(),
     );
   }
 }

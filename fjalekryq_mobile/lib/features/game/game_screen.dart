@@ -100,6 +100,11 @@ class _GameScreenState extends State<GameScreen> {
   bool _winCoinsDoubled = false;
   bool _continuedAfterLoss = false;
 
+  // 5-moves warning (shown once per game session)
+  bool _fiveMovesWarningShown = false;
+  // Prevents double fail-modal triggers
+  bool _showingFailModal = false;
+
   @override
   void initState() {
     super.initState();
@@ -135,16 +140,32 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    // Auto-trigger win
+    // 5-moves warning: offer more moves before it's too late
+    if (!_isTutorial &&
+        !_fiveMovesWarningShown &&
+        !_game.gameLost &&
+        !_game.gameWon &&
+        _game.swapsRemaining == 5) {
+      _fiveMovesWarningShown = true;
+      Future.microtask(() {
+        if (mounted) _showFiveMovesOffer();
+      });
+    }
+
+    // Auto-trigger win modal
     if (_game.gameWon && !_isCompleted) {
       Future.delayed(const Duration(milliseconds: 600), () {
         if (mounted) _onWin();
       });
     }
 
-    // Detect loss
-    if (_game.gameLost && !_isCompleted) {
+    // Auto-trigger fail modal (once)
+    if (_game.gameLost && !_isCompleted && !_showingFailModal) {
+      _showingFailModal = true;
       _audio.play(Sfx.lose);
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (mounted) _showFailModal();
+      });
     }
 
     setState(() {});
@@ -183,6 +204,8 @@ class _GameScreenState extends State<GameScreen> {
     _winCoinsDoubled = false;
     _continuedAfterLoss = false;
     _loadingAd = false;
+    _fiveMovesWarningShown = false;
+    _showingFailModal = false;
     _game.clearSavedState();
 
     final level = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
@@ -191,7 +214,18 @@ class _GameScreenState extends State<GameScreen> {
     puzzleStore.generate(level).then((puzzle) {
       if (!mounted) return;
       if (puzzle != null) {
-        _game.initPuzzle(puzzle, level: level);
+        // Apply bonus swaps for "easy-win" levels (1 and 5)
+        final bonus = extraSwapsForLevel(level);
+        final finalPuzzle = bonus > 0
+            ? Wordle7Puzzle(
+                gridSize: puzzle.gridSize,
+                solution: puzzle.solution,
+                words: puzzle.words,
+                swapLimit: puzzle.swapLimit + bonus,
+                hash: puzzle.hash,
+              )
+            : puzzle;
+        _game.initPuzzle(finalPuzzle, level: level);
       }
       setState(() => _isLoading = false);
     }).catchError((e) {
@@ -272,6 +306,11 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
     setState(() {});
+
+    // Show animated win modal after a brief celebration pause
+    Future.delayed(const Duration(milliseconds: 350), () {
+      if (mounted) _showWinModal();
+    });
   }
 
   void _onHint() {
@@ -334,6 +373,8 @@ class _GameScreenState extends State<GameScreen> {
       _winCoinsDoubled = false;
       _continuedAfterLoss = false;
       _loadingAd = false;
+      _fiveMovesWarningShown = false;
+      _showingFailModal = false;
     });
     _game.resetPuzzle();
   }
@@ -443,15 +484,14 @@ class _GameScreenState extends State<GameScreen> {
                 else
                   Expanded(child: _buildLoadingOverlay()),
 
-                // Small space between board and controls
+                // Bottom controls (solve/hint) — only during active play
                 if (!_isCompleted && !_game.gameLost && !_isLoading)
                   const SizedBox(height: 12),
 
-                // Bottom controls (solve/hint) — right after board
                 if (!_isCompleted && !_game.gameLost && !_isLoading)
                   _buildBottomControls(coinService),
 
-                // Banners between buttons and completion/lost
+                // Banners (hints / insufficient coins / tutorial tips)
                 if (!_isCompleted && !_game.gameLost && !_isLoading) ...[
                   const SizedBox(height: 8),
                   if (_game.hintMessage.isNotEmpty && !_isTutorial && _insufficientType == null)
@@ -509,14 +549,6 @@ class _GameScreenState extends State<GameScreen> {
                       borderColor: Colors.white.withValues(alpha: 0.25),
                     ),
                 ],
-
-                // Completion screen (stars + praise + ad offer + action buttons)
-                if (_isCompleted)
-                  _buildCompletionSection(),
-
-                // Lost screen (empty stars + message + ad continue + replay)
-                if (_game.gameLost && !_isCompleted)
-                  _buildLostSection(),
 
                 SizedBox(height: bottomPad > 0 ? 8 : 16),
               ],
@@ -965,352 +997,206 @@ class _GameScreenState extends State<GameScreen> {
     if (mounted) {
       setState(() {
         _loadingAd = false;
-        if (success) _continuedAfterLoss = true;
+        if (success) {
+          _continuedAfterLoss = true;
+          _showingFailModal = false;
+        }
       });
     }
   }
 
-  // ══════════════════════════════════════
-  //  Completion section
-  // ══════════════════════════════════════
+  // ── Ad: extra moves mid-game (5-moves warning) ──────────
+  Future<void> _watchAdForExtraMoves() async {
+    final adService = context.read<AdService>();
+    setState(() => _loadingAd = true);
+    await adService.showRewardedAd(
+      adType: AdType.continueAfterLoss,
+      onReward: () async {
+        _game.addExtraMoves(5);
+        _audio.play(Sfx.coin);
+        HapticFeedback.mediumImpact();
+      },
+    );
+    if (mounted) setState(() => _loadingAd = false);
+  }
 
-  Widget _buildCompletionSection() {
-    final showDoubleAd = !_isTutorial && _coinsEarned > 0 && !_winCoinsDoubled;
+  // ── Coins: buy 5 extra moves mid-game ───────────────────
+  void _buyExtraMovesInGame() {
+    final coinService = context.read<CoinService>();
+    if (!coinService.canAfford(30)) {
+      HapticFeedback.heavyImpact();
+      _audio.play(Sfx.error);
+      _openShop();
+      return;
+    }
+    coinService.spend(30);
+    _game.addExtraMoves(5);
+    _audio.play(Sfx.coin);
+    HapticFeedback.mediumImpact();
+  }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 430),
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
+  // ── Coins: buy 5 moves after loss ───────────────────────
+  void _buyMovesAfterFail() {
+    final coinService = context.read<CoinService>();
+    if (!coinService.canAfford(30)) {
+      HapticFeedback.heavyImpact();
+      _audio.play(Sfx.error);
+      _openShop();
+      return;
+    }
+    coinService.spend(30);
+    _game.continueGame();
+    _audio.play(Sfx.coin);
+    HapticFeedback.mediumImpact();
+    setState(() {
+      _continuedAfterLoss = true;
+      _showingFailModal = false;
+    });
+  }
 
-            // ── Stars ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (i) {
-                final filled = i < _completedStars;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 3),
-                  child: Icon(
-                    Icons.star,
-                    size: 32,
-                    color: filled ? const Color(0xFFF4B400) : Colors.white.withValues(alpha: 0.15),
-                    shadows: filled
-                        ? [Shadow(color: const Color(0xFFF4B400).withValues(alpha: 0.7), blurRadius: 6)]
-                        : [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 2)],
-                  ),
-                );
-              }),
-            ),
+  // ── 5-moves warning sheet ────────────────────────────────
+  void _showFiveMovesOffer() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => _FiveMovesSheet(
+        coins: context.read<CoinService>().coins,
+        adService: context.read<AdService>(),
+        onWatchAd: () async {
+          Navigator.pop(ctx);
+          await _watchAdForExtraMoves();
+        },
+        onBuyMoves: () {
+          Navigator.pop(ctx);
+          _buyExtraMovesInGame();
+        },
+        onDismiss: () => Navigator.pop(ctx),
+      ),
+    );
+  }
 
-            // ── Win summary row: praise + coins ──
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _completedPraise,
-                  style: AppFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF4ADE80),
-                  ),
-                ),
-                if (_coinsEarned > 0) ...[
-                  const SizedBox(width: 10),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        _winCoinsDoubled ? '+${_coinsEarned * 2}' : '+$_coinsEarned',
-                        style: AppFonts.nunito(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFF4B400),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const CoinIcon(size: 14),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-
-            // ── Ad offer card: double coins ──
-            if (showDoubleAd) ...[
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: _loadingAd ? null : _watchAdToDoubleWinCoins,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 1.5),
-                  ),
-                  child: Row(
-                    children: [
-                      // Purple icon
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.purpleAccent.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35), width: 1.5),
-                        ),
-                        child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      // Text
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Dyfisho monedhat',
-                              style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
-                            ),
-                            Text(
-                              '+${_coinsEarned > 0 ? _coinsEarned * 2 : 20} monedha falas',
-                              style: AppFonts.quicksand(
-                                fontSize: 10,
-                                color: Colors.white.withValues(alpha: 0.5),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Watch button with x2 badge
-                      ShikoButton(
-                        size: ShikoSize.medium,
-                        loading: _loadingAd,
-                        onTap: _watchAdToDoubleWinCoins,
-                        badge: '×2',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-
-            // ── Action buttons row: play again + next level ──
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                // Play again (white glass)
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      _audio.play(Sfx.button);
-                      _restartLevel();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.refresh, color: Colors.white, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Luaj përsëri',
-                            style: AppFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                // Next level (purple glass)
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      _audio.play(Sfx.button);
-                      _nextLevel();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: AppColors.purpleAccent.withValues(alpha: 0.22),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.5), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.35), blurRadius: 20, offset: const Offset(0, 4)),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            _isTutorial ? 'Fillo Lojën' : 'Luaj nivelin $_nextLevelNumber',
-                            style: AppFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-          ],
+  // ── Win modal ────────────────────────────────────────────
+  void _showWinModal() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.78),
+      transitionDuration: const Duration(milliseconds: 520),
+      pageBuilder: (ctx, _, __) => Align(
+        alignment: Alignment.center,
+        child: _WinModal(
+          stars: _completedStars,
+          praise: _completedPraise,
+          coinsEarned: _coinsEarned,
+          winCoinsDoubled: _winCoinsDoubled,
+          isTutorial: _isTutorial,
+          nextLevelNumber: _nextLevelNumber,
+          onDoubleCoins: () async {
+            await _watchAdToDoubleWinCoins();
+          },
+          onRestart: () {
+            Navigator.pop(ctx);
+            Future.microtask(_restartLevel);
+          },
+          onNextLevel: () {
+            Navigator.pop(ctx);
+            Future.microtask(_nextLevel);
+          },
+          onSaveProgress: _shouldShowSavePrompt()
+              ? () {
+                  Navigator.pop(ctx);
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    if (mounted) _showSaveProgressDialog();
+                  });
+                }
+              : null,
+        ),
+      ),
+      transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
+        scale: Tween(begin: 0.72, end: 1.0).animate(
+          CurvedAnimation(parent: anim, curve: Curves.elasticOut),
+        ),
+        child: FadeTransition(
+          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+          child: child,
         ),
       ),
     );
   }
 
-  // ══════════════════════════════════════
-  //  Lost section
-  // ══════════════════════════════════════
-
-  Widget _buildLostSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 430),
-        child: Column(
-          children: [
-            const SizedBox(height: 8),
-
-            // ── Empty stars ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (i) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 3),
-                child: Icon(
-                  Icons.star,
-                  size: 32,
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shadows: [Shadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 2)],
-                ),
-              )),
-            ),
-
-            // ── "Dështove!" ──
-            const SizedBox(height: 4),
-            Text(
-              'Dështove!',
-              style: AppFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFFFCA5A5),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // ── Continue with ad (+5 swaps) ──
-            if (!_continuedAfterLoss)
-              GestureDetector(
-                onTap: _loadingAd ? null : _watchAdToContinue,
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 1.5),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: AppColors.purpleAccent.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35), width: 1.5),
-                        ),
-                        child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Vazhdo lojën', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900)),
-                            Text(
-                              '+5 lëvizje ekstra',
-                              style: AppFonts.quicksand(fontSize: 10, color: Colors.white.withValues(alpha: 0.5)),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ShikoButton(
-                        size: ShikoSize.medium,
-                        loading: _loadingAd,
-                        onTap: _watchAdToContinue,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-            // ── Play again button (white glass) ──
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      _audio.play(Sfx.button);
-                      _restartLevel();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.refresh, color: Colors.white, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Luaj përsëri',
-                            style: AppFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-          ],
+  // ── Fail modal ───────────────────────────────────────────
+  void _showFailModal() {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.78),
+      transitionDuration: const Duration(milliseconds: 420),
+      pageBuilder: (ctx, _, __) => Align(
+        alignment: Alignment.center,
+        child: _FailModal(
+          adService: context.read<AdService>(),
+          coinService: context.read<CoinService>(),
+          onWatchAd: () async {
+            Navigator.pop(ctx);
+            await _watchAdToContinue();
+          },
+          onBuyMoves: () {
+            Navigator.pop(ctx);
+            _buyMovesAfterFail();
+          },
+          onRestart: () {
+            Navigator.pop(ctx);
+            setState(() => _showingFailModal = false);
+            _restartLevel();
+          },
         ),
+      ),
+      transitionBuilder: (ctx, anim, _, child) => SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.18),
+          end: Offset.zero,
+        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+        child: FadeTransition(opacity: anim, child: child),
+      ),
+    );
+  }
+
+  // ── Save-progress prompt (guest → Google) ───────────────
+  bool _shouldShowSavePrompt() {
+    final isGuest = (_prefs.getString('fjalekryq_account_type') ?? '') == 'guest';
+    final promptShown = _prefs.getBool('fjalekryq_save_prompt_shown') ?? false;
+    final level = _prefs.getInt(_levelKey) ?? 1;
+    return isGuest && !promptShown && level >= 6; // after 5+ levels
+  }
+
+  void _showSaveProgressDialog() {
+    _prefs.setBool('fjalekryq_save_prompt_shown', true);
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      transitionDuration: const Duration(milliseconds: 420),
+      pageBuilder: (ctx, _, __) => Align(
+        alignment: Alignment.center,
+        child: _SaveProgressPromptModal(
+          onSaveWithGoogle: () async {
+            Navigator.pop(ctx);
+            final coinService = context.read<CoinService>();
+            await Future.delayed(const Duration(milliseconds: 800));
+            if (mounted) {
+              await _prefs.setString('fjalekryq_account_type', 'google');
+              coinService.add(100);
+            }
+          },
+          onDismiss: () => Navigator.pop(ctx),
+        ),
+      ),
+      transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
+        scale: Tween(begin: 0.85, end: 1.0).animate(
+          CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+        ),
+        child: FadeTransition(opacity: anim, child: child),
       ),
     );
   }
@@ -1472,4 +1358,987 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
+}
+
+// ══════════════════════════════════════════════════════
+//  WIN MODAL
+// ══════════════════════════════════════════════════════
+
+class _WinModal extends StatefulWidget {
+  final int stars;
+  final String praise;
+  final int coinsEarned;
+  final bool winCoinsDoubled;
+  final bool isTutorial;
+  final int nextLevelNumber;
+  final Future<void> Function() onDoubleCoins;
+  final VoidCallback onRestart;
+  final VoidCallback onNextLevel;
+  final VoidCallback? onSaveProgress;
+
+  const _WinModal({
+    required this.stars,
+    required this.praise,
+    required this.coinsEarned,
+    required this.winCoinsDoubled,
+    required this.isTutorial,
+    required this.nextLevelNumber,
+    required this.onDoubleCoins,
+    required this.onRestart,
+    required this.onNextLevel,
+    this.onSaveProgress,
+  });
+
+  @override
+  State<_WinModal> createState() => _WinModalState();
+}
+
+class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
+  late final List<AnimationController> _starCtrl;
+  late final List<Animation<double>> _starScale;
+  bool _loadingAd = false;
+  bool _doubled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _doubled = widget.winCoinsDoubled;
+    _starCtrl = List.generate(
+      3,
+      (_) => AnimationController(vsync: this, duration: const Duration(milliseconds: 550)),
+    );
+    _starScale = _starCtrl
+        .map((c) => CurvedAnimation(parent: c, curve: Curves.elasticOut))
+        .toList();
+
+    for (int i = 0; i < widget.stars; i++) {
+      Future.delayed(Duration(milliseconds: 180 + i * 240), () {
+        if (mounted) _starCtrl[i].forward();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _starCtrl) c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final showDoubleAd = !widget.isTutorial && widget.coinsEarned > 0 && !_doubled;
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 22),
+        padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF112660), Color(0xFF0A1A3E)],
+          ),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: const Color(0xFF22C55E).withValues(alpha: 0.25), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF22C55E).withValues(alpha: 0.18),
+              blurRadius: 40,
+              spreadRadius: 2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Animated stars ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(3, (i) {
+                final filled = i < widget.stars;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: ScaleTransition(
+                    scale: filled ? _starScale[i] : const AlwaysStoppedAnimation(1.0),
+                    child: Icon(
+                      Icons.star_rounded,
+                      size: 52,
+                      color: filled
+                          ? const Color(0xFFF4B400)
+                          : Colors.white.withValues(alpha: 0.12),
+                      shadows: filled
+                          ? [
+                              Shadow(
+                                color: const Color(0xFFF4B400).withValues(alpha: 0.7),
+                                blurRadius: 12,
+                              )
+                            ]
+                          : null,
+                    ),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 14),
+
+            // ── Praise ──
+            Text(
+              widget.praise,
+              style: AppFonts.nunito(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF4ADE80),
+              ),
+            ),
+
+            // ── Coins earned ──
+            if (widget.coinsEarned > 0) ...[
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _doubled
+                        ? '+${widget.coinsEarned * 2}'
+                        : '+${widget.coinsEarned}',
+                    style: AppFonts.nunito(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.gold,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const CoinIcon(size: 18),
+                ],
+              ),
+            ],
+
+            // ── Double-coins ad offer ──
+            if (showDoubleAd) ...[
+              const SizedBox(height: 14),
+              GestureDetector(
+                onTap: _loadingAd
+                    ? null
+                    : () async {
+                        setState(() => _loadingAd = true);
+                        await widget.onDoubleCoins();
+                        if (mounted) setState(() {
+                          _loadingAd = false;
+                          _doubled = true;
+                        });
+                      },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.purpleAccent.withValues(alpha: 0.35),
+                          ),
+                        ),
+                        child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Dyfisho monedhat',
+                              style: AppFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900),
+                            ),
+                            Text(
+                              '+${widget.coinsEarned * 2} monedha falas',
+                              style: AppFonts.quicksand(
+                                fontSize: 11,
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      ShikoButton(
+                        size: ShikoSize.medium,
+                        loading: _loadingAd,
+                        badge: '×2',
+                        onTap: null,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+
+            // ── Action buttons ──
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Expanded(
+                  child: _modalButton(
+                    label: 'Luaj përsëri',
+                    icon: Icons.refresh,
+                    onTap: widget.onRestart,
+                    isPrimary: false,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _modalButton(
+                    label: widget.isTutorial
+                        ? 'Fillo Lojën'
+                        : 'Nivel ${widget.nextLevelNumber}',
+                    icon: Icons.arrow_forward_ios,
+                    onTap: widget.onNextLevel,
+                    isPrimary: true,
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Save progress (guest prompt) ──
+            if (widget.onSaveProgress != null) ...[
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: widget.onSaveProgress,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4285F4).withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: const Color(0xFF4285F4).withValues(alpha: 0.35),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'G',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF4285F4),
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ruaj progresin · +100 monedha',
+                        style: AppFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF93C5FD),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  FAIL MODAL
+// ══════════════════════════════════════════════════════
+
+class _FailModal extends StatefulWidget {
+  final AdService adService;
+  final CoinService coinService;
+  final Future<void> Function() onWatchAd;
+  final VoidCallback onBuyMoves;
+  final VoidCallback onRestart;
+
+  const _FailModal({
+    required this.adService,
+    required this.coinService,
+    required this.onWatchAd,
+    required this.onBuyMoves,
+    required this.onRestart,
+  });
+
+  @override
+  State<_FailModal> createState() => _FailModalState();
+}
+
+class _FailModalState extends State<_FailModal> {
+  bool _loadingAd = false;
+  int _adRemaining = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRemaining();
+  }
+
+  Future<void> _loadRemaining() async {
+    final r = await widget.adService.remainingToday(AdType.continueAfterLoss);
+    if (mounted) setState(() => _adRemaining = r);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canAfford30 = widget.coinService.canAfford(30);
+    final canWatchAd = _adRemaining > 0;
+
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 22),
+        padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF2A1020), Color(0xFF0A1A3E)],
+          ),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(
+            color: const Color(0xFFFCA5A5).withValues(alpha: 0.22),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFEF4444).withValues(alpha: 0.15),
+              blurRadius: 40,
+              spreadRadius: 2,
+            ),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 24,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // ── Empty stars ──
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                3,
+                (_) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Icon(
+                    Icons.star_rounded,
+                    size: 48,
+                    color: Colors.white.withValues(alpha: 0.1),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            // ── Title ──
+            Text(
+              'Dështove!',
+              style: AppFonts.nunito(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFFFCA5A5),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Lëvizjet mbaruan. Vazhdo ose fillo sërish.',
+              textAlign: TextAlign.center,
+              style: AppFonts.quicksand(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.45),
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // ── Watch Ad for +5 moves ──
+            if (canWatchAd)
+              _failOption(
+                icon: Icons.videocam_rounded,
+                iconColor: const Color(0xFFC084FC),
+                iconBg: AppColors.purpleAccent.withValues(alpha: 0.18),
+                iconBorder: AppColors.purpleAccent.withValues(alpha: 0.35),
+                title: 'Shiko reklamë · +5 lëvizje',
+                subtitle: '$_adRemaining herë të mbetura sot',
+                trailing: ShikoButton(
+                  size: ShikoSize.medium,
+                  loading: _loadingAd,
+                  onTap: null,
+                ),
+                onTap: _loadingAd
+                    ? null
+                    : () async {
+                        setState(() => _loadingAd = true);
+                        await widget.onWatchAd();
+                      },
+              ),
+
+            if (canWatchAd) const SizedBox(height: 10),
+
+            // ── Buy 5 moves with 30 coins ──
+            _failOption(
+              icon: Icons.monetization_on_rounded,
+              iconColor: AppColors.gold,
+              iconBg: AppColors.gold.withValues(alpha: 0.14),
+              iconBorder: AppColors.gold.withValues(alpha: 0.3),
+              title: 'Bli 5 lëvizje · 30 monedha',
+              subtitle: canAfford30
+                  ? 'Bilanci: ${widget.coinService.coins} monedha'
+                  : 'Nuk keni monedha të mjaftueshme',
+              trailing: Opacity(
+                opacity: canAfford30 ? 1.0 : 0.4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.gold.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.gold.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CoinIcon(size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        '30',
+                        style: AppFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.gold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              onTap: canAfford30 ? widget.onBuyMoves : null,
+            ),
+
+            const SizedBox(height: 16),
+
+            // ── Restart ──
+            GestureDetector(
+              onTap: widget.onRestart,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.refresh, color: Colors.white, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Fillo nga fillimi',
+                      style: AppFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _failOption({
+    required IconData icon,
+    required Color iconColor,
+    required Color iconBg,
+    required Color iconBorder,
+    required String title,
+    required String subtitle,
+    required Widget trailing,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Opacity(
+        opacity: onTap == null ? 0.45 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: iconBorder),
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: AppFonts.nunito(fontSize: 13, fontWeight: FontWeight.w900),
+                    ),
+                    Text(
+                      subtitle,
+                      style: AppFonts.quicksand(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.45),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              trailing,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  5-MOVES WARNING SHEET
+// ══════════════════════════════════════════════════════
+
+class _FiveMovesSheet extends StatefulWidget {
+  final int coins;
+  final AdService adService;
+  final Future<void> Function() onWatchAd;
+  final VoidCallback onBuyMoves;
+  final VoidCallback onDismiss;
+
+  const _FiveMovesSheet({
+    required this.coins,
+    required this.adService,
+    required this.onWatchAd,
+    required this.onBuyMoves,
+    required this.onDismiss,
+  });
+
+  @override
+  State<_FiveMovesSheet> createState() => _FiveMovesSheetState();
+}
+
+class _FiveMovesSheetState extends State<_FiveMovesSheet> {
+  bool _loadingAd = false;
+  int _adRemaining = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.adService
+        .remainingToday(AdType.continueAfterLoss)
+        .then((r) { if (mounted) setState(() => _adRemaining = r); });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canAfford = widget.coins >= 30;
+    final canWatch = _adRemaining > 0;
+    final bottomPad = MediaQuery.of(context).padding.bottom;
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + bottomPad),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF1A2D5A), Color(0xFF0A1A3E)],
+        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          // Warning icon + title
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF97316).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFFF97316).withValues(alpha: 0.4),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFFB923C),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Vetëm 5 lëvizje të mbetura!',
+                      style: AppFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFFB923C),
+                      ),
+                    ),
+                    Text(
+                      'Merr 5 lëvizje shtesë tani.',
+                      style: AppFonts.quicksand(
+                        fontSize: 12,
+                        color: Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Watch ad option
+          if (canWatch)
+            GestureDetector(
+              onTap: _loadingAd
+                  ? null
+                  : () async {
+                      setState(() => _loadingAd = true);
+                      await widget.onWatchAd();
+                    },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.purpleAccent.withValues(alpha: 0.14),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.purpleAccent.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.videocam_rounded, color: Color(0xFFC084FC), size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Shiko reklamë · +5 lëvizje  ($_adRemaining herë sot)',
+                        style: AppFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                    ShikoButton(size: ShikoSize.small, loading: _loadingAd, onTap: null),
+                  ],
+                ),
+              ),
+            ),
+
+          // Buy with coins option
+          GestureDetector(
+            onTap: canAfford ? widget.onBuyMoves : null,
+            child: Opacity(
+              opacity: canAfford ? 1.0 : 0.4,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const CoinIcon(size: 20),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Bli 5 lëvizje · 30 monedha',
+                        style: AppFonts.nunito(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: canAfford ? AppColors.gold : Colors.white,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      '${widget.coins}',
+                      style: AppFonts.nunito(
+                        fontSize: 12,
+                        color: AppColors.gold.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // Dismiss
+          GestureDetector(
+            onTap: widget.onDismiss,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Text(
+                'Vazhdo pa lëvizje shtesë',
+                style: AppFonts.quicksand(
+                  fontSize: 13,
+                  color: Colors.white.withValues(alpha: 0.35),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ══════════════════════════════════════════════════════
+//  SAVE-PROGRESS PROMPT MODAL
+// ══════════════════════════════════════════════════════
+
+class _SaveProgressPromptModal extends StatefulWidget {
+  final Future<void> Function() onSaveWithGoogle;
+  final VoidCallback onDismiss;
+
+  const _SaveProgressPromptModal({
+    required this.onSaveWithGoogle,
+    required this.onDismiss,
+  });
+
+  @override
+  State<_SaveProgressPromptModal> createState() => _SaveProgressPromptModalState();
+}
+
+class _SaveProgressPromptModalState extends State<_SaveProgressPromptModal> {
+  bool _loading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF1A2D5A), Color(0xFF0F2251)],
+          ),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.5),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.4)),
+              ),
+              child: const Icon(Icons.cloud_upload_outlined,
+                  color: Color(0xFFD8B4FE), size: 28),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              'Ruaj progresin tënd!',
+              style: AppFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Ke luajtur 5+ nivele si mysafir. Krijo llogari me Google dhe mos humb progresin. Merr +100 monedha falas!',
+              textAlign: TextAlign.center,
+              style: AppFonts.quicksand(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.55),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CoinIcon(size: 16),
+                const SizedBox(width: 6),
+                Text(
+                  '+100 monedha bonus',
+                  style: AppFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.gold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
+            GestureDetector(
+              onTap: _loading
+                  ? null
+                  : () async {
+                      setState(() => _loading = true);
+                      await widget.onSaveWithGoogle();
+                      if (mounted) setState(() => _loading = false);
+                    },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 15),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.93),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: _loading
+                    ? const Center(
+                        child: SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.5,
+                            color: Color(0xFF4285F4),
+                          ),
+                        ),
+                      )
+                    : Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'G',
+                            style: TextStyle(
+                              fontSize: 17,
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF4285F4),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            'Ruaj me Google',
+                            style: AppFonts.nunito(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF1A1A2E),
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: widget.onDismiss,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text(
+                  'Tani jo, faleminderit',
+                  style: AppFonts.quicksand(
+                    fontSize: 13,
+                    color: Colors.white.withValues(alpha: 0.35),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Shared modal button helper ────────────────────────
+Widget _modalButton({
+  required String label,
+  required IconData icon,
+  required VoidCallback onTap,
+  required bool isPrimary,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      decoration: isPrimary
+          ? BoxDecoration(
+              color: AppColors.purpleAccent.withValues(alpha: 0.22),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.5)),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.purpleAccent.withValues(alpha: 0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            )
+          : BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+            ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.white, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: AppFonts.nunito(fontSize: 14, fontWeight: FontWeight.w900),
+          ),
+        ],
+      ),
+    ),
+  );
 }
