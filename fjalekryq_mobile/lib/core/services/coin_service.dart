@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import '../database/repositories/coins_repository.dart';
-import '../database/models/coins_model.dart';
 
 const int startingCoins = 100;
 const int hintCost = 10;

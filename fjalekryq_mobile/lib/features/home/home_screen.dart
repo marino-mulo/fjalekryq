@@ -9,9 +9,8 @@ import '../level_map/level_map_screen.dart';
 import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
-import '../profile/profile_sheet.dart';
 import '../../shared/widgets/background_tiles.dart';
-import 'leaderboard_sheet.dart';
+import 'leaderboard_full_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
 class HomeScreen extends StatefulWidget {
@@ -129,22 +128,10 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _openLeaderboard() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const LeaderboardSheet(),
-    );
-  }
-
-  void _openProfile() {
-    HapticFeedback.selectionClick();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const ProfileSheet(),
-    );
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => const LeaderboardFullScreen(),
+      fullscreenDialog: true,
+    ));
   }
 
   @override
@@ -277,11 +264,6 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             const Spacer(),
             _HeaderButton(
-              icon: Icons.person_rounded,
-              onTap: _openProfile,
-            ),
-            const SizedBox(width: 8),
-            _HeaderButton(
               icon: Icons.settings,
               onTap: _openSettings,
             ),
@@ -359,7 +341,7 @@ class _HomeScreenState extends State<HomeScreen>
             // Daily puzzle button - gold glass (flex: 1)
             Expanded(
               child: _ActionButton(
-                label: 'Fjalëkryqi i Ditës',
+                label: 'Ditor',
                 icon: Icons.today_rounded,
                 onTap: _openDailyPuzzle,
                 color: const Color(0xFFF4B400),

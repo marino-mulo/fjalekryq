@@ -1,4 +1,5 @@
 /// Barrel file for the database layer.
+library;
 export 'database_helper.dart';
 export 'models/audit_fields.dart';
 export 'models/user_model.dart';

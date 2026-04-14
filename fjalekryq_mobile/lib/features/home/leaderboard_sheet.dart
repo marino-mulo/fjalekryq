@@ -1,85 +1,122 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
+import 'leaderboard_full_screen.dart';
 
-/// Mock leaderboard entry — will be replaced with real data from remote DB.
+// ─── Avatar options (shared with settings) ───────────────────────────────────
+const avatarOptions = [
+  (color: Color(0xFF22C55E), icon: Icons.person_rounded),             // 0 green
+  (color: Color(0xFFF4B400), icon: Icons.person_rounded),             // 1 yellow
+  (color: Color(0xFF3B82F6), icon: Icons.person_rounded),             // 2 blue
+  (color: Color(0xFFEF4444), icon: Icons.person_rounded),             // 3 red
+  (color: Color(0xFFFFD700), icon: Icons.workspace_premium_rounded),  // 4 crown
+  (color: Color(0xFF60A5FA), icon: Icons.rocket_launch_rounded),      // 5 rocket
+  (color: Color(0xFFF4B400), icon: Icons.emoji_events_rounded),       // 6 trophy
+  (color: Color(0xFF8B5CF6), icon: Icons.auto_awesome_rounded),       // 7 sparkle
+  (color: Color(0xFFF59E0B), icon: Icons.bolt_rounded),               // 8 bolt
+  (color: Color(0xFFEC4899), icon: Icons.favorite_rounded),           // 9 heart
+  (color: Color(0xFFFF6B35), icon: Icons.local_fire_department_rounded), // 10 fire
+  (color: Color(0xFF22C55E), icon: Icons.star_rounded),               // 11 star
+];
+
+// ─── Model ────────────────────────────────────────────────────────────────────
 class LeaderboardEntry {
   final int rank;
   final String name;
-  final String? avatarUrl;
-  final int value; // level, stars, or streak depending on tab
+  final int value;
   final bool isCurrentUser;
+  final int? avatarIndex;
 
   const LeaderboardEntry({
     required this.rank,
     required this.name,
-    this.avatarUrl,
     required this.value,
     this.isCurrentUser = false,
+    this.avatarIndex,
   });
 }
 
-// Mock data for design preview
-final _mockLevelLeaderboard = [
-  const LeaderboardEntry(rank: 1, name: 'Arben', value: 10),
-  const LeaderboardEntry(rank: 2, name: 'Elira', value: 9),
-  const LeaderboardEntry(rank: 3, name: 'Dritan', value: 8),
-  const LeaderboardEntry(rank: 4, name: 'Fjolla', value: 7),
-  const LeaderboardEntry(rank: 5, name: 'Ti', value: 5, isCurrentUser: true),
-  const LeaderboardEntry(rank: 6, name: 'Gentian', value: 4),
-  const LeaderboardEntry(rank: 7, name: 'Besiana', value: 3),
-];
-
-final _mockStarsLeaderboard = [
-  const LeaderboardEntry(rank: 1, name: 'Elira', value: 28),
-  const LeaderboardEntry(rank: 2, name: 'Arben', value: 25),
-  const LeaderboardEntry(rank: 3, name: 'Dritan', value: 21),
-  const LeaderboardEntry(rank: 4, name: 'Ti', value: 14, isCurrentUser: true),
-  const LeaderboardEntry(rank: 5, name: 'Fjolla', value: 12),
-  const LeaderboardEntry(rank: 6, name: 'Gentian', value: 9),
-  const LeaderboardEntry(rank: 7, name: 'Besiana', value: 6),
-];
-
-final _mockStreakLeaderboard = [
-  const LeaderboardEntry(rank: 1, name: 'Dritan', value: 42),
-  const LeaderboardEntry(rank: 2, name: 'Arben', value: 31),
-  const LeaderboardEntry(rank: 3, name: 'Elira', value: 25),
-  const LeaderboardEntry(rank: 4, name: 'Gentian', value: 18),
-  const LeaderboardEntry(rank: 5, name: 'Ti', value: 12, isCurrentUser: true),
-  const LeaderboardEntry(rank: 6, name: 'Fjolla', value: 8),
-  const LeaderboardEntry(rank: 7, name: 'Besiana', value: 5),
-];
-
-const _avatarColors = [
-  Color(0xFF22C55E),
-  Color(0xFFF4B400),
-  Color(0xFF3B82F6),
-  Color(0xFFE879F9),
-  Color(0xFFFCA5A5),
-  Color(0xFF06B6D4),
-  Color(0xFFA78BFA),
-];
-
-/// Tab configuration for leaderboard.
-enum _LeaderboardTab {
+// ─── Tab enum (public — shared with full screen) ──────────────────────────────
+enum LeaderboardTab {
   level(icon: Icons.emoji_events_outlined, label: 'Niveli'),
   stars(icon: Icons.star_rounded, label: 'Yjet'),
   streak(icon: Icons.local_fire_department_rounded, label: 'Ditore');
 
   final IconData icon;
   final String label;
-  const _LeaderboardTab({required this.icon, required this.label});
+  const LeaderboardTab({required this.icon, required this.label});
 }
 
-/// Bottom sheet modal showing leaderboard with Level / Stars / Streak tabs.
-class LeaderboardSheet extends StatefulWidget {
-  const LeaderboardSheet({super.key});
+// ─── Mock data ────────────────────────────────────────────────────────────────
+// Levels: user at rank 23 — not in top 10 → sticky "Ti je #23" row shown
+final mockLevelLeaderboard = <LeaderboardEntry>[
+  const LeaderboardEntry(rank: 1,  name: 'Arben_94',   value: 45,  avatarIndex: 10),
+  const LeaderboardEntry(rank: 2,  name: 'Elira_K',    value: 42,  avatarIndex: 9),
+  const LeaderboardEntry(rank: 3,  name: 'Dritan_B',   value: 38,  avatarIndex: 8),
+  const LeaderboardEntry(rank: 4,  name: 'Fjolla_X',   value: 35,  avatarIndex: 3),
+  const LeaderboardEntry(rank: 5,  name: 'Gentian_M',  value: 30,  avatarIndex: 14),
+  const LeaderboardEntry(rank: 6,  name: 'Besiana',    value: 27,  avatarIndex: 13),
+  const LeaderboardEntry(rank: 7,  name: 'Klea_S',     value: 24,  avatarIndex: 15),
+  const LeaderboardEntry(rank: 8,  name: 'Alban_R',    value: 22,  avatarIndex: 1),
+  const LeaderboardEntry(rank: 9,  name: 'Mimoza_H',   value: 20,  avatarIndex: 4),
+  const LeaderboardEntry(rank: 10, name: 'Edona_T',    value: 18,  avatarIndex: 11),
+  const LeaderboardEntry(rank: 23, name: 'Ti',         value: 12,  avatarIndex: 0, isCurrentUser: true),
+];
+
+// Stars: user at rank 4 — IN top 10 → highlighted in place
+final mockStarsLeaderboard = <LeaderboardEntry>[
+  const LeaderboardEntry(rank: 1,  name: 'Elira_K',    value: 135, avatarIndex: 9),
+  const LeaderboardEntry(rank: 2,  name: 'Arben_94',   value: 126, avatarIndex: 10),
+  const LeaderboardEntry(rank: 3,  name: 'Dritan_B',   value: 114, avatarIndex: 8),
+  const LeaderboardEntry(rank: 4,  name: 'Ti',         value: 42,  avatarIndex: 0, isCurrentUser: true),
+  const LeaderboardEntry(rank: 5,  name: 'Fjolla_X',   value: 38,  avatarIndex: 3),
+  const LeaderboardEntry(rank: 6,  name: 'Gentian_M',  value: 31,  avatarIndex: 14),
+  const LeaderboardEntry(rank: 7,  name: 'Besiana',    value: 24,  avatarIndex: 13),
+  const LeaderboardEntry(rank: 8,  name: 'Klea_S',     value: 19,  avatarIndex: 15),
+  const LeaderboardEntry(rank: 9,  name: 'Mimoza_H',   value: 15,  avatarIndex: 4),
+  const LeaderboardEntry(rank: 10, name: 'Alban_R',    value: 12,  avatarIndex: 1),
+];
+
+// Streak: user at rank 12 — not in top 10 → sticky row shown
+final mockStreakLeaderboard = <LeaderboardEntry>[
+  const LeaderboardEntry(rank: 1,  name: 'Dritan_B',   value: 42,  avatarIndex: 8),
+  const LeaderboardEntry(rank: 2,  name: 'Elira_K',    value: 35,  avatarIndex: 9),
+  const LeaderboardEntry(rank: 3,  name: 'Arben_94',   value: 28,  avatarIndex: 10),
+  const LeaderboardEntry(rank: 4,  name: 'Fjolla_X',   value: 21,  avatarIndex: 3),
+  const LeaderboardEntry(rank: 5,  name: 'Klea_S',     value: 18,  avatarIndex: 15),
+  const LeaderboardEntry(rank: 6,  name: 'Gentian_M',  value: 15,  avatarIndex: 14),
+  const LeaderboardEntry(rank: 7,  name: 'Besiana',    value: 12,  avatarIndex: 13),
+  const LeaderboardEntry(rank: 8,  name: 'Alban_R',    value: 10,  avatarIndex: 1),
+  const LeaderboardEntry(rank: 9,  name: 'Edona_T',    value: 9,   avatarIndex: 11),
+  const LeaderboardEntry(rank: 10, name: 'Mimoza_H',   value: 8,   avatarIndex: 4),
+  const LeaderboardEntry(rank: 12, name: 'Ti',         value: 6,   avatarIndex: 0, isCurrentUser: true),
+];
+
+List<LeaderboardEntry> entriesForTab(LeaderboardTab tab) {
+  switch (tab) {
+    case LeaderboardTab.level:  return mockLevelLeaderboard;
+    case LeaderboardTab.stars:  return mockStarsLeaderboard;
+    case LeaderboardTab.streak: return mockStreakLeaderboard;
+  }
+}
+
+Color valueColorForTab(LeaderboardTab tab) {
+  switch (tab) {
+    case LeaderboardTab.level:  return AppColors.cellGreen;
+    case LeaderboardTab.stars:  return AppColors.gold;
+    case LeaderboardTab.streak: return const Color(0xFFFF6B35);
+  }
+}
+
+// ─── Preview bottom sheet ─────────────────────────────────────────────────────
+class LeaderboardPreviewSheet extends StatefulWidget {
+  const LeaderboardPreviewSheet({super.key});
 
   @override
-  State<LeaderboardSheet> createState() => _LeaderboardSheetState();
+  State<LeaderboardPreviewSheet> createState() => _LeaderboardPreviewSheetState();
 }
 
-class _LeaderboardSheetState extends State<LeaderboardSheet>
+class _LeaderboardPreviewSheetState extends State<LeaderboardPreviewSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
@@ -96,20 +133,17 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
     super.dispose();
   }
 
-  List<LeaderboardEntry> get _currentEntries {
-    switch (_tabController.index) {
-      case 0: return _mockLevelLeaderboard;
-      case 1: return _mockStarsLeaderboard;
-      case 2: return _mockStreakLeaderboard;
-      default: return _mockLevelLeaderboard;
-    }
-  }
-
-  _LeaderboardTab get _currentTab => _LeaderboardTab.values[_tabController.index];
+  LeaderboardTab get _currentTab => LeaderboardTab.values[_tabController.index];
 
   @override
   Widget build(BuildContext context) {
-    final entries = _currentEntries;
+    final tab = _currentTab;
+    final allEntries = entriesForTab(tab);
+    final top10 = allEntries.where((e) => e.rank <= 10).toList()
+      ..sort((a, b) => a.rank.compareTo(b.rank));
+    final userEntry = allEntries.where((e) => e.isCurrentUser).firstOrNull;
+    final userInTop10 = userEntry != null && userEntry.rank <= 10;
+    final valueColor = valueColorForTab(tab);
 
     return Container(
       decoration: const BoxDecoration(
@@ -126,8 +160,7 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
           // Drag handle
           const SizedBox(height: 12),
           Container(
-            width: 40,
-            height: 4,
+            width: 40, height: 4,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(2),
@@ -135,29 +168,22 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
           ),
           const SizedBox(height: 16),
 
-          // Title row
+          // Title + close
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                Icon(Icons.emoji_events_rounded,
-                    color: AppColors.gold, size: 22),
+                Icon(Icons.emoji_events_rounded, color: AppColors.gold, size: 22),
                 const SizedBox(width: 10),
-                const Text(
+                Text(
                   'Renditja',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                    letterSpacing: 0.5,
-                  ),
+                  style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w800),
                 ),
                 const Spacer(),
                 GestureDetector(
                   onTap: () => Navigator.pop(context),
                   child: Container(
-                    width: 34,
-                    height: 34,
+                    width: 34, height: 34,
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.07),
                       borderRadius: BorderRadius.circular(10),
@@ -168,65 +194,64 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
-          // Tab bar — 3 tabs
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            padding: const EdgeInsets.all(3),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              indicator: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-              ),
-              indicatorSize: TabBarIndicatorSize.tab,
-              dividerColor: Colors.transparent,
-              labelColor: Colors.white,
-              unselectedLabelColor: Colors.white38,
-              labelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-              labelPadding: EdgeInsets.zero,
-              onTap: (_) => HapticFeedback.selectionClick(),
-              tabs: _LeaderboardTab.values.map((tab) => Tab(
-                height: 38,
+          // Tabs
+          _buildTabBar(),
+          const SizedBox(height: 6),
+
+          // Top 10 rows
+          ...top10.map((e) => _buildRow(e, valueColor)),
+
+          // Sticky user row (if not in top 10)
+          if (!userInTop10 && userEntry != null)
+            _buildUserSticky(userEntry, valueColor),
+
+          const SizedBox(height: 10),
+
+          // View All button
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: GestureDetector(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LeaderboardFullScreen(),
+                    fullscreenDialog: true,
+                  ),
+                );
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 13),
+                decoration: BoxDecoration(
+                  color: AppColors.purpleAccent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.purpleAccent.withValues(alpha: 0.35),
+                    width: 1.5,
+                  ),
+                ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(tab.icon, size: 14),
-                    const SizedBox(width: 4),
-                    Text(tab.label),
+                    Text(
+                      'Shiko të gjitha',
+                      style: AppFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFE2C9FF),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.arrow_forward_ios, color: Color(0xFFE2C9FF), size: 12),
                   ],
                 ),
-              )).toList(),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-
-          // Top 3 podium
-          _buildPodium(entries.take(3).toList()),
-
-          // Divider
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20),
-            height: 1,
-            color: Colors.white.withValues(alpha: 0.05),
-          ),
-
-          // Rest of the list
-          ...entries.skip(3).map((e) => _buildRow(e)),
 
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
@@ -234,167 +259,88 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
     );
   }
 
-  /// Icon + color for the current tab's value column.
-  IconData get _valueIcon => _currentTab.icon;
-
-  Color get _valueColor {
-    switch (_tabController.index) {
-      case 0: return AppColors.cellGreen;
-      case 1: return AppColors.gold;
-      case 2: return const Color(0xFFFF6B35); // fire orange
-      default: return AppColors.cellGreen;
-    }
-  }
-
-  Widget _buildPodium(List<LeaderboardEntry> top3) {
-    if (top3.length < 3) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // 2nd place
-          Expanded(child: _podiumItem(top3[1], 60)),
-          const SizedBox(width: 10),
-          // 1st place
-          Expanded(child: _podiumItem(top3[0], 80)),
-          const SizedBox(width: 10),
-          // 3rd place
-          Expanded(child: _podiumItem(top3[2], 52)),
-        ],
+  Widget _buildTabBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20),
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TabBar(
+        controller: _tabController,
+        indicator: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        indicatorSize: TabBarIndicatorSize.tab,
+        dividerColor: Colors.transparent,
+        labelColor: Colors.white,
+        unselectedLabelColor: Colors.white38,
+        labelStyle: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w600),
+        unselectedLabelStyle: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w500),
+        labelPadding: EdgeInsets.zero,
+        onTap: (_) => HapticFeedback.selectionClick(),
+        tabs: LeaderboardTab.values.map((tab) => Tab(
+          height: 38,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(tab.icon, size: 14),
+              const SizedBox(width: 4),
+              Text(tab.label),
+            ],
+          ),
+        )).toList(),
       ),
     );
   }
 
-  Widget _podiumItem(LeaderboardEntry entry, double height) {
-    final isFirst = entry.rank == 1;
-    final crownColor = entry.rank == 1
-        ? AppColors.gold
-        : entry.rank == 2
-            ? const Color(0xFFC0C0C0)
-            : const Color(0xFFCD7F32);
-    final avatarColor = _avatarColors[(entry.name.hashCode) % _avatarColors.length];
-    final bgAlpha = entry.isCurrentUser ? 0.10 : 0.05;
+  Widget _buildRow(LeaderboardEntry entry, Color valueColor) {
+    final idx = entry.avatarIndex ?? entry.name.hashCode.abs() % avatarOptions.length;
+    final avatar = avatarOptions[idx % avatarOptions.length];
+    final avatarColor = avatar.color;
+    final isTop3 = entry.rank <= 3;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Crown
-        Icon(
-          Icons.workspace_premium_rounded,
-          color: crownColor,
-          size: isFirst ? 26 : 20,
-        ),
-        const SizedBox(height: 4),
-
-        // Avatar
-        Container(
-          width: isFirst ? 54 : 44,
-          height: isFirst ? 54 : 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: avatarColor.withValues(alpha: 0.2),
-            border: Border.all(
-              color: entry.isCurrentUser
-                  ? AppColors.cellGreen
-                  : avatarColor.withValues(alpha: 0.4),
-              width: entry.isCurrentUser ? 2.5 : 1.5,
-            ),
-          ),
-          child: Center(
-            child: Text(
-              entry.name[0].toUpperCase(),
-              style: TextStyle(
-                fontSize: isFirst ? 22 : 18,
-                fontWeight: FontWeight.w800,
-                color: avatarColor,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-
-        // Name
-        Text(
-          entry.isCurrentUser ? 'Ti' : entry.name,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: entry.isCurrentUser ? FontWeight.w700 : FontWeight.w500,
-            color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white70,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-
-        // Value pill
-        Container(
-          height: height * 0.35,
-          constraints: const BoxConstraints(minHeight: 24),
-          padding: const EdgeInsets.symmetric(horizontal: 10),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: bgAlpha),
-            borderRadius: BorderRadius.circular(8),
-            border: entry.isCurrentUser
-                ? Border.all(color: AppColors.cellGreen.withValues(alpha: 0.3))
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(_valueIcon, size: 13, color: _valueColor),
-              const SizedBox(width: 4),
-              Text(
-                '${entry.value}',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRow(LeaderboardEntry entry) {
-    final avatarColor = _avatarColors[(entry.name.hashCode) % _avatarColors.length];
+    Color? medalColor;
+    if (entry.rank == 1) medalColor = AppColors.gold;
+    else if (entry.rank == 2) medalColor = const Color(0xFFC0C0C0);
+    else if (entry.rank == 3) medalColor = const Color(0xFFCD7F32);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
       decoration: BoxDecoration(
         color: entry.isCurrentUser
             ? AppColors.cellGreen.withValues(alpha: 0.08)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+            : isTop3
+                ? Colors.white.withValues(alpha: 0.04)
+                : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
         border: entry.isCurrentUser
-            ? Border.all(color: AppColors.cellGreen.withValues(alpha: 0.15))
+            ? Border.all(color: AppColors.cellGreen.withValues(alpha: 0.2))
             : null,
       ),
       child: Row(
         children: [
-          // Rank
+          // Rank / medal
           SizedBox(
-            width: 26,
-            child: Text(
-              '${entry.rank}',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white38,
-              ),
-            ),
+            width: 28,
+            child: medalColor != null
+                ? Icon(Icons.workspace_premium_rounded, color: medalColor, size: 18)
+                : Text(
+                    '${entry.rank}',
+                    style: AppFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white38,
+                    ),
+                  ),
           ),
-
-          // Avatar circle
+          // Avatar
           Container(
-            width: 36,
-            height: 36,
+            width: 34, height: 34,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: avatarColor.withValues(alpha: 0.15),
@@ -406,40 +352,31 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
               ),
             ),
             child: Center(
-              child: Text(
-                entry.name[0].toUpperCase(),
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: avatarColor,
-                ),
-              ),
+              child: Icon(avatar.icon, color: avatarColor, size: 17),
             ),
           ),
-          const SizedBox(width: 12),
-
+          const SizedBox(width: 10),
           // Name
           Expanded(
             child: Text(
               entry.isCurrentUser ? 'Ti' : entry.name,
-              style: TextStyle(
-                fontSize: 14,
+              style: AppFonts.nunito(
+                fontSize: 13,
                 fontWeight: entry.isCurrentUser ? FontWeight.w700 : FontWeight.w500,
                 color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white70,
               ),
             ),
           ),
-
           // Value
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(_valueIcon, size: 15, color: _valueColor),
-              const SizedBox(width: 5),
+              Icon(_currentTab.icon, size: 13, color: valueColor),
+              const SizedBox(width: 4),
               Text(
                 '${entry.value}',
-                style: TextStyle(
-                  fontSize: 14,
+                style: AppFonts.nunito(
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: entry.isCurrentUser ? AppColors.cellGreen : Colors.white,
                 ),
@@ -448,6 +385,34 @@ class _LeaderboardSheetState extends State<LeaderboardSheet>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildUserSticky(LeaderboardEntry userEntry, Color valueColor) {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+          child: Row(
+            children: [
+              Expanded(child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08))),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'Ti je #${userEntry.rank}',
+                  style: AppFonts.nunito(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.cellGreen.withValues(alpha: 0.7),
+                  ),
+                ),
+              ),
+              Expanded(child: Container(height: 1, color: Colors.white.withValues(alpha: 0.08))),
+            ],
+          ),
+        ),
+        _buildRow(userEntry, valueColor),
+      ],
     );
   }
 }

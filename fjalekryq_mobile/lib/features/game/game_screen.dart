@@ -1175,7 +1175,7 @@ class _GameScreenState extends State<GameScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
           ],
         ),
       ),

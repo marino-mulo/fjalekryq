@@ -59,9 +59,18 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
   // Ad state
   bool _loadingAd = false;
+  bool _loadingRestartAd = false;
 
-  // Today's difficulty info
-  Difficulty _todayDifficulty = Difficulty.easy;
+
+  // Fail / continue tracking
+  bool _failedToday = false;
+  Wordle7Puzzle? _todayPuzzle;
+
+  String get _todayDateStr {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+  String get _failKey => 'fjalekryq_daily_failed_$_todayDateStr';
 
   @override
   void initState() {
@@ -95,9 +104,11 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       });
     }
 
-    // Detect loss
-    if (_game.gameLost && !_isCompleted) {
+    // Detect loss — save fail state to SharedPrefs for next session
+    if (_game.gameLost && !_isCompleted && !_failedToday) {
       _audio.play(Sfx.lose);
+      _failedToday = true;
+      _prefs.setBool(_failKey, true);
     }
 
     // Save grid state after every change (for resume)
@@ -130,18 +141,19 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       return;
     }
 
-    // Compute today's difficulty
-    final today = DateTime.now();
-    _todayDifficulty = _difficultyForWeekday(today.weekday);
+    // Load fail state for today
+    _failedToday = _prefs.getBool(_failKey) ?? false;
 
     // Try to resume from saved state
     final saved = await _dailyService.getSavedState();
+    final puzzle = await _dailyService.getTodayPuzzle();
+    _todayPuzzle = puzzle;
+
     if (saved != null &&
         saved.gridJson != null &&
         saved.gridJson!.isNotEmpty &&
         saved.solved != 1) {
       // Resume: load the puzzle and the saved grid
-      final puzzle = await _dailyService.getTodayPuzzle();
       if (puzzle != null && mounted) {
         try {
           final gridData = jsonDecode(saved.gridJson!) as List;
@@ -162,32 +174,12 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       }
     } else {
       // Fresh daily puzzle
-      final puzzle = await _dailyService.getTodayPuzzle();
       if (puzzle != null && mounted) {
         _game.initPuzzle(puzzle);
       }
     }
 
     if (mounted) setState(() => _isLoading = false);
-  }
-
-  /// Map weekday (1=Mon .. 7=Sun) to a difficulty tier (mirrors DailyPuzzleService).
-  static Difficulty _difficultyForWeekday(int weekday) {
-    switch (weekday) {
-      case DateTime.monday:
-      case DateTime.tuesday:
-        return Difficulty.easy;
-      case DateTime.wednesday:
-      case DateTime.thursday:
-        return Difficulty.medium;
-      case DateTime.friday:
-      case DateTime.saturday:
-        return Difficulty.hard;
-      case DateTime.sunday:
-        return Difficulty.expert;
-      default:
-        return Difficulty.medium;
-    }
   }
 
   void _onWin() {
@@ -243,37 +235,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     });
   }
 
-  String get _difficultyLabel {
-    return difficultyLabel(_todayDifficulty).toUpperCase();
-  }
-
-  Color get _difficultyColor {
-    switch (_todayDifficulty) {
-      case Difficulty.easy:   return const Color(0xFF4ADE80);
-      case Difficulty.medium: return const Color(0xFFFCD34D);
-      case Difficulty.hard:   return const Color(0xFFFCA5A5);
-      case Difficulty.expert: return const Color(0xFFE879F9);
-    }
-  }
-
-  Color get _difficultyBorderColor {
-    switch (_todayDifficulty) {
-      case Difficulty.easy:   return const Color(0xFF22C55E).withValues(alpha: 0.4);
-      case Difficulty.medium: return const Color(0xFFEAB308).withValues(alpha: 0.4);
-      case Difficulty.hard:   return const Color(0xFFEF4444).withValues(alpha: 0.4);
-      case Difficulty.expert: return const Color(0xFFA855F7).withValues(alpha: 0.45);
-    }
-  }
-
-  Color get _difficultyBgColor {
-    switch (_todayDifficulty) {
-      case Difficulty.easy:   return const Color(0xFF22C55E).withValues(alpha: 0.2);
-      case Difficulty.medium: return const Color(0xFFEAB308).withValues(alpha: 0.2);
-      case Difficulty.hard:   return const Color(0xFFEF4444).withValues(alpha: 0.2);
-      case Difficulty.expert: return const Color(0xFFA855F7).withValues(alpha: 0.25);
-    }
-  }
-
   String get _todayDateLabel {
     final now = DateTime.now();
     return '${now.day} ${_months[now.month]} ${now.year}';
@@ -299,24 +260,28 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     }
   }
 
-  void _watchAdToContinue() async {
+  void _watchAdToRestart() async {
+    if (_todayPuzzle == null) return;
     final adService = context.read<AdService>();
 
-    setState(() => _loadingAd = true);
+    setState(() => _loadingRestartAd = true);
 
-    final success = await adService.showRewardedAd(
+    await adService.showRewardedAd(
       adType: AdType.continueAfterLoss,
       onReward: () async {
-        _game.continueGame();
+        _game.initPuzzle(_todayPuzzle!);
         _audio.play(Sfx.coin);
         HapticFeedback.mediumImpact();
+        // Reset fail state for a fresh attempt
+        _failedToday = false;
+        _prefs.remove(_failKey);
+        // Clear persisted grid so a fresh grid is stored next save
+        _dailyService.saveGridState([], 0, 0, 0);
       },
     );
 
     if (mounted) {
-      setState(() {
-        _loadingAd = false;
-      });
+      setState(() => _loadingRestartAd = false);
     }
   }
 
@@ -649,37 +614,14 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
         children: [
-          // Difficulty pill + date
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _difficultyBgColor,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: _difficultyBorderColor, width: 1.5),
-                ),
-                child: Text(
-                  _difficultyLabel,
-                  style: AppFonts.nunito(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                    color: _difficultyColor,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 3),
-              Text(
-                _todayDateLabel,
-                style: AppFonts.quicksand(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.45),
-                ),
-              ),
-            ],
+          // Date
+          Text(
+            _todayDateLabel,
+            style: AppFonts.quicksand(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.45),
+            ),
           ),
 
           const Spacer(),
@@ -1097,16 +1039,16 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
             ),
             const SizedBox(height: 12),
 
-            // -- Continue with ad (+5 swaps) --
+            // -- Restart with ad --
             GestureDetector(
-              onTap: _loadingAd ? null : _watchAdToContinue,
+              onTap: _loadingRestartAd ? null : _watchAdToRestart,
               child: Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
+                  color: const Color(0xFFFF6B35).withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.14), width: 1.5),
+                  border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.35), width: 1.5),
                 ),
                 child: Row(
                   children: [
@@ -1114,74 +1056,33 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                       width: 38,
                       height: 38,
                       decoration: BoxDecoration(
-                        color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                        color: const Color(0xFFFF6B35).withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35), width: 1.5),
+                        border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4), width: 1.5),
                       ),
-                      child: const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
+                      child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF6B35), size: 20),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Vazhdo lojen', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900)),
+                          Text('Rinis lojën', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900)),
                           Text(
-                            '+5 levizje ekstra',
-                            style: AppFonts.quicksand(fontSize: 10, color: Colors.white.withValues(alpha: 0.5)),
+                            'Ruaj streakun — mos e prish serinë!',
+                            style: AppFonts.quicksand(fontSize: 10, color: const Color(0xFFFF6B35).withValues(alpha: 0.8)),
                           ),
                         ],
                       ),
                     ),
                     ShikoButton(
                       size: ShikoSize.medium,
-                      loading: _loadingAd,
-                      onTap: _watchAdToContinue,
+                      loading: _loadingRestartAd,
+                      onTap: _watchAdToRestart,
                     ),
                   ],
                 ),
               ),
-            ),
-
-            // -- Go back button (white glass) --
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      HapticFeedback.lightImpact();
-                      _audio.play(Sfx.button);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.22), width: 1.5),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.25), blurRadius: 16, offset: const Offset(0, 4)),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.arrow_back, color: Colors.white, size: 18),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Kthehu',
-                            style: AppFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w900,
-                              color: Colors.white.withValues(alpha: 0.9),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: 8),
           ],
