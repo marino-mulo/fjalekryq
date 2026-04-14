@@ -9,6 +9,7 @@ import '../level_map/level_map_screen.dart';
 import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
+import '../shop/shop_screen.dart';
 import '../../shared/widgets/background_tiles.dart';
 import 'leaderboard_full_screen.dart';
 
@@ -134,6 +135,13 @@ class _HomeScreenState extends State<HomeScreen>
     ));
   }
 
+  void _openShop() {
+    HapticFeedback.selectionClick();
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => const ShopScreen(),
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
@@ -230,6 +238,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Web: .menu-header — full-width glass bar pinned at top
   Widget _buildHeader(bool dailyAvailable, double statusBarHeight) {
+    final coins = context.watch<CoinService>().coins;
     return Positioned(
       top: 0,
       left: 0,
@@ -263,6 +272,41 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: _openLeaderboard,
             ),
             const Spacer(),
+            // Coin balance pill (tappable → shop)
+            GestureDetector(
+              onTap: _openShop,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.gold.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: AppColors.gold.withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CoinIcon(size: 13),
+                    const SizedBox(width: 5),
+                    Text(
+                      '$coins',
+                      style: AppFonts.nunito(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.gold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            _HeaderButton(
+              icon: Icons.shopping_cart_rounded,
+              onTap: _openShop,
+            ),
+            const SizedBox(width: 8),
             _HeaderButton(
               icon: Icons.settings,
               onTap: _openSettings,

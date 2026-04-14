@@ -2,11 +2,21 @@
 enum Difficulty { easy, medium, hard, expert }
 
 /// Maps a level number (1-indexed) to its difficulty.
+/// Pattern for first 5 levels: easy(1), easy(2), easy(3), medium(4), easy(5)
+/// giving the feel: easy-win, normal, normal, slightly-hard, easy-win
 Difficulty difficultyForLevel(int level) {
-  if (level <= 3) return Difficulty.easy;
-  if (level <= 6) return Difficulty.medium;
-  if (level <= 9) return Difficulty.hard;
+  if (level == 4) return Difficulty.medium; // slightly harder
+  if (level <= 5) return Difficulty.easy;   // levels 1-3 and 5 are easy
+  if (level <= 9) return Difficulty.medium;
+  if (level <= 15) return Difficulty.hard;
   return Difficulty.expert;
+}
+
+/// Extra swap-limit bonus for "easy win" levels (1 and 5).
+/// These levels get extra moves so they're noticeably easier to complete.
+int extraSwapsForLevel(int level) {
+  if (level == 1 || level == 5) return 6;
+  return 0;
 }
 
 /// Extended difficulty mapping for levels beyond 10 (future expansion).

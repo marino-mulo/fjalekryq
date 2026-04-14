@@ -324,6 +324,13 @@ class GameService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Add extra swaps mid-game (e.g. when 5 moves remain, buy +5).
+  void addExtraMoves(int count) {
+    _swapLimit += count;
+    _saveState();
+    notifyListeners();
+  }
+
   // ── Reset ────────────────────────────────────────────────
 
   void resetPuzzle() {
