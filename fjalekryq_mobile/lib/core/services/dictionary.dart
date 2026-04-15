@@ -107,13 +107,13 @@ class Wordle7Dictionary {
 
   static void _ensureInitialized() {
     if (_initialized) return;
-    _easyPool = [..._words3, ..._words4, ..._words5, ..._words6];
-    _mediumPool = [..._words5, ..._words6, ..._words7, ..._words8];
-    _hardPool = [..._words7, ..._words8, ..._words9, ..._words10];
-    _expertPool = [..._words10, ..._words11, ..._words12, ..._words13];
+    _easyPool   = [..._words3, ..._words4, ..._words5, ..._words6];
+    _mediumPool = [..._words3, ..._words4, ..._words5, ..._words6, ..._words7];
+    _hardPool   = [..._words4, ..._words5, ..._words6, ..._words7, ..._words8];
+    _expertPool = [..._words5, ..._words6, ..._words7, ..._words8, ..._words9];
     _fullPool = [
-      ..._words3, ..._words4, ..._words5, ..._words6, ..._words7,
-      ..._words8, ..._words9, ..._words10, ..._words11, ..._words12, ..._words13,
+      ..._words3, ..._words4, ..._words5, ..._words6,
+      ..._words7, ..._words8, ..._words9,
     ];
     _allWordsSet = _fullPool.toSet();
     _initialized = true;
@@ -137,12 +137,10 @@ class Wordle7Dictionary {
   /// Get words of a specific length for "featured big word" placement.
   static List<String> getWordsByLength(int length) {
     switch (length) {
+      case 6:  return List<String>.from(_words6);
       case 7:  return List<String>.from(_words7);
       case 8:  return List<String>.from(_words8);
       case 9:  return List<String>.from(_words9);
-      case 10: return List<String>.from(_words10);
-      case 11: return List<String>.from(_words11);
-      case 13: return List<String>.from(_words13);
       default: return [];
     }
   }
