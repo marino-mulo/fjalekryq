@@ -176,8 +176,6 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
               ),
             ),
           ),
-          const BackgroundTiles(animate: false),
-
           SafeArea(
             child: Column(
               children: [
@@ -187,45 +185,97 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                     opacity: _fadeAnim,
                     child: SlideTransition(
                       position: _slideAnim,
-                      child: CustomScrollView(
-                        slivers: [
+                      child: Column(
+                        children: [
                           // ── Out of coins ──────────────────────────────
-                          if (coins == 0)
-                            SliverToBoxAdapter(
-                              child: _buildOutOfCoinsCard(),
-                            ),
+                          if (coins == 0) _buildOutOfCoinsCard(),
 
                           // ── Starter Pack (first time only) ────────────
-                          if (_starterPackAvailable)
-                            SliverToBoxAdapter(
-                              child: _buildStarterPackCard(),
-                            ),
+                          if (_starterPackAvailable) _buildStarterPackCard(),
 
                           // ── Special Offer (2+ fails) ──────────────────
-                          if (widget.specialOffer)
-                            SliverToBoxAdapter(
-                              child: _buildSpecialOfferSection(),
-                            ),
+                          if (widget.specialOffer) _buildSpecialOfferSection(),
 
                           // ── Standard packages header ──────────────────
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(20, 24, 20, 12),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.shopping_cart_rounded,
-                                    color: Color(0xFFF4B400),
-                                    size: 18,
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.shopping_cart_rounded,
+                                  color: Color(0xFFF4B400),
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Bli Monedha',
+                                  style: AppFonts.nunito(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 0.5,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Bli Monedha',
-                                    style: AppFonts.nunito(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 0.5,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // ── 2-column package grid (Expanded = fills remaining height) ──
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              child: Column(
+                                children: [
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: _PackageCard(
+                                            data: const _PkgData(price: '\$0.99', coins: 100),
+                                            onTap: _onPurchase,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: _PackageCard(
+                                            data: const _PkgData(
+                                              price: '\$1.99',
+                                              coins: 250,
+                                              hints: 1,
+                                              badge: '🔥 POPULAR',
+                                              variant: _PackageVariant.popular,
+                                            ),
+                                            onTap: _onPurchase,
+                                            pulseCtrl: _pulseCtrl,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Expanded(
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: _PackageCard(
+                                            data: const _PkgData(price: '\$2.99', coins: 600),
+                                            onTap: _onPurchase,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: _PackageCard(
+                                            data: const _PkgData(
+                                              price: '\$4.99',
+                                              coins: 1000,
+                                              hints: 3,
+                                              badge: '💎 BEST DEAL',
+                                              variant: _PackageVariant.bestDeal,
+                                            ),
+                                            onTap: _onPurchase,
+                                            glowCtrl: _glowCtrl,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -233,79 +283,22 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                             ),
                           ),
 
-                          // ── 2-column package grid ─────────────────────
-                          SliverPadding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16),
-                            sliver: SliverGrid(
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                mainAxisSpacing: 12,
-                                crossAxisSpacing: 12,
-                                childAspectRatio: 0.82,
-                              ),
-                              delegate: SliverChildListDelegate([
-                                _PackageCard(
-                                  data: const _PkgData(
-                                    price: '\$0.99',
-                                    coins: 100,
-                                  ),
-                                  onTap: _onPurchase,
-                                ),
-                                _PackageCard(
-                                  data: const _PkgData(
-                                    price: '\$1.99',
-                                    coins: 250,
-                                    hints: 1,
-                                    badge: '🔥 MOST POPULAR',
-                                    variant: _PackageVariant.popular,
-                                  ),
-                                  onTap: _onPurchase,
-                                  pulseCtrl: _pulseCtrl,
-                                ),
-                                _PackageCard(
-                                  data: const _PkgData(
-                                    price: '\$2.99',
-                                    coins: 600,
-                                  ),
-                                  onTap: _onPurchase,
-                                ),
-                                _PackageCard(
-                                  data: const _PkgData(
-                                    price: '\$4.99',
-                                    coins: 1000,
-                                    hints: 3,
-                                    badge: '💎 BEST DEAL',
-                                    variant: _PackageVariant.bestDeal,
-                                  ),
-                                  onTap: _onPurchase,
-                                  glowCtrl: _glowCtrl,
-                                ),
-                              ]),
-                            ),
-                          ),
-
                           // ── Free coins (watch ad) ─────────────────────
-                          SliverToBoxAdapter(child: _buildAdSection()),
+                          _buildAdSection(),
 
                           // ── Restore purchases ─────────────────────────
-                          SliverToBoxAdapter(
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.only(top: 8, bottom: 48),
-                              child: Center(
-                                child: GestureDetector(
-                                  onTap: () {
-                                    // TODO: restore purchases
-                                  },
-                                  child: Text(
-                                    'Rivendos Blerjet',
-                                    style: AppFonts.quicksand(
-                                      fontSize: 12,
-                                      color:
-                                          Colors.white.withValues(alpha: 0.3),
-                                    ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 16),
+                            child: Center(
+                              child: GestureDetector(
+                                onTap: () {
+                                  // TODO: restore purchases
+                                },
+                                child: Text(
+                                  'Rivendos Blerjet',
+                                  style: AppFonts.quicksand(
+                                    fontSize: 12,
+                                    color: Colors.white.withValues(alpha: 0.3),
                                   ),
                                 ),
                               ),
@@ -350,7 +343,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
             ),
           ),
           Text(
-            'Dyqan',
+            'Bli',
             style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900),
           ),
           const Spacer(),
@@ -607,7 +600,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
   Widget _buildAdSection() {
     final available = _adWatchesRemaining > 0;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -811,7 +804,7 @@ class _PackageCard extends StatelessWidget {
         builder: (_, child) {
           final t = ctrl?.value ?? 0.0;
           return Container(
-            padding: const EdgeInsets.fromLTRB(12, 14, 12, 14),
+            padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
             decoration: BoxDecoration(
               color: isPopular
                   ? AppColors.purpleAccent.withValues(alpha: 0.1)
@@ -838,55 +831,60 @@ class _PackageCard extends StatelessWidget {
             child: child,
           );
         },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
           children: [
-            // Badge
-            if (data.badge != null) ...[
-              _buildBadge(isPopular, isBestDeal),
-              const SizedBox(height: 8),
-            ],
-
-            // Price
-            Text(
-              data.price,
-              style: AppFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: isBestDeal
-                    ? AppColors.gold
-                    : isPopular
-                        ? const Color(0xFFD8B4FE)
-                        : Colors.white,
+            // ── Left: coins ──────────────────────────────
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CoinIcon(size: isBestDeal ? 24 : 20),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${data.coins}',
+                    style: AppFonts.nunito(
+                      fontSize: isBestDeal ? 16 : 14,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Text(
+                    'monedha',
+                    style: AppFonts.quicksand(
+                      fontSize: 9,
+                      color: Colors.white.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  if (data.hints > 0) ...[
+                    const SizedBox(height: 3),
+                    _buildHintBadge(),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-
-            // Coin icon (larger for best-deal)
-            CoinIcon(size: isBestDeal ? 36 : 28),
-            const SizedBox(height: 6),
-
-            // Amount
-            Text(
-              '${data.coins}',
-              style: AppFonts.nunito(
-                fontSize: isBestDeal ? 22 : 18,
-                fontWeight: FontWeight.w900,
+            // ── Right: badge + price ─────────────────────
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (data.badge != null) ...[
+                    _buildBadge(isPopular, isBestDeal),
+                    const SizedBox(height: 4),
+                  ],
+                  Text(
+                    data.price,
+                    style: AppFonts.nunito(
+                      fontSize: isBestDeal ? 15 : 13,
+                      fontWeight: FontWeight.w900,
+                      color: isBestDeal
+                          ? AppColors.gold
+                          : isPopular
+                              ? const Color(0xFFD8B4FE)
+                              : Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
-            Text(
-              'monedha',
-              style: AppFonts.quicksand(
-                fontSize: 10,
-                color: Colors.white.withValues(alpha: 0.45),
-              ),
-            ),
-
-            // Hint stars
-            if (data.hints > 0) ...[
-              const SizedBox(height: 6),
-              _buildHintBadge(),
-            ],
           ],
         ),
       ),

@@ -1,9 +1,13 @@
+import 'dart:io';
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/config/app_config.dart';
 
 import 'core/database/database_helper.dart';
 import 'core/database/repositories/user_repository.dart';
@@ -32,7 +36,7 @@ late final Future<_AppServices> _initFuture;
 
 const _onboardingDoneKey = 'fjalekryq_onboarding_done';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Prevent GoogleFonts from making network requests — use bundled fallback
@@ -46,6 +50,20 @@ void main() {
     systemNavigationBarColor: AppColors.background,
     systemNavigationBarIconBrightness: Brightness.light,
   ));
+
+  // iOS 14+: request App Tracking Transparency permission before AdMob init.
+  // On Android the package is a no-op (returns TrackingStatus.authorized).
+  if (Platform.isIOS) {
+    final status = await AppTrackingTransparency.trackingAuthorizationStatus;
+    if (status == TrackingStatus.notDetermined) {
+      // Small delay so the ATT dialog appears after the app is fully visible.
+      await Future.delayed(const Duration(milliseconds: 200));
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    }
+  }
+
+  // Initialize AdMob SDK after ATT decision (so consent state is known).
+  await MobileAds.instance.initialize();
 
   _initFuture = _initializeApp();
 
@@ -228,7 +246,7 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
     // `builder` injects providers above the Navigator so bottom sheets see them.
     // `home` swaps from splash → home when services are ready.
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
+      debugShowCheckedModeBanner: AppConfig.showDebugBanner,
       theme: ThemeData(
         brightness: Brightness.dark,
         scaffoldBackgroundColor: AppColors.background,

@@ -109,11 +109,9 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _openSettings() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const SettingsSheet(),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SettingsSheet()),
     );
   }
 
@@ -272,41 +270,6 @@ class _HomeScreenState extends State<HomeScreen>
               onTap: _openLeaderboard,
             ),
             const Spacer(),
-            // Coin balance pill (tappable → shop)
-            GestureDetector(
-              onTap: _openShop,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CoinIcon(size: 13),
-                    const SizedBox(width: 5),
-                    Text(
-                      '$coins',
-                      style: AppFonts.nunito(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.gold,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            _HeaderButton(
-              icon: Icons.shopping_cart_rounded,
-              onTap: _openShop,
-            ),
-            const SizedBox(width: 8),
             _HeaderButton(
               icon: Icons.settings,
               onTap: _openSettings,

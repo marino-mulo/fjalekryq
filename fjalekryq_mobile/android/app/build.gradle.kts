@@ -20,20 +20,26 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId = "com.fjalekryq.fjalekryq_mobile"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Fallback AdMob test app ID (overridden per build type below)
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
     }
 
     buildTypes {
+        debug {
+            // Dev / debug → Google's official test AdMob app ID
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // Prod → replace with your real AdMob Android app ID from the AdMob console
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-YOUR_PUBLISHER_ID~YOUR_APP_ID_ANDROID"
+
+            // TODO: add your own signing config before publishing
             signingConfig = signingConfigs.getByName("debug")
         }
     }

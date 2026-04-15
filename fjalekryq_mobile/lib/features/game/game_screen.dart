@@ -23,6 +23,7 @@ const _levelKey = 'fjalekryq_level';
 const _playingLevelKey = 'fjalekryq_playing_level';
 const _tutorialKey = 'fjalekryq_tutorial_done';
 const _starsKeyPrefix = 'fjalekryq_stars_';
+const _replayRunKeyPrefix = 'fjalekryq_replay_run_';
 
 /// Tutorial puzzle: MALI (vertical), BORA (horizontal), DETI (horizontal)
 final _tutorialPuzzle = Wordle7Puzzle(
@@ -100,8 +101,13 @@ class _GameScreenState extends State<GameScreen> {
   bool _winCoinsDoubled = false;
   bool _continuedAfterLoss = false;
 
+  // Replay mode: true when user restarts after already getting 3 stars.
+  // In this mode no progress is saved, no rewards are shown, 5-moves warning is skipped.
+  bool _isReplayRun = false;
+
   // 5-moves warning (shown once per game session)
   bool _fiveMovesWarningShown = false;
+  bool _showFiveMovesBanner = false;
   // Prevents double fail-modal triggers
   bool _showingFailModal = false;
   // Counts fails on the same level — unlocks Special Offer after 2+
@@ -142,8 +148,9 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    // 5-moves warning: offer more moves before it's too late
+    // 5-moves warning: offer more moves before it's too late (skip in replay runs)
     if (!_isTutorial &&
+        !_isReplayRun &&
         !_fiveMovesWarningShown &&
         !_game.gameLost &&
         !_game.gameWon &&
@@ -154,10 +161,10 @@ class _GameScreenState extends State<GameScreen> {
       });
     }
 
-    // Auto-trigger win modal
-    if (_game.gameWon && !_isCompleted) {
+    // Auto-trigger win modal (skip if we're loading a new puzzle)
+    if (_game.gameWon && !_isCompleted && !_isLoading) {
       Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) _onWin();
+        if (mounted && !_isLoading) _onWin();
       });
     }
 
@@ -194,6 +201,7 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final saved = await _game.loadSavedState(playingLevel);
       if (saved != null && saved.puzzle.hash != 'tutorial_v1' && saved.level == playingLevel) {
+        _isReplayRun = _prefs.getBool('$_replayRunKeyPrefix$playingLevel') ?? false;
         _game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount, playingLevel);
       } else {
         _loadPuzzle();
@@ -286,15 +294,19 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
 
-      // Save stars (keep best) — both SharedPrefs (for quick reads) and SQLite
+      // Always save best stars (replay or first clear)
       final starsKey = '$_starsKeyPrefix$playingLevel';
       final existing = _prefs.getInt(starsKey) ?? 0;
       final bestStars = stars > existing ? stars : existing;
       _prefs.setInt(starsKey, bestStars);
       _game.saveProgress(playingLevel, stars: bestStars, completed: true);
 
-      // Award coins on first clear
-      final isFirstClear = playingLevel >= progress;
+      // Clear in-progress and replay flags
+      _prefs.remove('fjalekryq_in_progress_$playingLevel');
+      _prefs.remove('$_replayRunKeyPrefix$playingLevel');
+
+      // Award coins only on first clear
+      final isFirstClear = !_isReplayRun && playingLevel >= progress;
       if (isFirstClear) {
         final diff = difficultyForLevel(playingLevel);
         _coinsEarned = _difficultyCoinMap[diff] ?? 10;
@@ -304,7 +316,7 @@ class _GameScreenState extends State<GameScreen> {
         _coinsEarned = 0;
       }
 
-      // Advance progress
+      // Advance progress on first clear
       if (isFirstClear && playingLevel < totalActiveLevels) {
         _prefs.setInt(_levelKey, playingLevel + 1);
       }
@@ -372,13 +384,20 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _restartLevel() {
+    final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
+    if (!_isTutorial) {
+      // Mark as replay so we don't re-award coins — best stars already saved on win.
+      _prefs.setBool('$_replayRunKeyPrefix$playingLevel', true);
+    }
     setState(() {
       _isCompleted = false;
       _winCoinsDoubled = false;
       _continuedAfterLoss = false;
       _loadingAd = false;
       _fiveMovesWarningShown = false;
+      _showFiveMovesBanner = false;
       _showingFailModal = false;
+      _isReplayRun = true;
     });
     _game.resetPuzzle();
   }
@@ -520,6 +539,8 @@ class _GameScreenState extends State<GameScreen> {
                       bgColor: const Color(0xFFC9B458).withValues(alpha: 0.2),
                       borderColor: const Color(0xFFFFBA27).withValues(alpha: 0.4),
                     ),
+                  if (_showFiveMovesBanner)
+                    _buildFiveMovesBanner(),
                   if (_insufficientType != null)
                     _buildInlineInsufficientBanner(),
                   if (_isTutorial && _tutorialPhase == 2)
@@ -596,6 +617,108 @@ class _GameScreenState extends State<GameScreen> {
           ],
         ),
         child: child,
+      ),
+    );
+  }
+
+  // ── Five-moves warning inline banner ──
+  Widget _buildFiveMovesBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF97316).withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFF97316).withValues(alpha: 0.38)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: Color(0xFFFB923C), size: 17),
+                const SizedBox(width: 7),
+                Expanded(
+                  child: Text(
+                    'Vetëm 5 lëvizje të mbetura!',
+                    style: AppFonts.nunito(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFFB923C),
+                    ),
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => setState(() => _showFiveMovesBanner = false),
+                  child: const Icon(Icons.close, color: Colors.white38, size: 16),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _loadingAd ? null : () async {
+                      setState(() => _showFiveMovesBanner = false);
+                      await _watchAdForExtraMoves();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.purpleAccent.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.videocam_rounded, color: Color(0xFFC084FC), size: 15),
+                          const SizedBox(width: 5),
+                          Text('Shiko · +5', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w800)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _showFiveMovesBanner = false);
+                      _buyExtraMovesInGame();
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CoinIcon(size: 13),
+                          const SizedBox(width: 5),
+                          Text('30 monedha', style: AppFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.gold)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -963,7 +1086,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _watchAdToDoubleWinCoins() async {
+  Future<void> _watchAdToDoubleWinCoins() async {
     final adService = context.read<AdService>();
     final coinService = context.read<CoinService>();
 
@@ -985,7 +1108,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  void _watchAdToContinue() async {
+  Future<void> _watchAdToContinue() async {
     final adService = context.read<AdService>();
 
     setState(() => _loadingAd = true);
@@ -1059,26 +1182,9 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // ── 5-moves warning sheet ────────────────────────────────
+  // ── 5-moves warning banner ───────────────────────────────
   void _showFiveMovesOffer() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => _FiveMovesSheet(
-        coins: context.read<CoinService>().coins,
-        adService: context.read<AdService>(),
-        onWatchAd: () async {
-          Navigator.pop(ctx);
-          await _watchAdForExtraMoves();
-        },
-        onBuyMoves: () {
-          Navigator.pop(ctx);
-          _buyExtraMovesInGame();
-        },
-        onDismiss: () => Navigator.pop(ctx),
-      ),
-    );
+    setState(() => _showFiveMovesBanner = true);
   }
 
   // ── Win modal ────────────────────────────────────────────
@@ -1096,13 +1202,10 @@ class _GameScreenState extends State<GameScreen> {
           coinsEarned: _coinsEarned,
           winCoinsDoubled: _winCoinsDoubled,
           isTutorial: _isTutorial,
+          isReplayRun: _isReplayRun,
           nextLevelNumber: _nextLevelNumber,
           onDoubleCoins: () async {
             await _watchAdToDoubleWinCoins();
-          },
-          onPlayAgainRestart: () {
-            Navigator.pop(ctx);
-            Future.microtask(_restartLevel);
           },
           onRestart: () {
             Navigator.pop(ctx);
@@ -1331,7 +1434,7 @@ class _GameScreenState extends State<GameScreen> {
                       ],
                     ),
                   ),
-                  // Cooldown bar centered below label inside button
+                  // Cooldown bar — animates smoothly as the timer ticks
                   if (cooling) ...[
                     const SizedBox(height: 6),
                     ClipRRect(
@@ -1340,12 +1443,17 @@ class _GameScreenState extends State<GameScreen> {
                         height: 4,
                         color: Colors.black.withValues(alpha: 0.2),
                         alignment: Alignment.centerLeft,
-                        child: FractionallySizedBox(
-                          widthFactor: cooldownRemaining / 3,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: baseColor.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(3),
+                        child: TweenAnimationBuilder<double>(
+                          tween: Tween(begin: 1.0, end: cooldownRemaining / 3),
+                          duration: const Duration(milliseconds: 950),
+                          curve: Curves.easeOut,
+                          builder: (_, value, __) => FractionallySizedBox(
+                            widthFactor: value.clamp(0.0, 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: baseColor.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
                             ),
                           ),
                         ),
@@ -1379,10 +1487,9 @@ class _WinModal extends StatefulWidget {
   final int coinsEarned;
   final bool winCoinsDoubled;
   final bool isTutorial;
+  final bool isReplayRun;
   final int nextLevelNumber;
   final Future<void> Function() onDoubleCoins;
-  /// Called after watching "play again for 3 stars" ad (closes modal + restarts).
-  final VoidCallback? onPlayAgainRestart;
   final VoidCallback onRestart;
   final VoidCallback onNextLevel;
   final VoidCallback? onSaveProgress;
@@ -1393,9 +1500,9 @@ class _WinModal extends StatefulWidget {
     required this.coinsEarned,
     required this.winCoinsDoubled,
     required this.isTutorial,
+    required this.isReplayRun,
     required this.nextLevelNumber,
     required this.onDoubleCoins,
-    this.onPlayAgainRestart,
     required this.onRestart,
     required this.onNextLevel,
     this.onSaveProgress,
@@ -1447,27 +1554,11 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
     });
   }
 
-  Future<void> _watchPlayAgainAd() async {
-    if (_adLoading != _AdLoading.none) return;
-    setState(() => _adLoading = _AdLoading.playAgain);
-    final adService = context.read<AdService>();
-    final success = await adService.showRewardedAd(
-      adType: AdType.playAgainFor3Stars,
-      onReward: () async {},
-    );
-    if (mounted) {
-      setState(() => _adLoading = _AdLoading.none);
-      if (success) widget.onPlayAgainRestart?.call();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    // 3 stars → only show 2x reward; < 3 stars → show both offers
+    // Replay run (after 3-star restart) → no double-coins ad shown
     final showDoubleAd =
-        !widget.isTutorial && widget.coinsEarned > 0 && !_doubled;
-    final showPlayAgainAd =
-        !widget.isTutorial && widget.stars < 3 && widget.onPlayAgainRestart != null;
+        !widget.isTutorial && !widget.isReplayRun && widget.coinsEarned > 0 && !_doubled;
 
     return Material(
       color: Colors.transparent,
@@ -1567,42 +1658,19 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
             ],
 
             // ── Ad offers section ──
-            if (showDoubleAd || showPlayAgainAd) ...[
+            if (showDoubleAd) ...[
               const SizedBox(height: 14),
-
-              // 2× reward — shown for any win (3 or < 3 stars)
-              if (showDoubleAd)
-                _adOfferTile(
-                  loading: _adLoading == _AdLoading.doubleCoins,
-                  iconBg: AppColors.purpleAccent.withValues(alpha: 0.18),
-                  iconBorder: AppColors.purpleAccent.withValues(alpha: 0.35),
-                  icon: Icons.videocam,
-                  iconColor: const Color(0xFFC084FC),
-                  title: 'Dyfisho monedhat',
-                  subtitle: '+${widget.coinsEarned * 2} monedha falas',
-                  badgeLabel: '×2',
-                  onTap: _watchDoubleCoinsAd,
-                ),
-
-              // Spacer between tiles
-              if (showDoubleAd && showPlayAgainAd)
-                const SizedBox(height: 10),
-
-              // Play again for 3 stars — only shown when stars < 3
-              if (showPlayAgainAd)
-                _adOfferTile(
-                  loading: _adLoading == _AdLoading.playAgain,
-                  iconBg: const Color(0xFFF4B400).withValues(alpha: 0.16),
-                  iconBorder: const Color(0xFFF4B400).withValues(alpha: 0.35),
-                  icon: Icons.replay_rounded,
-                  iconColor: const Color(0xFFF4B400),
-                  title: 'Luaj sërish për 3 yje',
-                  subtitle: 'Provoni të arrini rezultatin maksimal',
-                  badgeLabel: '★3',
-                  badgeColor: const Color(0xFFF4B400),
-                  badgeTextColor: const Color(0xFF7A3F00),
-                  onTap: _watchPlayAgainAd,
-                ),
+              _adOfferTile(
+                loading: _adLoading == _AdLoading.doubleCoins,
+                iconBg: AppColors.purpleAccent.withValues(alpha: 0.18),
+                iconBorder: AppColors.purpleAccent.withValues(alpha: 0.35),
+                icon: Icons.videocam,
+                iconColor: const Color(0xFFC084FC),
+                title: 'Dyfisho monedhat',
+                subtitle: '+${widget.coinsEarned * 2} monedha falas',
+                badgeLabel: '×2',
+                onTap: _watchDoubleCoinsAd,
+              ),
             ],
 
             // ── Action buttons ──
@@ -1742,7 +1810,7 @@ class _WinModalState extends State<_WinModal> with TickerProviderStateMixin {
 }
 
 /// Tracks which ad slot is currently loading in the win modal.
-enum _AdLoading { none, doubleCoins, playAgain }
+enum _AdLoading { none, doubleCoins }
 
 // ══════════════════════════════════════════════════════
 //  FAIL MODAL
@@ -1856,15 +1924,15 @@ class _FailModalState extends State<_FailModal> {
             ),
             const SizedBox(height: 20),
 
-            // ── Watch Ad for +5 moves ──
-            if (canWatchAd)
+            // ── Watch Ad for +5 moves (hidden when daily limit reached) ──
+            if (canWatchAd) ...[
               _failOption(
                 icon: Icons.videocam_rounded,
                 iconColor: const Color(0xFFC084FC),
                 iconBg: AppColors.purpleAccent.withValues(alpha: 0.18),
                 iconBorder: AppColors.purpleAccent.withValues(alpha: 0.35),
                 title: 'Shiko reklamë · +5 lëvizje',
-                subtitle: '$_adRemaining herë të mbetura sot',
+                subtitle: 'Shiko një reklamë të shkurtër',
                 trailing: ShikoButton(
                   size: ShikoSize.medium,
                   loading: _loadingAd,
@@ -1877,8 +1945,8 @@ class _FailModalState extends State<_FailModal> {
                         await widget.onWatchAd();
                       },
               ),
-
-            if (canWatchAd) const SizedBox(height: 10),
+              const SizedBox(height: 10),
+            ],
 
             // ── Buy 5 moves with 30 coins ──
             _failOption(
@@ -2152,7 +2220,7 @@ class _FiveMovesSheetState extends State<_FiveMovesSheet> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Shiko reklamë · +5 lëvizje  ($_adRemaining herë sot)',
+                        'Shiko reklamë · +5 lëvizje',
                         style: AppFonts.nunito(fontSize: 13, fontWeight: FontWeight.w800),
                       ),
                     ),

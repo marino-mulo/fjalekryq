@@ -1,5 +1,6 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../config/app_config.dart';
 
 /// Central SQLite database helper for Fjalëkryq.
 /// Manages creation and migration of all 9 tables with audit columns.
@@ -9,7 +10,7 @@ import 'package:path/path.dart';
 ///   modified_at, modified_by, modified_ip,
 ///   invalidated (20 = active, 10 = soft-deleted)
 class DatabaseHelper {
-  static const _databaseName = 'fjalekryq.db';
+  static String get _databaseName => AppConfig.databaseName;
   static const _databaseVersion = 3;
 
   static const int statusActive = 20;

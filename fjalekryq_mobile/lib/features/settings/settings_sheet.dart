@@ -6,26 +6,25 @@ import '../../core/database/repositories/user_repository.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../shared/constants/theme.dart';
+import '../legal/privacy_policy_screen.dart';
 
 const int _nicknameCost = 100;
 const int _nicknameMinLength = 6;
 const int _nicknameMaxLength = 12;
 
 const _avatarOptions = [
-  // Person icons — 4 colors
-  (color: Color(0xFF22C55E), icon: Icons.person_rounded),  // 0 green
-  (color: Color(0xFFF4B400), icon: Icons.person_rounded),  // 1 yellow
-  (color: Color(0xFF3B82F6), icon: Icons.person_rounded),  // 2 blue
-  (color: Color(0xFFEF4444), icon: Icons.person_rounded),  // 3 red
-  // Special icons
-  (color: Color(0xFFFFD700), icon: Icons.workspace_premium_rounded), // 4 crown
-  (color: Color(0xFF60A5FA), icon: Icons.rocket_launch_rounded),     // 5 rocket
-  (color: Color(0xFFF4B400), icon: Icons.emoji_events_rounded),      // 6 trophy
-  (color: Color(0xFF8B5CF6), icon: Icons.auto_awesome_rounded),      // 7 sparkle
-  (color: Color(0xFFF59E0B), icon: Icons.bolt_rounded),              // 8 bolt
-  (color: Color(0xFFEC4899), icon: Icons.favorite_rounded),          // 9 heart
-  (color: Color(0xFFFF6B35), icon: Icons.local_fire_department_rounded), // 10 fire
-  (color: Color(0xFF22C55E), icon: Icons.star_rounded),              // 11 star
+  (color: Color(0xFF22C55E), icon: Icons.person_rounded),
+  (color: Color(0xFFF4B400), icon: Icons.person_rounded),
+  (color: Color(0xFF3B82F6), icon: Icons.person_rounded),
+  (color: Color(0xFFEF4444), icon: Icons.person_rounded),
+  (color: Color(0xFFFFD700), icon: Icons.workspace_premium_rounded),
+  (color: Color(0xFF60A5FA), icon: Icons.rocket_launch_rounded),
+  (color: Color(0xFFF4B400), icon: Icons.emoji_events_rounded),
+  (color: Color(0xFF8B5CF6), icon: Icons.auto_awesome_rounded),
+  (color: Color(0xFFF59E0B), icon: Icons.bolt_rounded),
+  (color: Color(0xFFEC4899), icon: Icons.favorite_rounded),
+  (color: Color(0xFFFF6B35), icon: Icons.local_fire_department_rounded),
+  (color: Color(0xFF22C55E), icon: Icons.star_rounded),
 ];
 
 ({Color color, IconData icon}) _parseAvatar(String? avatar) {
@@ -34,7 +33,7 @@ const _avatarOptions = [
   return _avatarOptions[idx];
 }
 
-/// Bottom sheet for app settings — includes inline profile editing.
+/// Full-screen settings page.
 class SettingsSheet extends StatefulWidget {
   const SettingsSheet({super.key});
 
@@ -126,250 +125,265 @@ class _SettingsSheetState extends State<SettingsSheet> {
     final avatar = _parseAvatar(_user?.avatar);
     final isGuest = _user?.username.startsWith('guest_') ?? true;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: modalGradient,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.12),
-          width: 1.5,
+    return Scaffold(
+      backgroundColor: AppColors.backgroundDark,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF0C1F4A), Color(0xFF0D1B40), Color(0xFF07152F)],
+            stops: [0.0, 0.4, 1.0],
+          ),
         ),
-      ),
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Header ──────────────────────────────────────────
-            Row(
-              children: [
-                Icon(Icons.settings, color: Colors.white.withValues(alpha: 0.85), size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  'Cilësimet',
-                  style: AppFonts.nunito(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
+        child: SafeArea(
+          child: Column(
+            children: [
+              // ── Top bar ──────────────────────────────────────────
+              Container(
+                padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0C1F4A).withValues(alpha: 0.75),
+                  border: Border(
+                    bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                 ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(context),
-                  child: Container(
-                    width: 32, height: 32,
-                    decoration: glassDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderColor: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: 10,
-                    ),
-                    child: Icon(Icons.close, color: Colors.white.withValues(alpha: 0.6), size: 16),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // ── Profile section ──────────────────────────────────
-            _buildSectionLabel('Profili'),
-            const SizedBox(height: 10),
-
-            // Avatar + name row
-            Row(
-              children: [
-                // Avatar with camera overlay
-                Stack(
+                child: Row(
                   children: [
-                    Container(
-                      width: 52, height: 52,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: avatar.color.withValues(alpha: 0.18),
-                        border: Border.all(color: avatar.color.withValues(alpha: 0.6), width: 2),
-                      ),
-                      child: Icon(avatar.icon, color: avatar.color, size: 26),
+                    IconButton(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
+                          color: Colors.white70, size: 20),
                     ),
-                    Positioned(
-                      right: 0, bottom: 0,
-                      child: GestureDetector(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _pickingAvatar = !_pickingAvatar);
-                        },
-                        child: Container(
-                          width: 20, height: 20,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1A2D5A),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
-                          ),
-                          child: const Icon(Icons.camera_alt, color: Colors.white70, size: 11),
-                        ),
-                      ),
+                    Text(
+                      'Cilësimet',
+                      style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900),
                     ),
                   ],
                 ),
-                const SizedBox(width: 14),
-                // Name + subtitle
-                Expanded(
-                  child: _editingName
-                      ? _buildNameEditor()
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _user?.username ?? '...',
-                              style: AppFonts.nunito(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
+              ),
+
+              // ── Content ──────────────────────────────────────────
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // ── Profile ────────────────────────────────────
+                      _buildSectionLabel('Profili'),
+                      const SizedBox(height: 10),
+
+                      Row(
+                        children: [
+                          Stack(
+                            children: [
+                              Container(
+                                width: 52, height: 52,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: avatar.color.withValues(alpha: 0.18),
+                                  border: Border.all(color: avatar.color.withValues(alpha: 0.6), width: 2),
+                                ),
+                                child: Icon(avatar.icon, color: avatar.color, size: 26),
                               ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              isGuest ? 'Llogaria lokale' : 'Llogaria e regjistruar',
-                              style: AppFonts.quicksand(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withValues(alpha: 0.45),
+                              Positioned(
+                                right: 0, bottom: 0,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    setState(() => _pickingAvatar = !_pickingAvatar);
+                                  },
+                                  child: Container(
+                                    width: 20, height: 20,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF1A2D5A),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                                    ),
+                                    child: const Icon(Icons.camera_alt, color: Colors.white70, size: 11),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: _editingName
+                                ? _buildNameEditor()
+                                : Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _user?.username ?? '...',
+                                        style: AppFonts.nunito(fontSize: 16, fontWeight: FontWeight.w800),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        isGuest ? 'Llogaria lokale' : 'Llogaria e regjistruar',
+                                        style: AppFonts.quicksand(
+                                          fontSize: 12,
+                                          color: Colors.white.withValues(alpha: 0.45),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                          if (!_editingName) ...[
+                            const SizedBox(width: 10),
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                _nameController.text = _user?.username ?? '';
+                                setState(() { _editingName = true; _nameError = null; });
+                              },
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                                      borderRadius: BorderRadius.circular(50),
+                                      border: Border.all(
+                                        color: AppColors.purpleAccent.withValues(alpha: 0.5),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
+                                        const SizedBox(width: 5),
+                                        Text(
+                                          'Ndrysho emrin',
+                                          style: AppFonts.nunito(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: -8,
+                                    right: -6,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.gold,
+                                        borderRadius: BorderRadius.circular(50),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.gold.withValues(alpha: 0.4),
+                                            blurRadius: 6,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(Icons.monetization_on_rounded, size: 9, color: Color(0xFF7A3F00)),
+                                          const SizedBox(width: 2),
+                                          Text(
+                                            '$_nicknameCost',
+                                            style: AppFonts.nunito(
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.w900,
+                                              color: const Color(0xFF7A3F00),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
-                        ),
-                ),
-                if (!_editingName) ...[
-                  const SizedBox(width: 10),
-                  // Ndrysho emrin button with inline coin badge
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      _nameController.text = _user?.username ?? '';
-                      setState(() { _editingName = true; _nameError = null; });
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Shiko-style cost pill
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                          decoration: BoxDecoration(
-                            color: AppColors.purpleAccent.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(50),
-                            border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.4), width: 1.5),
-                            boxShadow: [
-                              BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2)),
-                            ],
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.monetization_on_rounded, size: 10, color: AppColors.gold),
-                              const SizedBox(width: 3),
-                              Text(
-                                '$_nicknameCost',
-                                style: AppFonts.nunito(fontSize: 9, fontWeight: FontWeight.w900, color: const Color(0xFFE2C9FF), letterSpacing: 0.3),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Ndrysho emrin',
-                          style: AppFonts.nunito(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.5)),
+                        ],
+                      ),
+
+                      if (_pickingAvatar) ...[
+                        const SizedBox(height: 12),
+                        _buildAvatarPicker(),
+                      ],
+                      if (_editingName && _nameError != null) ...[
+                        const SizedBox(height: 6),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 66),
+                          child: Text(_nameError!, style: TextStyle(fontSize: 11, color: AppColors.redAccent)),
                         ),
                       ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
 
-            // Avatar picker (expandable)
-            if (_pickingAvatar) ...[
-              const SizedBox(height: 12),
-              _buildAvatarPicker(),
-            ],
+                      const SizedBox(height: 20),
+                      _buildDivider(),
+                      const SizedBox(height: 16),
 
-            // Name error
-            if (_editingName && _nameError != null) ...[
-              const SizedBox(height: 6),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 66),
-                  child: Text(
-                    _nameError!,
-                    style: TextStyle(fontSize: 11, color: AppColors.redAccent),
-                  ),
-                ),
-              ),
-            ],
+                      // ── Sound ──────────────────────────────────────
+                      _buildSectionLabel('Zëri'),
+                      const SizedBox(height: 10),
+                      _SettingToggle(
+                        icon: Icons.music_note,
+                        label: 'Muzika',
+                        value: settings.musicEnabled,
+                        onChanged: (_) => settings.toggleMusic(),
+                      ),
+                      const SizedBox(height: 6),
+                      _SettingToggle(
+                        icon: Icons.volume_up,
+                        label: 'Efektet e zërit',
+                        value: settings.soundEnabled,
+                        onChanged: (_) => settings.toggleSound(),
+                      ),
 
-            const SizedBox(height: 16),
-            _buildDivider(),
-            const SizedBox(height: 14),
+                      const SizedBox(height: 16),
+                      _buildDivider(),
+                      const SizedBox(height: 16),
 
-            // ── Sound ────────────────────────────────────────────
-            _buildSectionLabel('Zëri'),
-            const SizedBox(height: 10),
-            _SettingToggle(
-              icon: Icons.music_note,
-              label: 'Muzika',
-              value: settings.musicEnabled,
-              onChanged: (_) => settings.toggleMusic(),
-            ),
-            const SizedBox(height: 6),
-            _SettingToggle(
-              icon: Icons.volume_up,
-              label: 'Efektet e zërit',
-              value: settings.soundEnabled,
-              onChanged: (_) => settings.toggleSound(),
-            ),
-            const SizedBox(height: 14),
-            _buildDivider(),
-            const SizedBox(height: 14),
+                      // ── Notifications ──────────────────────────────
+                      _buildSectionLabel('Njoftimet'),
+                      const SizedBox(height: 10),
+                      _SettingToggle(
+                        icon: Icons.notifications,
+                        label: 'Njoftimet',
+                        value: settings.notificationsEnabled,
+                        onChanged: (_) => settings.toggleNotifications(),
+                      ),
+                      const SizedBox(height: 6),
+                      _SettingToggle(
+                        icon: Icons.email,
+                        label: 'Njoftimet me Email',
+                        value: settings.emailNotificationsEnabled,
+                        onChanged: (_) => settings.toggleEmailNotifications(),
+                      ),
 
-            // ── Notifications ────────────────────────────────────
-            _buildSectionLabel('Njoftimet'),
-            const SizedBox(height: 10),
-            _SettingToggle(
-              icon: Icons.notifications,
-              label: 'Njoftimet',
-              value: settings.notificationsEnabled,
-              onChanged: (_) => settings.toggleNotifications(),
-            ),
-            const SizedBox(height: 6),
-            _SettingToggle(
-              icon: Icons.email,
-              label: 'Njoftimet me Email',
-              value: settings.emailNotificationsEnabled,
-              onChanged: (_) => settings.toggleEmailNotifications(),
-            ),
-            const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+                      _buildDivider(),
+                      const SizedBox(height: 16),
 
-            // ── Close button ─────────────────────────────────────
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 9),
-                decoration: glassDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderColor: Colors.white.withValues(alpha: 0.15),
-                  borderRadius: 12,
-                ),
-                child: Text(
-                  'Mbyll',
-                  style: AppFonts.quicksand(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.7),
+                      // ── Legal ──────────────────────────────────────
+                      _buildSectionLabel('Ligjore'),
+                      const SizedBox(height: 10),
+                      _buildLegalRow(
+                        icon: Icons.privacy_tip_outlined,
+                        label: 'Politika e Privatësisë',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                        ),
+                      ),
+
+                      const SizedBox(height: 32),
+                    ],
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 8),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -422,103 +436,95 @@ class _SettingsSheetState extends State<SettingsSheet> {
             controller: _nameController,
             autofocus: true,
             maxLength: _nicknameMaxLength,
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]')),
-            ],
-            style: AppFonts.nunito(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
+            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9_]'))],
+            style: AppFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700),
             decoration: InputDecoration(
               counterText: '',
               hintText: '$_nicknameMinLength–$_nicknameMaxLength karaktere',
-              hintStyle: TextStyle(
-                  fontSize: 13, color: Colors.white.withValues(alpha: 0.25)),
+              hintStyle: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.25)),
               isDense: true,
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.05),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide:
-                    BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: _nameError != null
-                      ? AppColors.redAccent.withValues(alpha: 0.5)
-                      : Colors.white.withValues(alpha: 0.1),
-                ),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: _nameError != null
-                      ? AppColors.redAccent
-                      : AppColors.cellGreen,
-                  width: 1.5,
-                ),
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: _nameError != null ? AppColors.redAccent.withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.1),
+                  )),
+              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: _nameError != null ? AppColors.redAccent : AppColors.cellGreen,
+                    width: 1.5,
+                  )),
             ),
-            onChanged: (_) {
-              if (_nameError != null) setState(() => _nameError = null);
-            },
+            onChanged: (_) { if (_nameError != null) setState(() => _nameError = null); },
             onSubmitted: (_) => _saveName(),
           ),
         ),
         const SizedBox(width: 8),
-        // Confirm
         GestureDetector(
           onTap: _saveName,
           child: Container(
             width: 36, height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.cellGreen,
-              borderRadius: BorderRadius.circular(10),
-            ),
+            decoration: BoxDecoration(color: AppColors.cellGreen, borderRadius: BorderRadius.circular(10)),
             child: const Icon(Icons.check, color: Colors.white, size: 18),
           ),
         ),
         const SizedBox(width: 6),
-        // Cancel
         GestureDetector(
-          onTap: () => setState(() {
-            _editingName = false;
-            _nameError = null;
-          }),
+          onTap: () => setState(() { _editingName = false; _nameError = null; }),
           child: Container(
             width: 36, height: 36,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(10),
-              border:
-                  Border.all(color: Colors.white.withValues(alpha: 0.12)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
             ),
-            child: Icon(Icons.close,
-                color: Colors.white.withValues(alpha: 0.5), size: 16),
+            child: Icon(Icons.close, color: Colors.white.withValues(alpha: 0.5), size: 16),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildDivider() {
-    return Container(height: 1, color: Colors.white.withValues(alpha: 0.08));
-  }
+  Widget _buildDivider() =>
+      Container(height: 1, color: Colors.white.withValues(alpha: 0.08));
 
   Widget _buildSectionLabel(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text.toUpperCase(),
-        style: AppFonts.quicksand(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: Colors.white.withValues(alpha: 0.4),
-          letterSpacing: 0.5,
+    return Text(
+      text.toUpperCase(),
+      style: AppFonts.quicksand(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: Colors.white.withValues(alpha: 0.4),
+        letterSpacing: 0.5,
+      ),
+    );
+  }
+
+  Widget _buildLegalRow({required IconData icon, required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 13),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: AppFonts.quicksand(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85)),
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: Colors.white.withValues(alpha: 0.3), size: 18),
+          ],
         ),
       ),
     );
@@ -533,12 +539,7 @@ class _SettingToggle extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _SettingToggle({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
+  const _SettingToggle({required this.icon, required this.label, required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -557,14 +558,7 @@ class _SettingToggle extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              label,
-              style: AppFonts.quicksand(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.85),
-              ),
-            ),
+            child: Text(label, style: AppFonts.quicksand(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.85))),
           ),
           _CustomToggle(value: value, onChanged: onChanged),
         ],
@@ -590,14 +584,10 @@ class _CustomToggle extends StatelessWidget {
         curve: Curves.easeInOut,
         width: 50, height: 28,
         decoration: BoxDecoration(
-          color: value
-              ? const Color(0xFF22C55E)
-              : Colors.white.withValues(alpha: 0.15),
+          color: value ? const Color(0xFF22C55E) : Colors.white.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: value
-                ? const Color(0xFF16A34A)
-                : Colors.white.withValues(alpha: 0.2),
+            color: value ? const Color(0xFF16A34A) : Colors.white.withValues(alpha: 0.2),
             width: 1.5,
           ),
         ),
@@ -608,10 +598,7 @@ class _CustomToggle extends StatelessWidget {
           child: Container(
             width: 20, height: 20,
             margin: const EdgeInsets.symmetric(horizontal: 3),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              shape: BoxShape.circle,
-            ),
+            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
           ),
         ),
       ),
