@@ -15,8 +15,8 @@ const int streakRecoveryCost = 250;
 ///
 /// Each day at 00:01 a new puzzle becomes available. The puzzle seed is
 /// deterministic based on the date so every user gets the same layout.
-/// Difficulty rotates by day of the week:
-///   Mon/Tue = easy, Wed/Thu = medium, Fri/Sat = hard, Sun = expert.
+/// Difficulty follows a 7-day repeating cycle (anchored to 2025-01-01):
+///   days 0-2 = easy, days 3-4 = medium, days 5-6 = hard.
 class DailyPuzzleService extends ChangeNotifier {
   final DailyPuzzleRepository _puzzleRepo;
   final DailyStreakRepository _streakRepo;
@@ -111,7 +111,7 @@ class DailyPuzzleService extends ChangeNotifier {
     // Generate a new puzzle for today.
     final today = _todayDate();
     final seed = today.year * 10000 + today.month * 100 + today.day;
-    final difficulty = _difficultyForWeekday(today.weekday);
+    final difficulty = _difficultyForDate(today);
     final puzzle = PuzzleGenerator.generateRandom(seed, difficulty: difficulty);
 
     await _puzzleRepo.upsert(
@@ -225,8 +225,18 @@ class DailyPuzzleService extends ChangeNotifier {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  /// Daily puzzles are always medium difficulty.
-  static Difficulty _difficultyForWeekday(int weekday) => Difficulty.medium;
+  /// 7-day repeating cycle: 3 easy → 2 medium → 2 hard.
+  /// Anchored to 2025-01-01 so the cycle is consistent across all devices.
+  static Difficulty _difficultyForDate(DateTime date) {
+    const cycle = [
+      Difficulty.easy, Difficulty.easy, Difficulty.easy,
+      Difficulty.medium, Difficulty.medium,
+      Difficulty.hard, Difficulty.hard,
+    ];
+    final epoch = DateTime(2025, 1, 1);
+    final dayIndex = date.difference(epoch).inDays % cycle.length;
+    return cycle[dayIndex.abs()];
+  }
 
   /// Check whether the streak is protected by a freeze between [lastSolved]
   /// and [today]. The freeze covers every missed day in between.
