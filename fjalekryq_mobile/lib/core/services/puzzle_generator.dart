@@ -15,10 +15,10 @@ class _DiffConfig {
 }
 
 const Map<Difficulty, _DiffConfig> _diffConfigs = {
-  Difficulty.easy:   _DiffConfig([5, 6, 7],        5,  15, 800,  6),
-  Difficulty.medium: _DiffConfig([7, 8, 9],        7,  22, 1000, 8),
-  Difficulty.hard:   _DiffConfig([9, 10, 11],      10, 35, 1200, 10),
-  Difficulty.expert: _DiffConfig([10, 11, 12, 13], 12, 45, 1500, 13),
+  Difficulty.easy:   _DiffConfig([5, 6, 7],   5,  15, 800,  6),
+  Difficulty.medium: _DiffConfig([6, 7, 8],   7,  22, 1000, 7),
+  Difficulty.hard:   _DiffConfig([7, 8, 9],   10, 35, 1200, 8),
+  Difficulty.expert: _DiffConfig([8, 9, 10],  12, 45, 1500, 9),
 };
 
 /// Generates Wordle7 (crossword) puzzles using backtracking word placement.

@@ -11,12 +11,16 @@ import 'coin_service.dart';
 /// Cost in coins to recover a broken streak.
 const int streakRecoveryCost = 250;
 
+/// Reserved userId used to store the single global puzzle record per day.
+/// Every real user reads from this record instead of generating their own copy.
+const int _globalUserId = 0;
+
 /// Manages daily puzzle generation, grid persistence, and streak tracking.
 ///
 /// Each day at 00:01 a new puzzle becomes available. The puzzle seed is
 /// deterministic based on the date so every user gets the same layout.
-/// Difficulty rotates by day of the week:
-///   Mon/Tue = easy, Wed/Thu = medium, Fri/Sat = hard, Sun = expert.
+/// Difficulty follows a 7-day repeating cycle (anchored to 2025-01-01):
+///   days 0-2 = easy, days 3-4 = medium, days 5-6 = hard.
 class DailyPuzzleService extends ChangeNotifier {
   final DailyPuzzleRepository _puzzleRepo;
   final DailyStreakRepository _streakRepo;
@@ -93,34 +97,54 @@ class DailyPuzzleService extends ChangeNotifier {
   // Puzzle lifecycle
   // ---------------------------------------------------------------------------
 
-  /// Return today's puzzle, generating and persisting it if it doesn't exist.
+  /// Return today's puzzle.
+  ///
+  /// The puzzle layout is generated **once** and stored under [_globalUserId].
+  /// Every real user reads that single shared record — no per-user generation.
+  /// A separate per-user row (no puzzleJson) is created to track progress.
   Future<Wordle7Puzzle?> getTodayPuzzle() async {
     final todayStr = _dateString(_todayDate());
-    final existing = await _puzzleRepo.getByUserAndDate(_userId, todayStr);
 
-    if (existing != null && existing.puzzleJson.isNotEmpty) {
+    // --- 1. Read or generate the single global puzzle for today ---
+    final global = await _puzzleRepo.getByUserAndDate(_globalUserId, todayStr);
+
+    Wordle7Puzzle puzzle;
+    if (global != null && global.puzzleJson.isNotEmpty) {
       try {
-        return Wordle7Puzzle.fromJson(
-          jsonDecode(existing.puzzleJson) as Map<String, dynamic>,
+        puzzle = Wordle7Puzzle.fromJson(
+          jsonDecode(global.puzzleJson) as Map<String, dynamic>,
         );
       } catch (_) {
-        // Corrupted JSON — regenerate below.
+        // Corrupted record — regenerate and overwrite.
+        puzzle = _generateForDate(_todayDate());
+        await _puzzleRepo.upsert(
+          _globalUserId, todayStr,
+          puzzleJson: jsonEncode(puzzle.toJson()),
+        );
       }
+    } else {
+      // First access today: generate once and persist globally.
+      puzzle = _generateForDate(_todayDate());
+      await _puzzleRepo.upsert(
+        _globalUserId, todayStr,
+        puzzleJson: jsonEncode(puzzle.toJson()),
+      );
     }
 
-    // Generate a new puzzle for today.
-    final today = _todayDate();
-    final seed = today.year * 10000 + today.month * 100 + today.day;
-    final difficulty = _difficultyForWeekday(today.weekday);
-    final puzzle = PuzzleGenerator.generateRandom(seed, difficulty: difficulty);
-
-    await _puzzleRepo.upsert(
-      _userId,
-      todayStr,
-      puzzleJson: jsonEncode(puzzle.toJson()),
-    );
+    // --- 2. Ensure a per-user progress row exists (no puzzleJson needed) ---
+    final userRecord = await _puzzleRepo.getByUserAndDate(_userId, todayStr);
+    if (userRecord == null) {
+      await _puzzleRepo.upsert(_userId, todayStr);
+    }
 
     return puzzle;
+  }
+
+  /// Generate the puzzle for [date] using the deterministic date-based seed.
+  static Wordle7Puzzle _generateForDate(DateTime date) {
+    final seed = date.year * 10000 + date.month * 100 + date.day;
+    final difficulty = _difficultyForDate(date);
+    return PuzzleGenerator.generateRandom(seed, difficulty: difficulty);
   }
 
   /// Persist the current grid state so the user can resume later.
@@ -225,8 +249,18 @@ class DailyPuzzleService extends ChangeNotifier {
   // Helpers
   // ---------------------------------------------------------------------------
 
-  /// Daily puzzles are always medium difficulty.
-  static Difficulty _difficultyForWeekday(int weekday) => Difficulty.medium;
+  /// 7-day repeating cycle: 3 easy → 2 medium → 2 hard.
+  /// Anchored to 2025-01-01 so the cycle is consistent across all devices.
+  static Difficulty _difficultyForDate(DateTime date) {
+    const cycle = [
+      Difficulty.easy, Difficulty.easy, Difficulty.easy,
+      Difficulty.medium, Difficulty.medium,
+      Difficulty.hard, Difficulty.hard,
+    ];
+    final epoch = DateTime(2025, 1, 1);
+    final dayIndex = date.difference(epoch).inDays % cycle.length;
+    return cycle[dayIndex.abs()];
+  }
 
   /// Check whether the streak is protected by a freeze between [lastSolved]
   /// and [today]. The freeze covers every missed day in between.

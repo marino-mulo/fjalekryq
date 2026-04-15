@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
+import '../../core/services/daily_puzzle_service.dart';
 import '../../shared/constants/theme.dart';
 import '../level_map/level_map_screen.dart';
 import '../daily/daily_game_screen.dart';
@@ -329,6 +330,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   // Web: .menu-actions { flex-direction: row; gap: 10px; }
   Widget _buildActionButtons() {
+    final streak = context.watch<DailyPuzzleService>().currentStreak;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: ConstrainedBox(
@@ -345,14 +347,25 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
             const SizedBox(width: 10),
-            // Daily puzzle button - gold glass (flex: 1)
+            // Daily puzzle button - gold glass with streak badge (flex: 1)
             Expanded(
-              child: _ActionButton(
-                label: 'Ditor',
-                icon: Icons.today_rounded,
-                onTap: _openDailyPuzzle,
-                color: const Color(0xFFF4B400),
-                isSecondary: true,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  _ActionButton(
+                    label: 'Ditor',
+                    icon: Icons.today_rounded,
+                    onTap: _openDailyPuzzle,
+                    color: const Color(0xFFF4B400),
+                    isSecondary: true,
+                  ),
+                  if (streak > 0)
+                    Positioned(
+                      top: -8,
+                      right: -8,
+                      child: _StreakBadge(streak: streak),
+                    ),
+                ],
               ),
             ),
           ],
@@ -561,6 +574,47 @@ class _DailyRewardButton extends StatelessWidget {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Flame streak badge shown on the Ditor button.
+class _StreakBadge extends StatelessWidget {
+  final int streak;
+  const _StreakBadge({required this.streak});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF6B35),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFF0C1F4A), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.local_fire_department, color: Colors.white, size: 11),
+          const SizedBox(width: 2),
+          Text(
+            '$streak',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              height: 1.1,
+            ),
+          ),
         ],
       ),
     );
