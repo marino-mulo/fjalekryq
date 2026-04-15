@@ -11,6 +11,10 @@ import 'coin_service.dart';
 /// Cost in coins to recover a broken streak.
 const int streakRecoveryCost = 250;
 
+/// Reserved userId used to store the single global puzzle record per day.
+/// Every real user reads from this record instead of generating their own copy.
+const int _globalUserId = 0;
+
 /// Manages daily puzzle generation, grid persistence, and streak tracking.
 ///
 /// Each day at 00:01 a new puzzle becomes available. The puzzle seed is
@@ -93,34 +97,54 @@ class DailyPuzzleService extends ChangeNotifier {
   // Puzzle lifecycle
   // ---------------------------------------------------------------------------
 
-  /// Return today's puzzle, generating and persisting it if it doesn't exist.
+  /// Return today's puzzle.
+  ///
+  /// The puzzle layout is generated **once** and stored under [_globalUserId].
+  /// Every real user reads that single shared record — no per-user generation.
+  /// A separate per-user row (no puzzleJson) is created to track progress.
   Future<Wordle7Puzzle?> getTodayPuzzle() async {
     final todayStr = _dateString(_todayDate());
-    final existing = await _puzzleRepo.getByUserAndDate(_userId, todayStr);
 
-    if (existing != null && existing.puzzleJson.isNotEmpty) {
+    // --- 1. Read or generate the single global puzzle for today ---
+    final global = await _puzzleRepo.getByUserAndDate(_globalUserId, todayStr);
+
+    Wordle7Puzzle puzzle;
+    if (global != null && global.puzzleJson.isNotEmpty) {
       try {
-        return Wordle7Puzzle.fromJson(
-          jsonDecode(existing.puzzleJson) as Map<String, dynamic>,
+        puzzle = Wordle7Puzzle.fromJson(
+          jsonDecode(global.puzzleJson) as Map<String, dynamic>,
         );
       } catch (_) {
-        // Corrupted JSON — regenerate below.
+        // Corrupted record — regenerate and overwrite.
+        puzzle = _generateForDate(_todayDate());
+        await _puzzleRepo.upsert(
+          _globalUserId, todayStr,
+          puzzleJson: jsonEncode(puzzle.toJson()),
+        );
       }
+    } else {
+      // First access today: generate once and persist globally.
+      puzzle = _generateForDate(_todayDate());
+      await _puzzleRepo.upsert(
+        _globalUserId, todayStr,
+        puzzleJson: jsonEncode(puzzle.toJson()),
+      );
     }
 
-    // Generate a new puzzle for today.
-    final today = _todayDate();
-    final seed = today.year * 10000 + today.month * 100 + today.day;
-    final difficulty = _difficultyForDate(today);
-    final puzzle = PuzzleGenerator.generateRandom(seed, difficulty: difficulty);
-
-    await _puzzleRepo.upsert(
-      _userId,
-      todayStr,
-      puzzleJson: jsonEncode(puzzle.toJson()),
-    );
+    // --- 2. Ensure a per-user progress row exists (no puzzleJson needed) ---
+    final userRecord = await _puzzleRepo.getByUserAndDate(_userId, todayStr);
+    if (userRecord == null) {
+      await _puzzleRepo.upsert(_userId, todayStr);
+    }
 
     return puzzle;
+  }
+
+  /// Generate the puzzle for [date] using the deterministic date-based seed.
+  static Wordle7Puzzle _generateForDate(DateTime date) {
+    final seed = date.year * 10000 + date.month * 100 + date.day;
+    final difficulty = _difficultyForDate(date);
+    return PuzzleGenerator.generateRandom(seed, difficulty: difficulty);
   }
 
   /// Persist the current grid state so the user can resume later.
