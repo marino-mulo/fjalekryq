@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/coin_service.dart';
 import '../../shared/constants/theme.dart';
-import '../../shared/widgets/background_tiles.dart';
+import '../../shared/widgets/app_background.dart';
 import '../home/home_screen.dart';
 
 const _onboardingDoneKey = 'fjalekryq_onboarding_done';
@@ -126,18 +126,11 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0C1F4A), Color(0xFF123B86), Color(0xFF07152F)],
-            stops: [0.0, 0.48, 1.0],
-          ),
-        ),
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        showAnimatedTiles: true,
         child: Stack(
           children: [
-            const BackgroundTiles(animate: true),
             SafeArea(
               child: FadeTransition(
                 opacity: _fadeAnim,

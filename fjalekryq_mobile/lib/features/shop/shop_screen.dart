@@ -7,7 +7,7 @@ import '../../core/services/ad_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/shiko_button.dart';
-import '../../shared/widgets/background_tiles.dart';
+import '../../shared/widgets/app_background.dart';
 
 const _starterPackShownKey = 'fjalekryq_starter_pack_shown';
 
@@ -158,24 +158,10 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
     final coins = context.watch<CoinService>().coins;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      body: Stack(
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        child: Stack(
         children: [
-          // Background gradient
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFF0C1F4A),
-                  Color(0xFF0D1B40),
-                  Color(0xFF07152F),
-                ],
-                stops: [0.0, 0.4, 1.0],
-              ),
-            ),
-          ),
           SafeArea(
             child: Column(
               children: [
@@ -313,6 +299,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
             ),
           ),
         ],
+      ),
       ),
     );
   }

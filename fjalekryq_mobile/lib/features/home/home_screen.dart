@@ -11,7 +11,7 @@ import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
-import '../../shared/widgets/background_tiles.dart';
+import '../../shared/widgets/app_background.dart';
 import 'leaderboard_full_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -145,46 +145,13 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
     final dailyAvailable = coinService.peekDaily() != null;
-    final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      body: Stack(
-        children: [
-          // Background gradient (matching web: #0C1F4A → #123B86 48% → #07152F)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF0C1F4A), Color(0xFF123B86), Color(0xFF07152F)],
-                stops: [0.0, 0.48, 1.0],
-              ),
-            ),
-          ),
-
-          // Radial golden glow (web: rgba(255,186,39,0.28), ellipse 70% 42% at 50% 54%)
-          Positioned(
-            top: screenSize.height * 0.33,
-            left: screenSize.width * 0.15,
-            child: Container(
-              width: screenSize.width * 0.7,
-              height: screenSize.height * 0.42,
-              decoration: BoxDecoration(
-                shape: BoxShape.rectangle,
-                borderRadius: BorderRadius.circular(200),
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFFFFBA27).withValues(alpha: 0.28),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Animated background tiles (shared widget, same across all pages)
-          if (_ready) const BackgroundTiles(animate: true),
-
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        showAnimatedTiles: _ready,
+        child: Stack(
+          children: [
           // Header pinned at top, edge-to-edge (matching web .menu-header)
           _buildHeader(dailyAvailable, MediaQuery.of(context).padding.top),
 
@@ -230,7 +197,8 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }

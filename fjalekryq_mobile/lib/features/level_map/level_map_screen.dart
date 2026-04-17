@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/level_config.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/app_background.dart';
 import '../game/game_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -161,38 +162,10 @@ class _LevelMapScreenState extends State<LevelMapScreen>
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0C1F4A),
-      body: Stack(
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        child: Stack(
         children: [
-          // Background: purple radial glow + dark gradient (matching web)
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF0C1F4A), Color(0xFF0A1830)],
-              ),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: MediaQuery.of(context).size.height * 0.5,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0, -0.4),
-                  radius: 0.8,
-                  colors: [
-                    AppColors.purpleAccent.withValues(alpha: 0.12),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-
           // Map body (reversed: level 1 at bottom, matching web column-reverse)
           Positioned.fill(
             top: statusBarHeight + 60,
@@ -280,6 +253,7 @@ class _LevelMapScreenState extends State<LevelMapScreen>
             ),
           ),
         ],
+      ),
       ),
     );
   }

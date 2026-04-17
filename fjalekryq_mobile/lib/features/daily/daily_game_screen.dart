@@ -14,6 +14,7 @@ import '../../core/services/daily_puzzle_service.dart';
 import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../shop/shop_screen.dart';
@@ -303,35 +304,10 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      body: Stack(
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        child: Stack(
         children: [
-          // -- Background: linear gradient + golden radial glow --
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF0C1F4A), Color(0xFF123B86), Color(0xFF07152F)],
-                stops: [0.0, 0.48, 1.0],
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: const Alignment(0.0, 0.08),
-                  radius: 0.8,
-                  colors: [
-                    const Color(0xFFFFBA27).withValues(alpha: 0.18),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.72],
-                ),
-              ),
-            ),
-          ),
-
           // -- Main content --
           SafeArea(
             child: Column(
@@ -411,6 +387,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

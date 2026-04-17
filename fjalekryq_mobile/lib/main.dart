@@ -30,7 +30,7 @@ import 'core/database/repositories/daily_streak_repository.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
-import 'shared/widgets/background_tiles.dart';
+import 'shared/widgets/app_background.dart';
 
 late final Future<_AppServices> _initFuture;
 
@@ -307,23 +307,9 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF07152F),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0C1F4A), Color(0xFF123B86), Color(0xFF07152F)],
-            stops: [0.0, 0.48, 1.0],
-          ),
-        ),
-        child: const Stack(
-          children: [
-            BackgroundTiles(animate: false),
-          ],
-        ),
-      ),
+    return const Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AppBackground(child: SizedBox.expand()),
     );
   }
 }
