@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/coin_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_button.dart';
 import '../home/home_screen.dart';
 
 const _onboardingDoneKey = 'fjalekryq_onboarding_done';
@@ -315,50 +316,14 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   Widget _buildGuestButton() {
-    return GestureDetector(
+    return AppButton(
+      label: 'VAZHDO SI MYSAFIR',
+      icon: Icons.person_outline,
+      variant: AppButtonVariant.secondary,
+      expanded: true,
+      height: 54,
+      loading: _loadingGuest,
       onTap: (_loadingGoogle || _loadingGuest) ? null : _continueAsGuest,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.2),
-            width: 1.5,
-          ),
-        ),
-        child: _loadingGuest
-            ? Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    color: Colors.white.withValues(alpha: 0.7),
-                    size: 20,
-                  ),
-                  const SizedBox(width: 10),
-                  Text(
-                    'Vazhdo si Mysafir',
-                    style: AppFonts.nunito(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withValues(alpha: 0.75),
-                    ),
-                  ),
-                ],
-              ),
-      ),
     );
   }
 }
