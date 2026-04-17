@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/app_background.dart';
 import 'leaderboard_data.dart';
 
 /// Full-screen leaderboard opened from "Shiko të gjitha" in the preview sheet.
@@ -33,19 +34,21 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B1A3A),
-      body: Column(
-        children: [
-          _buildHeader(context),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: LeaderboardTab.values
-                  .map((tab) => _buildTabContent(tab))
-                  .toList(),
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
+        child: Column(
+          children: [
+            _buildHeader(context),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: LeaderboardTab.values
+                    .map((tab) => _buildTabContent(tab))
+                    .toList(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -169,41 +172,32 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
     final userInTop10 = userEntry != null && userEntry.rank <= 10;
     final valueColor = valueColorForTab(tab);
 
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF0F1D3E), Color(0xFF0A1530)],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Podium — fixed height, not scrollable
+        if (top10.length >= 3)
+          _buildPodium(top10.take(3).toList(), tab, valueColor),
+
+        // Thin divider
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          height: 1,
+          color: Colors.white.withValues(alpha: 0.06),
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Podium — fixed height, not scrollable
-          if (top10.length >= 3)
-            _buildPodium(top10.take(3).toList(), tab, valueColor),
 
-          // Thin divider
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-            height: 1,
-            color: Colors.white.withValues(alpha: 0.06),
+        // Ranks 4–10 + user sticky — scrollable, fills remaining space
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 16),
+            children: [
+              ...top10.skip(3).map((e) => _buildRow(e, tab, valueColor)),
+              if (!userInTop10 && userEntry != null)
+                _buildUserSticky(userEntry, tab, valueColor),
+            ],
           ),
-
-          // Ranks 4–10 + user sticky — scrollable, fills remaining space
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 16),
-              children: [
-                ...top10.skip(3).map((e) => _buildRow(e, tab, valueColor)),
-                if (!userInTop10 && userEntry != null)
-                  _buildUserSticky(userEntry, tab, valueColor),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

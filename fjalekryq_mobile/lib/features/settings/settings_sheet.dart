@@ -6,6 +6,7 @@ import '../../core/database/repositories/user_repository.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/app_background.dart';
 import '../legal/privacy_policy_screen.dart';
 
 const int _nicknameCost = 100;
@@ -126,16 +127,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
     final isGuest = _user?.username.startsWith('guest_') ?? true;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0C1F4A), Color(0xFF0D1B40), Color(0xFF07152F)],
-            stops: [0.0, 0.4, 1.0],
-          ),
-        ),
+      backgroundColor: Colors.transparent,
+      body: AppBackground(
         child: SafeArea(
           child: Column(
             children: [
