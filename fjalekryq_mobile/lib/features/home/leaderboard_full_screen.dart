@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
-import 'leaderboard_sheet.dart';
+import 'leaderboard_data.dart';
 
 /// Full-screen leaderboard opened from "Shiko të gjitha" in the preview sheet.
 class LeaderboardFullScreen extends StatefulWidget {
