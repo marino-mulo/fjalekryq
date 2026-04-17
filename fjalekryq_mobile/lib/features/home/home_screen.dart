@@ -13,6 +13,8 @@ import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_button.dart';
+import 'daily_offer.dart';
+import 'daily_offer_banner.dart';
 import 'leaderboard_full_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -33,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _logoScale;
   late AnimationController _pulseController;
   bool _ready = false;
+  bool _showDailyOffer = false;
 
   @override
   void initState() {
@@ -40,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = context.read<SharedPreferences>();
     _level = prefs.getInt(_levelKey) ?? 1;
     if (_level < 1) _level = 1;
+    _showDailyOffer = !isDismissedToday(prefs);
 
     // Entrance animation
     _fadeController = AnimationController(
@@ -142,6 +146,20 @@ class _HomeScreenState extends State<HomeScreen>
     ));
   }
 
+  void _openDailyOffer() {
+    final offer = offerForToday();
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => ShopScreen(pendingOffer: offer),
+    ));
+  }
+
+  Future<void> _dismissDailyOffer() async {
+    final prefs = context.read<SharedPreferences>();
+    await markDismissedToday(prefs);
+    if (!mounted) return;
+    setState(() => _showDailyOffer = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
@@ -155,6 +173,18 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
           // Header pinned at top, edge-to-edge (matching web .menu-header)
           _buildHeader(dailyAvailable, MediaQuery.of(context).padding.top),
+
+          // Top-left floating daily offer banner (below header, once-per-day)
+          if (_showDailyOffer)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 72,
+              left: 12,
+              child: DailyOfferBanner(
+                offer: offerForToday(),
+                onTap: _openDailyOffer,
+                onDismiss: _dismissDailyOffer,
+              ),
+            ),
 
           // Main content below header
           Positioned.fill(
