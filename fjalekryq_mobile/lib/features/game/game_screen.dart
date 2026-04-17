@@ -14,6 +14,7 @@ import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_overlay.dart';
@@ -779,56 +780,14 @@ class _GameScreenState extends State<GameScreen> {
   // ══════════════════════════════════════
 
   Widget _buildHeader(CoinService coinService) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1F4A).withValues(alpha: 0.85),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-      ),
-      child: Row(
+    final levelLabel = _isTutorial
+        ? 'TUTORIAL'
+        : 'NIVELI ${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}';
+    return AppTopBar(
+      title: levelLabel,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Back button (glass)
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-            ),
-          ),
-
-          // Level label (true center via Expanded)
-          Expanded(
-            child: Center(
-              child: Text(
-                _isTutorial ? 'Tutorial' : 'Niveli ${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}',
-                style: AppFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-              ),
-            ),
-          ),
-
-          // Right side: coin badge + shop button (gold tinted)
           CoinBadge(
             amount: coinService.coins,
             onTap: () => _openShop(),

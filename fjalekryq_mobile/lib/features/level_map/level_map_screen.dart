@@ -6,6 +6,7 @@ import '../../core/models/level_config.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_top_bar.dart';
 import '../game/game_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -259,85 +260,36 @@ class _LevelMapScreenState extends State<LevelMapScreen>
   }
 
   Widget _buildHeader(double statusBarHeight) {
-    return Container(
-      padding: EdgeInsets.only(
-        top: statusBarHeight + 10,
-        bottom: 10,
-        left: 16,
-        right: 16,
-      ),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1F4A).withValues(alpha: 0.9),
-        border: Border(
-          bottom: BorderSide(
+    return Padding(
+      padding: EdgeInsets.only(top: statusBarHeight),
+      child: AppTopBar(
+        title: 'HARTA E LOJËS',
+        trailing: Container(
+          height: 36,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.18),
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.star_rounded, color: AppColors.gold, size: 15),
+              const SizedBox(width: 5),
+              Text(
+                '$_totalStars',
+                style: AppFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.gold,
+                ),
+              ),
+            ],
           ),
         ),
-      ),
-      child: Row(
-        children: [
-          // Back button (matching web .map-back-btn)
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              Navigator.pop(context);
-            },
-            child: Container(
-              width: 40, height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  width: 1.5,
-                ),
-              ),
-              child: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 18),
-            ),
-          ),
-          // Title (true center via Expanded)
-          Expanded(
-            child: Center(
-              child: Text(
-                'HARTA E LOJËS',
-                style: AppFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 3,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-              ),
-            ),
-          ),
-          // Stars badge (matching web .map-stars-badge)
-          Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.18),
-                width: 1.5,
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.star_rounded, color: AppColors.gold, size: 15),
-                const SizedBox(width: 5),
-                Text(
-                  '$_totalStars',
-                  style: AppFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

@@ -8,6 +8,8 @@ import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_top_bar.dart';
+import '../home/daily_offer.dart';
 
 const _starterPackShownKey = 'fjalekryq_starter_pack_shown';
 
@@ -44,7 +46,11 @@ class _PkgData {
 class ShopScreen extends StatefulWidget {
   final bool specialOffer;
 
-  const ShopScreen({super.key, this.specialOffer = false});
+  /// If set, opens a confirmation modal for this offer after the first frame.
+  /// Used by the daily-offer banner on the home screen.
+  final DailyOffer? pendingOffer;
+
+  const ShopScreen({super.key, this.specialOffer = false, this.pendingOffer});
 
   @override
   State<ShopScreen> createState() => _ShopScreenState();
@@ -173,6 +179,10 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                       position: _slideAnim,
                       child: Column(
                         children: [
+                          // ── Daily offer (from home banner) ────────────
+                          if (widget.pendingOffer != null)
+                            _buildDailyOfferCard(widget.pendingOffer!),
+
                           // ── Out of coins ──────────────────────────────
                           if (coins == 0) _buildOutOfCoinsCard(),
 
@@ -307,61 +317,30 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
   // ── Top bar ───────────────────────────────────────────────────────────────
 
   Widget _buildTopBar(int coins) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1F4A).withValues(alpha: 0.75),
-        border: Border(
-          bottom:
-              BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
+    return AppTopBar(
+      title: 'BLI',
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
         ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Colors.white70,
-              size: 20,
-            ),
-          ),
-          Text(
-            'Bli',
-            style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900),
-          ),
-          const Spacer(),
-          // Live coin balance
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.gold.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.gold.withValues(alpha: 0.35),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CoinIcon(size: 14),
+            const SizedBox(width: 6),
+            Text(
+              '$coins',
+              style: AppFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: AppColors.gold,
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CoinIcon(size: 14),
-                const SizedBox(width: 6),
-                Text(
-                  '$coins',
-                  style: AppFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -419,6 +398,98 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
+    );
+  }
+
+  // ── Daily offer (surfaced from home banner) ───────────────────────────────
+
+  Widget _buildDailyOfferCard(DailyOffer offer) {
+    return AnimatedBuilder(
+      animation: _glowCtrl,
+      builder: (context, _) {
+        final glow = 0.25 + _glowCtrl.value * 0.35;
+        final borderAlpha = 0.45 + _glowCtrl.value * 0.35;
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.purpleAccent.withValues(alpha: 0.25),
+                AppColors.purpleDark.withValues(alpha: 0.32),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: AppColors.purpleAccent.withValues(alpha: borderAlpha),
+              width: 1.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purpleAccent.withValues(alpha: glow),
+                blurRadius: 24 + _glowCtrl.value * 10,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.purpleAccent.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: AppColors.purpleAccent.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      '🎁 OFERTË DITORE',
+                      style: AppFonts.nunito(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFE9D5FF),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Vetëm sot!',
+                style: AppFonts.nunito(
+                    fontSize: 20, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Monedha + hints me çmim të veçantë.',
+                style: AppFonts.quicksand(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _SpecialRow(
+                price: offer.price,
+                coins: offer.coins,
+                hints: offer.hints,
+                onTap: () => _onPurchase(_PkgData(
+                  price: offer.price,
+                  coins: offer.coins,
+                  hints: offer.hints,
+                  isSpecial: true,
+                )),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -935,3 +1006,4 @@ class _PackageCard extends StatelessWidget {
     );
   }
 }
+

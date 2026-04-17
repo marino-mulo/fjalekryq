@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_top_bar.dart';
 
 class PrivacyPolicyScreen extends StatelessWidget {
   const PrivacyPolicyScreen({super.key});
@@ -14,32 +14,7 @@ class PrivacyPolicyScreen extends StatelessWidget {
         child: SafeArea(
           child: Column(
             children: [
-              // ── Top bar ──────────────────────────────────────────
-              Container(
-                padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF0C1F4A).withValues(alpha: 0.75),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                          color: Colors.white70, size: 20),
-                    ),
-                    Text(
-                      'Politika e Privatësisë',
-                      style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900),
-                    ),
-                  ],
-                ),
-              ),
+              const AppTopBar(title: 'POLITIKA E PRIVATËSISË'),
 
               // ── Content ──────────────────────────────────────────
               Expanded(

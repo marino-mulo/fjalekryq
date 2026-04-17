@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_top_bar.dart';
 import 'leaderboard_data.dart';
 
 /// Full-screen leaderboard opened from "Shiko të gjitha" in the preview sheet.
@@ -36,18 +37,21 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppBackground(
-        child: Column(
-          children: [
-            _buildHeader(context),
-            Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: LeaderboardTab.values
-                    .map((tab) => _buildTabContent(tab))
-                    .toList(),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              _buildHeader(context),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: LeaderboardTab.values
+                      .map((tab) => _buildTabContent(tab))
+                      .toList(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -56,69 +60,17 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
   // ─── Header ──────────────────────────────────────────────────────────────────
 
   Widget _buildHeader(BuildContext context) {
-    final topPad = MediaQuery.of(context).padding.top;
-    return Container(
-      padding: EdgeInsets.fromLTRB(16, topPad + 10, 16, 0),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1F4A).withValues(alpha: 0.98),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+    return Column(
+      children: [
+        const AppTopBar(
+          title: 'RENDITJA',
+          titleIcon: Icons.emoji_events_rounded,
         ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              // Back
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.selectionClick();
-                  Navigator.pop(context);
-                },
-                child: Container(
-                  width: 40, height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.2), width: 1.5),
-                  ),
-                  child: const Icon(Icons.arrow_back_ios_new,
-                      color: Colors.white, size: 18),
-                ),
-              ),
-              // Title (centered)
-              Expanded(
-                child: Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.emoji_events_rounded,
-                          color: AppColors.gold, size: 20),
-                      const SizedBox(width: 8),
-                      Text(
-                        'RENDITJA',
-                        style: AppFonts.nunito(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2.5,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // Spacer to balance back button
-              const SizedBox(width: 40),
-            ],
-          ),
-          const SizedBox(height: 12),
-          _buildTabBar(),
-          const SizedBox(height: 4),
-        ],
-      ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: _buildTabBar(),
+        ),
+      ],
     );
   }
 

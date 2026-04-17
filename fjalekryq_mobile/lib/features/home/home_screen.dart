@@ -12,6 +12,9 @@ import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_button.dart';
+import 'daily_offer.dart';
+import 'daily_offer_banner.dart';
 import 'leaderboard_full_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -32,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _logoScale;
   late AnimationController _pulseController;
   bool _ready = false;
+  bool _showDailyOffer = false;
 
   @override
   void initState() {
@@ -39,6 +43,7 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = context.read<SharedPreferences>();
     _level = prefs.getInt(_levelKey) ?? 1;
     if (_level < 1) _level = 1;
+    _showDailyOffer = !isDismissedToday(prefs);
 
     // Entrance animation
     _fadeController = AnimationController(
@@ -141,6 +146,20 @@ class _HomeScreenState extends State<HomeScreen>
     ));
   }
 
+  void _openDailyOffer() {
+    final offer = offerForToday();
+    Navigator.push(context, MaterialPageRoute(
+      builder: (_) => ShopScreen(pendingOffer: offer),
+    ));
+  }
+
+  Future<void> _dismissDailyOffer() async {
+    final prefs = context.read<SharedPreferences>();
+    await markDismissedToday(prefs);
+    if (!mounted) return;
+    setState(() => _showDailyOffer = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
@@ -154,6 +173,18 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
           // Header pinned at top, edge-to-edge (matching web .menu-header)
           _buildHeader(dailyAvailable, MediaQuery.of(context).padding.top),
+
+          // Top-left floating daily offer banner (below header, once-per-day)
+          if (_showDailyOffer)
+            Positioned(
+              top: MediaQuery.of(context).padding.top + 72,
+              left: 12,
+              child: DailyOfferBanner(
+                offer: offerForToday(),
+                onTap: _openDailyOffer,
+                onDismiss: _dismissDailyOffer,
+              ),
+            ),
 
           // Main content below header
           Positioned.fill(
@@ -305,27 +336,29 @@ class _HomeScreenState extends State<HomeScreen>
         constraints: const BoxConstraints(maxWidth: 340),
         child: Row(
           children: [
-            // Play button - purple glass (flex: 1)
+            // Play button - primary CTA
             Expanded(
-              child: _ActionButton(
+              child: AppButton(
                 label: 'LUAJ',
                 icon: Icons.play_arrow_rounded,
                 onTap: _openLevelMap,
-                color: AppColors.purpleAccent,
+                expanded: true,
+                height: 56,
               ),
             ),
             const SizedBox(width: 10),
-            // Daily puzzle button - gold glass with streak badge (flex: 1)
+            // Daily puzzle button - secondary glass with streak badge
             Expanded(
               child: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  _ActionButton(
-                    label: 'Ditor',
+                  AppButton(
+                    label: 'DITOR',
                     icon: Icons.today_rounded,
                     onTap: _openDailyPuzzle,
-                    color: const Color(0xFFF4B400),
-                    isSecondary: true,
+                    variant: AppButtonVariant.secondary,
+                    expanded: true,
+                    height: 56,
                   ),
                   if (streak > 0)
                     Positioned(
@@ -383,90 +416,6 @@ class _HomeScreenState extends State<HomeScreen>
         ],
       ),
       child: Icon(icon, color: Colors.white.withValues(alpha: 0.85), size: 20),
-    );
-  }
-}
-
-/// Purple/white action button matching web design.
-class _ActionButton extends StatefulWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  final Color color;
-  final bool isSecondary;
-
-  const _ActionButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-    required this.color,
-    this.isSecondary = false,
-  });
-
-  @override
-  State<_ActionButton> createState() => _ActionButtonState();
-}
-
-class _ActionButtonState extends State<_ActionButton> {
-  bool _pressed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final isPurple = !widget.isSecondary;
-
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapUp: (_) {
-        setState(() => _pressed = false);
-        HapticFeedback.lightImpact();
-        context.read<AudioService>().play(Sfx.button);
-        widget.onTap();
-      },
-      onTapCancel: () => setState(() => _pressed = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        transform: Matrix4.translationValues(0, _pressed ? 3 : 0, 0),
-        decoration: BoxDecoration(
-          color: isPurple
-              ? AppColors.purpleAccent.withValues(alpha: 0.22)
-              : Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isPurple
-                ? AppColors.purpleAccent.withValues(alpha: 0.5)
-                : Colors.white.withValues(alpha: 0.22),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: isPurple
-                  ? AppColors.purpleAccent.withValues(alpha: _pressed ? 0.15 : 0.35)
-                  : Colors.black.withValues(alpha: _pressed ? 0.1 : 0.25),
-              blurRadius: _pressed ? 8 : 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(widget.icon, color: Colors.white, size: 18),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                widget.label,
-                style: AppFonts.nunito(
-                  fontSize: isPurple ? 16 : 15,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: isPurple ? 1.5 : 0.3,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
