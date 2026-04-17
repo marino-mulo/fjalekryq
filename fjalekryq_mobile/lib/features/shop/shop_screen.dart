@@ -8,6 +8,7 @@ import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_top_bar.dart';
 
 const _starterPackShownKey = 'fjalekryq_starter_pack_shown';
 
@@ -307,61 +308,30 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
   // ── Top bar ───────────────────────────────────────────────────────────────
 
   Widget _buildTopBar(int coins) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(4, 4, 16, 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1F4A).withValues(alpha: 0.75),
-        border: Border(
-          bottom:
-              BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
+    return AppTopBar(
+      title: 'BLI',
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.gold.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
         ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
-              color: Colors.white70,
-              size: 20,
-            ),
-          ),
-          Text(
-            'Bli',
-            style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900),
-          ),
-          const Spacer(),
-          // Live coin balance
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.gold.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.gold.withValues(alpha: 0.35),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CoinIcon(size: 14),
+            const SizedBox(width: 6),
+            Text(
+              '$coins',
+              style: AppFonts.nunito(
+                fontSize: 14,
+                fontWeight: FontWeight.w900,
+                color: AppColors.gold,
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CoinIcon(size: 14),
-                const SizedBox(width: 6),
-                Text(
-                  '$coins',
-                  style: AppFonts.nunito(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
