@@ -8,7 +8,6 @@ import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../shared/widgets/app_button.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../home/daily_offer.dart';
 
@@ -98,34 +97,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _enterCtrl.forward();
       _loadData();
-      if (widget.pendingOffer != null) {
-        _showOfferConfirm(widget.pendingOffer!);
-      }
     });
-  }
-
-  Future<void> _showOfferConfirm(DailyOffer offer) async {
-    if (!mounted) return;
-    await showDialog<void>(
-      context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.6),
-      builder: (ctx) => _OfferConfirmDialog(
-        offer: offer,
-        onConfirm: () {
-          Navigator.of(ctx).pop();
-          _completeOfferPurchase(offer);
-        },
-      ),
-    );
-  }
-
-  void _completeOfferPurchase(DailyOffer offer) {
-    HapticFeedback.mediumImpact();
-    final coinService = context.read<CoinService>();
-    final audio = context.read<AudioService>();
-    audio.play(Sfx.coin);
-    coinService.add(offer.coins);
-    // TODO: wire real IAP purchase flow for `offer.id`.
   }
 
   @override
@@ -207,6 +179,10 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                       position: _slideAnim,
                       child: Column(
                         children: [
+                          // ── Daily offer (from home banner) ────────────
+                          if (widget.pendingOffer != null)
+                            _buildDailyOfferCard(widget.pendingOffer!),
+
                           // ── Out of coins ──────────────────────────────
                           if (coins == 0) _buildOutOfCoinsCard(),
 
@@ -422,6 +398,98 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
           ),
         ],
       ),
+    );
+  }
+
+  // ── Daily offer (surfaced from home banner) ───────────────────────────────
+
+  Widget _buildDailyOfferCard(DailyOffer offer) {
+    return AnimatedBuilder(
+      animation: _glowCtrl,
+      builder: (context, _) {
+        final glow = 0.25 + _glowCtrl.value * 0.35;
+        final borderAlpha = 0.45 + _glowCtrl.value * 0.35;
+        return Container(
+          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                AppColors.purpleAccent.withValues(alpha: 0.25),
+                AppColors.purpleDark.withValues(alpha: 0.32),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: AppColors.purpleAccent.withValues(alpha: borderAlpha),
+              width: 1.8,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.purpleAccent.withValues(alpha: glow),
+                blurRadius: 24 + _glowCtrl.value * 10,
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.purpleAccent.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(
+                        color: AppColors.purpleAccent.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Text(
+                      '🎁 OFERTË DITORE',
+                      style: AppFonts.nunito(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFE9D5FF),
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Vetëm sot!',
+                style: AppFonts.nunito(
+                    fontSize: 20, fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Monedha + hints me çmim të veçantë.',
+                style: AppFonts.quicksand(
+                  fontSize: 12,
+                  color: Colors.white.withValues(alpha: 0.6),
+                ),
+              ),
+              const SizedBox(height: 14),
+              _SpecialRow(
+                price: offer.price,
+                coins: offer.coins,
+                hints: offer.hints,
+                onTap: () => _onPurchase(_PkgData(
+                  price: offer.price,
+                  coins: offer.coins,
+                  hints: offer.hints,
+                  isSpecial: true,
+                )),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -939,121 +1007,3 @@ class _PackageCard extends StatelessWidget {
   }
 }
 
-// ─── Offer confirm dialog ────────────────────────────────────────────────────
-
-class _OfferConfirmDialog extends StatelessWidget {
-  final DailyOffer offer;
-  final VoidCallback onConfirm;
-
-  const _OfferConfirmDialog({required this.offer, required this.onConfirm});
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 32),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(24, 22, 24, 20),
-        decoration: BoxDecoration(
-          gradient: modalGradient,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.purpleAccent.withValues(alpha: 0.45),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.purpleAccent.withValues(alpha: 0.35),
-              blurRadius: 28,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text('🎁', style: TextStyle(fontSize: 38)),
-            const SizedBox(height: 8),
-            Text(
-              'Oferta Ditore',
-              style: AppFonts.nunito(
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Konfirmo blerjen për ${offer.price}',
-              textAlign: TextAlign.center,
-              style: AppFonts.quicksand(
-                fontSize: 13,
-                color: Colors.white.withValues(alpha: 0.65),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CoinIcon(size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    '${offer.coins}',
-                    style: AppFonts.nunito(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.gold,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(Icons.lightbulb_rounded,
-                      size: 20, color: AppColors.yellowAccent),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${offer.hints}',
-                    style: AppFonts.nunito(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.yellowAccent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: AppButton(
-                    label: 'ANULO',
-                    variant: AppButtonVariant.secondary,
-                    expanded: true,
-                    height: 46,
-                    onTap: () => Navigator.of(context).pop(),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: AppButton(
-                    label: 'BLEJ ${offer.price}',
-                    icon: Icons.shopping_cart_rounded,
-                    expanded: true,
-                    height: 46,
-                    onTap: onConfirm,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
