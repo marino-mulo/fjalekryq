@@ -9,6 +9,7 @@ import '../../shared/constants/theme.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../../shared/widgets/offline_view.dart';
 import '../home/daily_offer.dart';
 
 const _starterPackShownKey = 'fjalekryq_starter_pack_shown';
@@ -46,8 +47,8 @@ class _PkgData {
 class ShopScreen extends StatefulWidget {
   final bool specialOffer;
 
-  /// If set, opens a confirmation modal for this offer after the first frame.
-  /// Used by the daily-offer banner on the home screen.
+  /// Kept for backward compatibility; the shop now always shows the current
+  /// tier's [offerForPrefs] regardless of how it was opened.
   final DailyOffer? pendingOffer;
 
   const ShopScreen({super.key, this.specialOffer = false, this.pendingOffer});
@@ -136,6 +137,9 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
         audio.play(Sfx.coin);
         HapticFeedback.mediumImpact();
       },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
+      },
     );
 
     if (mounted) {
@@ -147,12 +151,19 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
     }
   }
 
-  void _onPurchase(_PkgData pkg) {
+  Future<void> _onPurchase(_PkgData pkg) async {
     HapticFeedback.lightImpact();
     context.read<AudioService>().play(Sfx.button);
+    final prefs = context.read<SharedPreferences>();
     if (pkg.isStarterPack) {
-      context.read<SharedPreferences>().setBool(_starterPackShownKey, true);
+      prefs.setBool(_starterPackShownKey, true);
       if (mounted) setState(() => _starterPackAvailable = false);
+    }
+    // When the current daily-offer tier is purchased, advance to the next
+    // tier so the user sees the $1.99 → $2.99 offer on subsequent visits.
+    if (pkg.isSpecial) {
+      await advanceOfferTier(prefs);
+      if (mounted) setState(() {});
     }
     // TODO: implement real IAP
   }
@@ -162,26 +173,32 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final coins = context.watch<CoinService>().coins;
+    // Shop always surfaces the current tier of the daily offer, regardless
+    // of where it was opened from (home banner, game screen, daily screen).
+    final todaysOffer =
+        widget.pendingOffer ?? offerForPrefs(context.read<SharedPreferences>());
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppBackground(
-        child: Stack(
-        children: [
-          SafeArea(
-            child: Column(
-              children: [
-                _buildTopBar(coins),
-                Expanded(
-                  child: FadeTransition(
-                    opacity: _fadeAnim,
-                    child: SlideTransition(
-                      position: _slideAnim,
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildTopBar(coins),
+              Expanded(
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: SlideTransition(
+                    position: _slideAnim,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(bottom: 16),
                       child: Column(
                         children: [
-                          // ── Daily offer (from home banner) ────────────
-                          if (widget.pendingOffer != null)
-                            _buildDailyOfferCard(widget.pendingOffer!),
+                          // ── Offline banner (reactive) ─────────────────
+                          const OfflineBanner(),
+
+                          // ── Daily offer (always shown) ────────────────
+                          _buildDailyOfferCard(todaysOffer),
 
                           // ── Out of coins ──────────────────────────────
                           if (coins == 0) _buildOutOfCoinsCard(),
@@ -194,7 +211,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
 
                           // ── Standard packages header ──────────────────
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 8, 20, 6),
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 6),
                             child: Row(
                               children: [
                                 const Icon(
@@ -215,67 +232,67 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                             ),
                           ),
 
-                          // ── 2-column package grid (Expanded = fills remaining height) ──
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              child: Column(
-                                children: [
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: _PackageCard(
-                                            data: const _PkgData(price: '\$0.99', coins: 100),
-                                            onTap: _onPurchase,
-                                          ),
+                          // ── 2-column package grid (fixed heights, no overflow) ──
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: Column(
+                              children: [
+                                SizedBox(
+                                  height: 110,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _PackageCard(
+                                          data: const _PkgData(price: '\$0.99', coins: 100),
+                                          onTap: _onPurchase,
                                         ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: _PackageCard(
-                                            data: const _PkgData(
-                                              price: '\$1.99',
-                                              coins: 250,
-                                              hints: 1,
-                                              badge: '🔥 POPULAR',
-                                              variant: _PackageVariant.popular,
-                                            ),
-                                            onTap: _onPurchase,
-                                            pulseCtrl: _pulseCtrl,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: _PackageCard(
+                                          data: const _PkgData(
+                                            price: '\$1.99',
+                                            coins: 250,
+                                            hints: 1,
+                                            badge: '🔥 POPULAR',
+                                            variant: _PackageVariant.popular,
                                           ),
+                                          onTap: _onPurchase,
+                                          pulseCtrl: _pulseCtrl,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 10),
-                                  Expanded(
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: _PackageCard(
-                                            data: const _PkgData(price: '\$2.99', coins: 600),
-                                            onTap: _onPurchase,
-                                          ),
+                                ),
+                                const SizedBox(height: 10),
+                                SizedBox(
+                                  height: 110,
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _PackageCard(
+                                          data: const _PkgData(price: '\$2.99', coins: 600),
+                                          onTap: _onPurchase,
                                         ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: _PackageCard(
-                                            data: const _PkgData(
-                                              price: '\$4.99',
-                                              coins: 1000,
-                                              hints: 3,
-                                              badge: '💎 BEST DEAL',
-                                              variant: _PackageVariant.bestDeal,
-                                            ),
-                                            onTap: _onPurchase,
-                                            glowCtrl: _glowCtrl,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: _PackageCard(
+                                          data: const _PkgData(
+                                            price: '\$4.99',
+                                            coins: 1000,
+                                            hints: 3,
+                                            badge: '💎 BEST DEAL',
+                                            variant: _PackageVariant.bestDeal,
                                           ),
+                                          onTap: _onPurchase,
+                                          glowCtrl: _glowCtrl,
                                         ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
 
@@ -284,7 +301,7 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
 
                           // ── Restore purchases ─────────────────────────
                           Padding(
-                            padding: const EdgeInsets.only(top: 8, bottom: 16),
+                            padding: const EdgeInsets.only(top: 8, bottom: 8),
                             child: Center(
                               child: GestureDetector(
                                 onTap: () {
@@ -305,11 +322,10 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
       ),
     );
   }
@@ -407,29 +423,29 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
     return AnimatedBuilder(
       animation: _glowCtrl,
       builder: (context, _) {
-        final glow = 0.25 + _glowCtrl.value * 0.35;
-        final borderAlpha = 0.45 + _glowCtrl.value * 0.35;
+        final glow = 0.18 + _glowCtrl.value * 0.25;
+        final borderAlpha = 0.45 + _glowCtrl.value * 0.3;
         return Container(
-          margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          padding: const EdgeInsets.all(18),
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.purpleAccent.withValues(alpha: 0.25),
-                AppColors.purpleDark.withValues(alpha: 0.32),
+                AppColors.purpleAccent.withValues(alpha: 0.22),
+                AppColors.purpleDark.withValues(alpha: 0.3),
               ],
             ),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: AppColors.purpleAccent.withValues(alpha: borderAlpha),
-              width: 1.8,
+              width: 1.4,
             ),
             boxShadow: [
               BoxShadow(
                 color: AppColors.purpleAccent.withValues(alpha: glow),
-                blurRadius: 24 + _glowCtrl.value * 10,
+                blurRadius: 16 + _glowCtrl.value * 6,
               ),
             ],
           ),
@@ -440,10 +456,10 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                        horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppColors.purpleAccent.withValues(alpha: 0.25),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(5),
                       border: Border.all(
                         color: AppColors.purpleAccent.withValues(alpha: 0.5),
                       ),
@@ -451,30 +467,22 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
                     child: Text(
                       '🎁 OFERTË DITORE',
                       style: AppFonts.nunito(
-                        fontSize: 9,
+                        fontSize: 8,
                         fontWeight: FontWeight.w900,
                         color: const Color(0xFFE9D5FF),
-                        letterSpacing: 1.2,
+                        letterSpacing: 1.1,
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Vetëm sot!',
+                    style: AppFonts.nunito(
+                        fontSize: 14, fontWeight: FontWeight.w900),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(
-                'Vetëm sot!',
-                style: AppFonts.nunito(
-                    fontSize: 20, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Monedha + hints me çmim të veçantë.',
-                style: AppFonts.quicksand(
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.6),
-                ),
-              ),
-              const SizedBox(height: 14),
               _SpecialRow(
                 price: offer.price,
                 coins: offer.coins,
@@ -784,8 +792,14 @@ class _SpecialRow extends StatelessWidget {
                   ),
                   if (hints > 0) ...[
                     const SizedBox(width: 8),
+                    Icon(
+                      Icons.lightbulb,
+                      size: 15,
+                      color: AppColors.yellowAccent,
+                    ),
+                    const SizedBox(width: 3),
                     Text(
-                      '+ $hints ⭐',
+                      '+$hints hint',
                       style: AppFonts.nunito(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
@@ -995,13 +1009,24 @@ class _PackageCard extends StatelessWidget {
         border: Border.all(
             color: AppColors.yellowAccent.withValues(alpha: 0.3)),
       ),
-      child: Text(
-        '+${data.hints} ⭐ hint',
-        style: AppFonts.nunito(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          color: AppColors.yellowAccent,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.lightbulb,
+            size: 10,
+            color: AppColors.yellowAccent,
+          ),
+          const SizedBox(width: 3),
+          Text(
+            '+${data.hints} hint',
+            style: AppFonts.nunito(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: AppColors.yellowAccent,
+            ),
+          ),
+        ],
       ),
     );
   }

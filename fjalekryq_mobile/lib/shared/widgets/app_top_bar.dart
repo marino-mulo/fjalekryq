@@ -52,49 +52,67 @@ class AppTopBar extends StatelessWidget {
           color: Colors.white.withValues(alpha: 0.9),
         );
 
+    final titleWidget = Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (titleIcon != null) ...[
+          Icon(titleIcon, color: AppColors.gold, size: 20),
+          const SizedBox(width: 8),
+        ],
+        Flexible(
+          child: Text(
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: resolvedTitleStyle,
+          ),
+        ),
+      ],
+    );
+
+    final leading = showBack
+        ? _GlassBackButton(
+            onTap: onBack ??
+                () {
+                  HapticFeedback.selectionClick();
+                  Navigator.pop(context);
+                },
+          )
+        : const SizedBox(width: 40);
+
+    // Stack-based layout: title is centered on the FULL bar width while
+    // leading/trailing pin to the edges. Explicit height keeps the bar
+    // visible even when children don't report an intrinsic size.
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0C1F4A).withValues(alpha: 0.85),
-        border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
-      child: Row(
-        children: [
-          if (showBack)
-            _GlassBackButton(
-              onTap: onBack ??
-                  () {
-                    HapticFeedback.selectionClick();
-                    Navigator.pop(context);
-                  },
-            )
-          else
-            const SizedBox(width: 40),
-          Expanded(
-            child: Center(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (titleIcon != null) ...[
-                    Icon(titleIcon, color: AppColors.gold, size: 20),
-                    const SizedBox(width: 8),
-                  ],
-                  Flexible(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: resolvedTitleStyle,
-                    ),
-                  ),
-                ],
-              ),
+      child: SizedBox(
+        height: 40,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Centered title (painted first, underneath leading/trailing).
+            Align(
+              alignment: Alignment.center,
+              child: titleWidget,
             ),
-          ),
-          trailing ?? const SizedBox(width: 40),
-        ],
+            // Leading pinned left.
+            Align(
+              alignment: Alignment.centerLeft,
+              child: leading,
+            ),
+            // Trailing pinned right.
+            if (trailing != null)
+              Align(
+                alignment: Alignment.centerRight,
+                child: trailing,
+              ),
+          ],
+        ),
       ),
     );
   }

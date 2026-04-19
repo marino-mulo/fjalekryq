@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/services/connectivity_service.dart';
 import '../constants/theme.dart';
 
 /// Unified "Shiko" (watch ad) button used across the entire app.
@@ -7,7 +9,11 @@ import '../constants/theme.dart';
 /// - [ShikoSize.small]  — tiny pill badge (e.g. on control buttons)
 /// - [ShikoSize.medium] — inline pill (e.g. in banners, win/loss screens)
 /// - [ShikoSize.large]  — full-width row with icon + text (e.g. in shop, daily reward)
-
+///
+/// Listens to [ConnectivityService]: when the device goes offline, the
+/// button is disabled, its icon flips to `wifi_off`, and the label is
+/// replaced with "Nuk jeni të lidhur me internet." — in real time, no
+/// app restart required.
 enum ShikoSize { small, medium, large }
 
 class ShikoButton extends StatelessWidget {
@@ -28,46 +34,71 @@ class ShikoButton extends StatelessWidget {
     this.label,
   });
 
+  static const _offlineLabel      = 'Nuk jeni të lidhur me internet';
+  static const _offlineLabelShort = "S'ka internet";
+  static const _offlineColor      = Color(0xFFB8C5DC);
+
   @override
   Widget build(BuildContext context) {
+    final offline =
+        context.select<ConnectivityService, bool>((c) => c.isOffline);
+
     switch (size) {
       case ShikoSize.small:
-        return _buildSmall();
+        return _buildSmall(offline: offline);
       case ShikoSize.medium:
-        return _buildMedium();
+        return _buildMedium(offline: offline);
       case ShikoSize.large:
-        return _buildLarge();
+        return _buildLarge(offline: offline);
     }
   }
 
+  Color _borderColor(bool offline, {double alpha = 0.5}) => offline
+      ? _offlineColor.withValues(alpha: alpha * 0.6)
+      : AppColors.purpleAccent.withValues(alpha: alpha);
+
+  Color _bgColor(bool offline, double alpha) => offline
+      ? _offlineColor.withValues(alpha: alpha * 0.6)
+      : AppColors.purpleAccent.withValues(alpha: alpha);
+
+  Color _contentColor(bool offline) => offline
+      ? _offlineColor
+      : const Color(0xFFE2C9FF);
+
   /// Tiny pill badge — e.g. "▶ Shiko" on control buttons
-  Widget _buildSmall() {
+  Widget _buildSmall({required bool offline}) {
     return GestureDetector(
-      onTap: loading ? null : onTap,
+      onTap: (loading || offline) ? null : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
         decoration: BoxDecoration(
-          color: AppColors.purpleAccent.withValues(alpha: 0.2),
+          color: _bgColor(offline, 0.2),
           borderRadius: BorderRadius.circular(50),
-          border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.4), width: 1.5),
-          boxShadow: [
-            BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2)),
-          ],
+          border: Border.all(color: _borderColor(offline, alpha: 0.4), width: 1.5),
+          boxShadow: offline
+              ? const []
+              : [
+                  BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2)),
+                ],
         ),
         child: loading
-            ? const SizedBox(
+            ? SizedBox(
                 width: 10, height: 10,
-                child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFFE2C9FF)),
+                child: CircularProgressIndicator(strokeWidth: 1.5, color: _contentColor(offline)),
               )
             : Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.play_arrow, color: Color(0xFFE2C9FF), size: 10),
+                  Icon(
+                    offline ? Icons.wifi_off_rounded : Icons.play_arrow,
+                    color: _contentColor(offline),
+                    size: 10,
+                  ),
                   const SizedBox(width: 3),
                   Text(
-                    label ?? 'Shiko',
+                    offline ? _offlineLabelShort : (label ?? 'Shiko'),
                     style: AppFonts.nunito(
-                      color: const Color(0xFFE2C9FF),
+                      color: _contentColor(offline),
                       fontSize: 9,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.3,
@@ -80,36 +111,42 @@ class ShikoButton extends StatelessWidget {
   }
 
   /// Medium inline pill — e.g. in banners, win/loss card buttons
-  Widget _buildMedium() {
+  Widget _buildMedium({required bool offline}) {
     return GestureDetector(
-      onTap: loading ? null : onTap,
+      onTap: (loading || offline) ? null : onTap,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.purpleAccent.withValues(alpha: 0.2),
+              color: _bgColor(offline, 0.2),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.5), width: 1.5),
-              boxShadow: [
-                BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.25), blurRadius: 14, offset: const Offset(0, 4)),
-              ],
+              border: Border.all(color: _borderColor(offline, alpha: 0.5), width: 1.5),
+              boxShadow: offline
+                  ? const []
+                  : [
+                      BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.25), blurRadius: 14, offset: const Offset(0, 4)),
+                    ],
             ),
             child: loading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 16, height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 1.5, color: Color(0xFFE2C9FF)),
+                    child: CircularProgressIndicator(strokeWidth: 1.5, color: _contentColor(offline)),
                   )
                 : Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.play_arrow, color: Color(0xFFE2C9FF), size: 13),
+                      Icon(
+                        offline ? Icons.wifi_off_rounded : Icons.play_arrow,
+                        color: _contentColor(offline),
+                        size: 13,
+                      ),
                       const SizedBox(width: 5),
                       Text(
-                        label ?? 'Shiko',
+                        offline ? _offlineLabelShort : (label ?? 'Shiko'),
                         style: AppFonts.nunito(
-                          color: const Color(0xFFE2C9FF),
+                          color: _contentColor(offline),
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                         ),
@@ -117,7 +154,7 @@ class ShikoButton extends StatelessWidget {
                     ],
                   ),
           ),
-          if (badge != null)
+          if (badge != null && !offline)
             Positioned(
               top: -7,
               right: -5,
@@ -144,35 +181,41 @@ class ShikoButton extends StatelessWidget {
   }
 
   /// Large row — e.g. in shop and daily reward sheets
-  Widget _buildLarge() {
+  Widget _buildLarge({required bool offline}) {
     return GestureDetector(
-      onTap: loading ? null : onTap,
+      onTap: (loading || offline) ? null : onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.purpleAccent.withValues(alpha: 0.12),
+          color: _bgColor(offline, 0.12),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35)),
-          boxShadow: [
-            BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4)),
-          ],
+          border: Border.all(color: _borderColor(offline, alpha: 0.35)),
+          boxShadow: offline
+              ? const []
+              : [
+                  BoxShadow(color: AppColors.purpleAccent.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (loading)
-              const SizedBox(
+              SizedBox(
                 width: 16, height: 16,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFE2C9FF)),
+                child: CircularProgressIndicator(strokeWidth: 2, color: _contentColor(offline)),
               )
             else
-              const Icon(Icons.play_arrow, color: Color(0xFFE2C9FF), size: 18),
+              Icon(
+                offline ? Icons.wifi_off_rounded : Icons.play_arrow,
+                color: _contentColor(offline),
+                size: 18,
+              ),
             const SizedBox(width: 8),
             Flexible(
               child: Text(
-                label ?? 'Shiko reklamë',
+                offline ? _offlineLabel : (label ?? 'Shiko reklamë'),
                 style: AppFonts.nunito(
-                  color: const Color(0xFFE2C9FF),
+                  color: _contentColor(offline),
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                 ),

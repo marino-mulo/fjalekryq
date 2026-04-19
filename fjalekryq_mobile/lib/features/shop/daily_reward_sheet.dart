@@ -5,6 +5,7 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 
 /// Bottom sheet for daily login reward claiming.
@@ -242,6 +243,9 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
       onReward: () async {
         coinService.add(amount);
         audio.play(Sfx.coin);
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
       },
     );
 

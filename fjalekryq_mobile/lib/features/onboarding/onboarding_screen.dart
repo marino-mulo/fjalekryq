@@ -129,7 +129,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppBackground(
-        showAnimatedTiles: true,
         child: Stack(
           children: [
             SafeArea(

@@ -147,6 +147,7 @@ class _LevelMapScreenState extends State<LevelMapScreen>
   }
 
   // Matching web labels
+  // ignore: unused_element
   String _diffLabel(Difficulty d) {
     switch (d) {
       case Difficulty.easy:   return 'E lehtë';
@@ -265,24 +266,25 @@ class _LevelMapScreenState extends State<LevelMapScreen>
       child: AppTopBar(
         title: 'HARTA E LOJËS',
         trailing: Container(
-          height: 36,
+          height: 40,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.18),
+              color: Colors.white.withValues(alpha: 0.2),
               width: 1.5,
             ),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.star_rounded, color: AppColors.gold, size: 15),
-              const SizedBox(width: 5),
+              const Icon(Icons.star_rounded, color: AppColors.gold, size: 18),
+              const SizedBox(width: 6),
               Text(
                 '$_totalStars',
                 style: AppFonts.nunito(
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w900,
                   color: AppColors.gold,
                 ),
@@ -321,10 +323,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Diff badge on left side for col-2
-                if (state != 'locked' && node.col == 2)
-                  _buildDiffBadge(node.difficulty, diffColor),
-
                 // Level tile
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8),
@@ -353,9 +351,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
                   ),
                 ),
 
-                // Diff badge on right side for col-0 and col-1
-                if (state != 'locked' && node.col != 2)
-                  _buildDiffBadge(node.difficulty, diffColor),
               ],
             ),
           ),
@@ -365,6 +360,7 @@ class _LevelMapScreenState extends State<LevelMapScreen>
   }
 
   // Matching web .diff-badge (pill shape)
+  // ignore: unused_element
   Widget _buildDiffBadge(Difficulty diff, Color color) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10),

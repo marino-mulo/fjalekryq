@@ -11,17 +11,18 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../core/services/daily_puzzle_service.dart';
+import '../../core/services/connectivity_service.dart';
 import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../shop/shop_screen.dart';
 import '../game/widgets/game_board.dart';
 
-const _dailyCoins = 20;
 
 const _praises = ['Bravo!', 'Te lumte!', 'Shkelqyeshem!', 'Fantastike!', 'Mahnitese!'];
 
@@ -55,6 +56,11 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
   // Already solved today
   bool _alreadySolvedToday = false;
+
+  // Offline: the daily puzzle comes from the server, so if there's no
+  // network and no cached puzzle we render an offline placeholder instead
+  // of an empty board.
+  bool _isOffline = false;
 
   // Insufficient coins banner
   String? _insufficientType; // 'hint' | 'solve' | null
@@ -127,7 +133,10 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   }
 
   void _initializeDaily() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _isOffline = false;
+    });
 
     // Ensure daily service is loaded
     if (!_dailyService.isLoaded) {
@@ -150,6 +159,20 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     final saved = await _dailyService.getSavedState();
     final puzzle = await _dailyService.getTodayPuzzle();
     _todayPuzzle = puzzle;
+
+    // No puzzle available — either the server hasn't generated one yet or
+    // we can't reach it. Check connectivity to give a clear offline message
+    // instead of an empty board.
+    if (puzzle == null) {
+      final online = await ConnectivityService.hasInternet();
+      if (mounted && !online) {
+        setState(() {
+          _isOffline = true;
+          _isLoading = false;
+        });
+        return;
+      }
+    }
 
     if (saved != null &&
         saved.gridJson != null &&
@@ -184,21 +207,21 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     if (mounted) setState(() => _isLoading = false);
   }
 
-  void _onWin() {
+  Future<void> _onWin() async {
     if (_isCompleted) return;
     HapticFeedback.heavyImpact();
     _audio.play(Sfx.win);
-    final coinService = context.read<CoinService>();
 
     _isCompleted = true;
     _completedPraise = _praises[DateTime.now().millisecond % _praises.length];
-    _coinsEarned = _dailyCoins;
-    coinService.add(_coinsEarned);
-    Future.delayed(const Duration(milliseconds: 800), () => _audio.play(Sfx.coin));
+    // Daily puzzle awards no coins — only the streak is updated.
+    _coinsEarned = 0;
 
-    // Mark solved in daily service
-    _dailyService.markSolved();
+    // Wait for markSolved to update currentStreak before rebuilding so the
+    // completion view shows the correct (already-incremented) streak value.
+    await _dailyService.markSolved();
 
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -252,6 +275,9 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
         _audio.play(Sfx.solve);
         _game.solveWord();
       },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
+      },
     );
 
     if (mounted) {
@@ -279,6 +305,9 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
         _prefs.remove(_failKey);
         // Clear persisted grid so a fresh grid is stored next save
         _dailyService.saveGridState([], 0, 0, 0);
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
       },
     );
 
@@ -316,7 +345,15 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                 _buildHeader(coinService),
                 const SizedBox(height: 12),
 
-                if (_alreadySolvedToday)
+                if (_isOffline)
+                  Expanded(
+                    child: OfflineView(
+                      message:
+                          'Fjalëkryqi i ditës kërkon internet. Lidhu për të luajtur.',
+                      onRetry: _initializeDaily,
+                    ),
+                  )
+                else if (_alreadySolvedToday)
                   Expanded(child: _buildAlreadySolvedView())
                 else ...[
                   if (!_isCompleted && !_game.gameLost && !_isLoading)

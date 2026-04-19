@@ -5,6 +5,7 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 
 /// Bottom sheet for the coin shop (IAP placeholder).
@@ -45,6 +46,9 @@ class _ShopSheetState extends State<ShopSheet> {
         coinService.add(30);
         audio.play(Sfx.coin);
         HapticFeedback.mediumImpact();
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
       },
     );
 

@@ -80,20 +80,6 @@ class Wordle7Dictionary {
     'FINANCIAR','HIDRAULIK','KUZHINIER','PASTRUESE','VETERINER',
   ];
 
-  static const List<String> _words10 = [
-    'FRIGORIFER','PROGRAMUES','MAGAZINIER','SHKENCËTAR','FUTBOLLIST','SHPËTIMTAR','SHTETËRORË',
-    'BIBLIOTEKA','FAMILJARËT','KËSHILLTAR','ORGANIZATA','VEPRIMTARI','INFERMIER',
-  ];
-
-  static const List<String> _words11 = [
-    'KONTABILIST','ELEKTRICIST','ZDRUKTHËTAR',
-  ];
-
-  static const List<String> _words12 = [];
-
-  static const List<String> _words13 = [
-    'FIZIOTERAPIST','BASKETBOLLIST',
-  ];
 
   // Pre-built pools by difficulty
   static late final List<String> _easyPool;

@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../core/network/auth_token_store.dart';
+import '../../core/network/api_client.dart';
+import '../../core/network/remote_leaderboard_repository.dart' as remote;
+import '../../core/services/connectivity_service.dart';
 import '../../shared/constants/theme.dart';
 
 // ─── Avatar options (shared with settings) ───────────────────────────────────
@@ -104,4 +108,77 @@ Color valueColorForTab(LeaderboardTab tab) {
     case LeaderboardTab.stars:  return AppColors.gold;
     case LeaderboardTab.streak: return const Color(0xFFFF6B35);
   }
+}
+
+// ─── Remote fetcher ───────────────────────────────────────────────────────────
+// Loads leaderboard data from the API and adapts it to the UI's
+// [LeaderboardEntry] model so the existing row/podium widgets keep working
+// without any changes.
+
+/// Outcome of a leaderboard load.
+sealed class LeaderboardLoadResult {
+  const LeaderboardLoadResult();
+}
+
+/// Success: API returned data.
+class LeaderboardData extends LeaderboardLoadResult {
+  final List<LeaderboardEntry> entries;
+  const LeaderboardData(this.entries);
+}
+
+/// No internet connection — caller should render [OfflineView].
+class LeaderboardOffline extends LeaderboardLoadResult {
+  const LeaderboardOffline();
+}
+
+/// Request reached the network but failed (5xx, parse error, timeout after
+/// the DNS check passed, etc.) — caller renders a generic error with retry.
+class LeaderboardError extends LeaderboardLoadResult {
+  final String message;
+  const LeaderboardError(this.message);
+}
+
+/// Pulls the remote leaderboard for [tab] and converts rows to the UI
+/// model. The "current user" row is marked by matching the logged-in
+/// user's id from [AuthTokenStore].
+Future<LeaderboardLoadResult> loadLeaderboard(LeaderboardTab tab) async {
+  if (!await ConnectivityService.hasInternet()) {
+    return const LeaderboardOffline();
+  }
+
+  try {
+    final repo = remote.RemoteLeaderboardRepository();
+    final apiEntries = switch (tab) {
+      LeaderboardTab.level  => await repo.getByLevel(),
+      LeaderboardTab.stars  => await repo.getByStars(),
+      LeaderboardTab.streak => await repo.getByStreak(),
+    };
+
+    final currentUserId = await AuthTokenStore.getUserId();
+
+    final ui = apiEntries.map((e) => LeaderboardEntry(
+          rank: e.rank,
+          name: e.username,
+          value: e.score,
+          isCurrentUser: currentUserId != null && e.userId == currentUserId,
+          avatarIndex: _avatarIndexFromString(e.avatar),
+        )).toList();
+
+    return LeaderboardData(ui);
+  } on ApiException catch (e) {
+    return LeaderboardError(e.message);
+  } catch (_) {
+    // Anything slipped past DNS — network hiccup mid-request.
+    return const LeaderboardOffline();
+  }
+}
+
+/// The backend stores `avatar` as a string. We treat it as an index into
+/// [avatarOptions]; anything that doesn't parse cleanly falls through to
+/// null (the UI then hashes the name for a stable avatar).
+int? _avatarIndexFromString(String? raw) {
+  if (raw == null) return null;
+  final parsed = int.tryParse(raw);
+  if (parsed == null) return null;
+  return parsed.clamp(0, avatarOptions.length - 1);
 }

@@ -35,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen>
   late Animation<double> _logoScale;
   late AnimationController _pulseController;
   bool _ready = false;
-  bool _showDailyOffer = false;
 
   @override
   void initState() {
@@ -43,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = context.read<SharedPreferences>();
     _level = prefs.getInt(_levelKey) ?? 1;
     if (_level < 1) _level = 1;
-    _showDailyOffer = !isDismissedToday(prefs);
 
     // Entrance animation
     _fadeController = AnimationController(
@@ -147,17 +145,10 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _openDailyOffer() {
-    final offer = offerForToday();
+    final offer = offerForPrefs(context.read<SharedPreferences>());
     Navigator.push(context, MaterialPageRoute(
       builder: (_) => ShopScreen(pendingOffer: offer),
     ));
-  }
-
-  Future<void> _dismissDailyOffer() async {
-    final prefs = context.read<SharedPreferences>();
-    await markDismissedToday(prefs);
-    if (!mounted) return;
-    setState(() => _showDailyOffer = false);
   }
 
   @override
@@ -168,23 +159,21 @@ class _HomeScreenState extends State<HomeScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppBackground(
-        showAnimatedTiles: _ready,
         child: Stack(
           children: [
           // Header pinned at top, edge-to-edge (matching web .menu-header)
           _buildHeader(dailyAvailable, MediaQuery.of(context).padding.top),
 
-          // Top-left floating daily offer banner (below header, once-per-day)
-          if (_showDailyOffer)
-            Positioned(
-              top: MediaQuery.of(context).padding.top + 72,
-              left: 12,
-              child: DailyOfferBanner(
-                offer: offerForToday(),
-                onTap: _openDailyOffer,
-                onDismiss: _dismissDailyOffer,
-              ),
+          // Top-right floating daily offer banner (always shown; tier
+          // progression is tracked in SharedPreferences).
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 72,
+            right: 12,
+            child: DailyOfferBanner(
+              offer: offerForPrefs(context.read<SharedPreferences>()),
+              onTap: _openDailyOffer,
             ),
+          ),
 
           // Main content below header
           Positioned.fill(
@@ -198,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen>
                       // Space for the header
                       const SizedBox(height: 56),
 
-                      const Spacer(flex: 3),
+                      const Spacer(flex: 5),
 
                       // Logo area with float animation
                       AnimatedBuilder(
@@ -219,9 +208,6 @@ class _HomeScreenState extends State<HomeScreen>
                       _buildActionButtons(),
 
                       const Spacer(flex: 4),
-
-                      // Social icons footer
-                      _buildSocialFooter(),
                     ],
                   ),
                 ),
@@ -248,14 +234,8 @@ class _HomeScreenState extends State<HomeScreen>
           left: 20,
           right: 20,
         ),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0C1F4A).withValues(alpha: 0.75),
-          border: Border(
-            bottom: BorderSide(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 1,
-            ),
-          ),
+        decoration: const BoxDecoration(
+          color: Colors.transparent,
         ),
         child: Row(
           children: [
@@ -360,12 +340,11 @@ class _HomeScreenState extends State<HomeScreen>
                     expanded: true,
                     height: 56,
                   ),
-                  if (streak > 0)
-                    Positioned(
-                      top: -8,
-                      right: -8,
-                      child: _StreakBadge(streak: streak),
-                    ),
+                  Positioned(
+                    top: -8,
+                    right: -8,
+                    child: _StreakBadge(streak: streak),
+                  ),
                 ],
               ),
             ),
@@ -375,49 +354,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildSocialFooter() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 32),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _socialIcon(Icons.camera_alt_outlined), // Instagram
-          Container(
-            width: 1, height: 16,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(1),
-            ),
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          _socialIcon(Icons.music_note_outlined), // TikTok
-        ],
-      ),
-    );
-  }
-
-  Widget _socialIcon(IconData icon) {
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Icon(icon, color: Colors.white.withValues(alpha: 0.85), size: 20),
-    );
-  }
 }
 
 /// Daily reward button with gold tint + pulsing when available (matching web .daily-reward-btn).
@@ -504,10 +440,13 @@ class _StreakBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final active = streak > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-        color: const Color(0xFFFF6B35),
+        color: active
+            ? const Color(0xFFFF6B35)
+            : const Color(0xFF2A3B6B),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: const Color(0xFF0C1F4A), width: 1.5),
         boxShadow: [
@@ -521,12 +460,20 @@ class _StreakBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.local_fire_department, color: Colors.white, size: 11),
+          Icon(
+            Icons.local_fire_department,
+            color: active
+                ? Colors.white
+                : Colors.white.withValues(alpha: 0.6),
+            size: 11,
+          ),
           const SizedBox(width: 2),
           Text(
             '$streak',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: active
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.75),
               fontSize: 11,
               fontWeight: FontWeight.w900,
               height: 1.1,

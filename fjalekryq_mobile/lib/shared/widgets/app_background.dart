@@ -74,26 +74,29 @@ class AppBackground extends StatelessWidget {
           ),
         ),
 
-        // 3a. Top-left decorative solved puzzle, tilted -70°.
+        // 3a. Top-left decorative solved puzzle, tilted -70° (diagonal).
         const Positioned(
-          top: -110,
-          left: -90,
+          top: 80,
+          left: -110,
           child: IgnorePointer(
             child: _CornerPuzzle(
               grid: _topLeftGrid,
               rotationDegrees: -70,
+              opacity: 0.07,
             ),
           ),
         ),
 
-        // 3b. Bottom-right decorative solved puzzle, tilted -70°.
+        // 3b. Bottom-right decorative solved puzzle, tilted -70° (diagonal).
+        // Pushed further down so it peeks in from the bottom corner again.
         const Positioned(
-          bottom: -110,
-          right: -90,
+          bottom: -40,
+          right: -110,
           child: IgnorePointer(
             child: _CornerPuzzle(
               grid: _bottomRightGrid,
               rotationDegrees: -70,
+              opacity: 0.07,
             ),
           ),
         ),
@@ -137,10 +140,12 @@ const List<List<_Cell>> _bottomRightGrid = [
 class _CornerPuzzle extends StatelessWidget {
   final List<List<_Cell>> grid;
   final double rotationDegrees;
+  final double opacity;
 
   const _CornerPuzzle({
     required this.grid,
     required this.rotationDegrees,
+    this.opacity = 0.2,
   });
 
   @override
@@ -149,7 +154,7 @@ class _CornerPuzzle extends StatelessWidget {
     return Transform.rotate(
       angle: radians,
       child: Opacity(
-        opacity: 0.14,
+        opacity: opacity,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: grid
@@ -164,8 +169,8 @@ class _CornerPuzzle extends StatelessWidget {
   }
 
   Widget _buildCell(_Cell value) {
-    const size = 42.0;
-    const gap = 3.0;
+    const size = 58.0;
+    const gap = 4.0;
 
     if (value == null) {
       // Void / blacked-out crossword cell.
@@ -197,7 +202,7 @@ class _CornerPuzzle extends StatelessWidget {
       child: Text(
         value,
         style: AppFonts.nunito(
-          fontSize: 20,
+          fontSize: 28,
           fontWeight: FontWeight.w900,
         ),
       ),

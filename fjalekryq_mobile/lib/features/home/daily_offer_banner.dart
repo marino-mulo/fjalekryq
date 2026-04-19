@@ -3,20 +3,17 @@ import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
 import 'daily_offer.dart';
 
-/// Small top-left floating card that advertises today's discounted bundle.
-///
-/// Tap card or CTA → [onTap] (navigates to shop with a confirm modal).
-/// Tap × → [onDismiss] (hides for the rest of the day).
+/// Small floating card that advertises the currently available tier of the
+/// daily offer. The banner is always visible — it cannot be dismissed;
+/// instead the tier advances after a successful purchase.
 class DailyOfferBanner extends StatelessWidget {
   final DailyOffer offer;
   final VoidCallback onTap;
-  final VoidCallback onDismiss;
 
   const DailyOfferBanner({
     super.key,
     required this.offer,
     required this.onTap,
-    required this.onDismiss,
   });
 
   @override
@@ -27,113 +24,98 @@ class DailyOfferBanner extends StatelessWidget {
         onTap();
       },
       child: Container(
-        width: 190,
-        padding: const EdgeInsets.fromLTRB(12, 10, 8, 12),
+        padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.purpleAccent.withValues(alpha: 0.28),
-              AppColors.purpleDark.withValues(alpha: 0.35),
+              AppColors.purpleAccent.withValues(alpha: 0.25),
+              AppColors.purpleDark.withValues(alpha: 0.3),
             ],
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.purpleAccent.withValues(alpha: 0.55),
-            width: 1.5,
+            color: AppColors.purpleAccent.withValues(alpha: 0.5),
+            width: 1.3,
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.purpleAccent.withValues(alpha: 0.35),
-              blurRadius: 18,
-              offset: const Offset(0, 6),
+              color: AppColors.purpleAccent.withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Top row: badge + price
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('🎁', style: TextStyle(fontSize: 14)),
-                const SizedBox(width: 6),
-                Expanded(
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.purpleAccent.withValues(alpha: 0.28),
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: AppColors.purpleAccent.withValues(alpha: 0.5),
+                    ),
+                  ),
                   child: Text(
-                    'OFERTË DITORE',
+                    '🎁 OFERTË DITORE',
                     style: AppFonts.nunito(
-                      fontSize: 11,
+                      fontSize: 7,
                       fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
+                      letterSpacing: 1.0,
                       color: const Color(0xFFE9D5FF),
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    onDismiss();
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: Icon(
-                      Icons.close_rounded,
-                      size: 14,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
+                const SizedBox(width: 6),
+                Text(
+                  offer.price,
+                  style: AppFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.gold,
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
+            // Bottom row: coins | hints | arrow
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const CoinIcon(size: 14),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4),
                 Text(
                   '${offer.coins}',
                   style: AppFonts.nunito(
-                    fontSize: 16,
+                    fontSize: 13,
                     fontWeight: FontWeight.w900,
-                    color: AppColors.gold,
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.lightbulb_rounded,
-                    size: 13, color: AppColors.yellowAccent),
-                const SizedBox(width: 3),
                 Text(
-                  '${offer.hints}',
+                  '+${offer.hints} hint',
                   style: AppFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
                     color: AppColors.yellowAccent,
                   ),
                 ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.lightbulb,
+                  size: 13,
+                  color: AppColors.yellowAccent,
+                ),
               ],
-            ),
-            const SizedBox(height: 8),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(9),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.25),
-                ),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                'BLI ${offer.price}',
-                style: AppFonts.nunito(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                ),
-              ),
             ),
           ],
         ),

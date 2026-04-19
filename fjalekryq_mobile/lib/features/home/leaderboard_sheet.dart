@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/offline_view.dart';
 import 'leaderboard_data.dart';
 import 'leaderboard_full_screen.dart';
 
@@ -16,11 +17,25 @@ class _LeaderboardPreviewSheetState extends State<LeaderboardPreviewSheet>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // Lazy per-tab load state (see leaderboard_full_screen.dart for the
+  // same pattern — we keep the preview sheet and the full screen in sync
+  // by driving both from `loadLeaderboard`).
+  final Map<LeaderboardTab, LeaderboardLoadResult?> _results = {
+    for (final t in LeaderboardTab.values) t: null,
+  };
+  final Set<LeaderboardTab> _loading = {};
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() => setState(() {}));
+    _tabController.addListener(() {
+      setState(() {});
+      _fetchIfNeeded(_currentTab);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchIfNeeded(_currentTab);
+    });
   }
 
   @override
@@ -31,15 +46,43 @@ class _LeaderboardPreviewSheetState extends State<LeaderboardPreviewSheet>
 
   LeaderboardTab get _currentTab => LeaderboardTab.values[_tabController.index];
 
+  Future<void> _fetchIfNeeded(LeaderboardTab tab) async {
+    if (_results[tab] != null || _loading.contains(tab)) return;
+    setState(() => _loading.add(tab));
+    final result = await loadLeaderboard(tab);
+    if (!mounted) return;
+    setState(() {
+      _results[tab] = result;
+      _loading.remove(tab);
+    });
+  }
+
+  Future<void> _retry(LeaderboardTab tab) async {
+    setState(() => _results[tab] = null);
+    await _fetchIfNeeded(tab);
+  }
+
   @override
   Widget build(BuildContext context) {
     final tab = _currentTab;
-    final allEntries = entriesForTab(tab);
-    final top10 = allEntries.where((e) => e.rank <= 10).toList()
-      ..sort((a, b) => a.rank.compareTo(b.rank));
-    final userEntry = allEntries.where((e) => e.isCurrentUser).firstOrNull;
-    final userInTop10 = userEntry != null && userEntry.rank <= 10;
+    final result = _results[tab];
     final valueColor = valueColorForTab(tab);
+
+    // Extract the entries (or null if still loading / offline / errored)
+    // from the current-tab result. Later in the build we branch on this
+    // to show a placeholder block instead of the row list.
+    List<LeaderboardEntry>? allEntries;
+    if (result is LeaderboardData) {
+      allEntries = result.entries;
+    }
+
+    final top10 = (allEntries ?? const <LeaderboardEntry>[])
+        .where((e) => e.rank <= 10)
+        .toList()
+      ..sort((a, b) => a.rank.compareTo(b.rank));
+    final userEntry =
+        (allEntries ?? const <LeaderboardEntry>[]).where((e) => e.isCurrentUser).firstOrNull;
+    final userInTop10 = userEntry != null && userEntry.rank <= 10;
 
     return Container(
       decoration: const BoxDecoration(
@@ -96,12 +139,52 @@ class _LeaderboardPreviewSheetState extends State<LeaderboardPreviewSheet>
           _buildTabBar(),
           const SizedBox(height: 6),
 
-          // Top 10 rows
-          ...top10.map((e) => _buildRow(e, valueColor)),
+          // Body — dispatches on load state.
+          if (_loading.contains(tab) || result == null)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: CircularProgressIndicator(color: AppColors.gold),
+              ),
+            )
+          else if (result is LeaderboardOffline)
+            SizedBox(
+              height: 240,
+              child: OfflineView(
+                message: 'Kërkohet internet për të parë renditjen.',
+                onRetry: () => _retry(tab),
+              ),
+            )
+          else if (result is LeaderboardError)
+            SizedBox(
+              height: 240,
+              child: OfflineView(
+                message: (result).message,
+                onRetry: () => _retry(tab),
+              ),
+            )
+          else if (allEntries != null && allEntries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Center(
+                child: Text(
+                  'Asnjë lojtar ende.',
+                  style: AppFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+                ),
+              ),
+            )
+          else ...[
+            // Top 10 rows
+            ...top10.map((e) => _buildRow(e, valueColor)),
 
-          // Sticky user row (if not in top 10)
-          if (!userInTop10 && userEntry != null)
-            _buildUserSticky(userEntry, valueColor),
+            // Sticky user row (if not in top 10)
+            if (!userInTop10 && userEntry != null)
+              _buildUserSticky(userEntry, valueColor),
+          ],
 
           const SizedBox(height: 10),
 

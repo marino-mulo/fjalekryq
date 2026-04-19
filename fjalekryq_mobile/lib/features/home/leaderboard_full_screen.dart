@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../../shared/widgets/offline_view.dart';
 import 'leaderboard_data.dart';
 
 /// Full-screen leaderboard opened from "Shiko të gjitha" in the preview sheet.
@@ -17,11 +18,25 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  // Per-tab load state. Fetched lazily the first time a tab is viewed,
+  // kept in memory afterwards so re-selecting the tab doesn't reload.
+  final Map<LeaderboardTab, LeaderboardLoadResult?> _results = {
+    for (final t in LeaderboardTab.values) t: null,
+  };
+  final Set<LeaderboardTab> _loading = {};
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() => setState(() {}));
+    _tabController.addListener(() {
+      setState(() {});
+      _fetchIfNeeded(_currentTab);
+    });
+    // Kick off the first tab.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchIfNeeded(_currentTab);
+    });
   }
 
   @override
@@ -31,6 +46,22 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
   }
 
   LeaderboardTab get _currentTab => LeaderboardTab.values[_tabController.index];
+
+  Future<void> _fetchIfNeeded(LeaderboardTab tab) async {
+    if (_results[tab] != null || _loading.contains(tab)) return;
+    setState(() => _loading.add(tab));
+    final result = await loadLeaderboard(tab);
+    if (!mounted) return;
+    setState(() {
+      _results[tab] = result;
+      _loading.remove(tab);
+    });
+  }
+
+  Future<void> _retry(LeaderboardTab tab) async {
+    setState(() => _results[tab] = null);
+    await _fetchIfNeeded(tab);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,7 +148,39 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
   // ─── Tab content ─────────────────────────────────────────────────────────────
 
   Widget _buildTabContent(LeaderboardTab tab) {
-    final allEntries = entriesForTab(tab);
+    // ── Load state dispatch ────────────────────────────────────────────────
+    if (_loading.contains(tab) || _results[tab] == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: AppColors.gold),
+      );
+    }
+    final result = _results[tab]!;
+    if (result is LeaderboardOffline) {
+      return OfflineView(
+        message: 'Kërkohet internet për të parë renditjen.',
+        onRetry: () => _retry(tab),
+      );
+    }
+    if (result is LeaderboardError) {
+      return OfflineView(
+        message: result.message,
+        onRetry: () => _retry(tab),
+      );
+    }
+
+    final allEntries = (result as LeaderboardData).entries;
+    if (allEntries.isEmpty) {
+      return Center(
+        child: Text(
+          'Asnjë lojtar ende.',
+          style: AppFonts.nunito(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
+        ),
+      );
+    }
     final sorted = [...allEntries]..sort((a, b) => a.rank.compareTo(b.rank));
     final top10 = sorted.where((e) => e.rank <= 10).toList();
     final userEntry = sorted.where((e) => e.isCurrentUser).firstOrNull;

@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -16,6 +15,7 @@ import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/coin_badge.dart';
+import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_overlay.dart';
 import '../shop/shop_screen.dart';
@@ -407,6 +407,7 @@ class _GameScreenState extends State<GameScreen> {
     _game.resetPuzzle();
   }
 
+  // ignore: unused_element
   String get _difficultyLabel {
     final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
     return difficultyLabel(difficultyForLevel(playingLevel));
@@ -417,6 +418,7 @@ class _GameScreenState extends State<GameScreen> {
     return difficultyForLevel(playingLevel);
   }
 
+  // ignore: unused_element
   Color get _difficultyColor {
     switch (_difficulty) {
       case Difficulty.easy:   return const Color(0xFF4ADE80);
@@ -426,6 +428,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  // ignore: unused_element
   Color get _difficultyBorderColor {
     switch (_difficulty) {
       case Difficulty.easy:   return const Color(0xFF22C55E).withValues(alpha: 0.4);
@@ -440,6 +443,7 @@ class _GameScreenState extends State<GameScreen> {
     return progress;
   }
 
+  // ignore: unused_element
   Color get _difficultyBgColor {
     switch (_difficulty) {
       case Difficulty.easy:   return const Color(0xFF22C55E).withValues(alpha: 0.2);
@@ -468,11 +472,13 @@ class _GameScreenState extends State<GameScreen> {
             child: Column(
               children: [
                 _buildHeader(coinService),
-                const SizedBox(height: 12),
+                // Extra breathing room below the header so the board and
+                // info row sit lower on the screen (header stays in place).
+                const SizedBox(height: 40),
                 if (!_isCompleted && !_game.gameLost && !_isLoading)
                   _buildInfoRow(),
 
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
 
                 // Game board
                 if (!_isLoading)
@@ -863,28 +869,6 @@ class _GameScreenState extends State<GameScreen> {
 
           const Spacer(),
 
-          // Difficulty pill
-          if (!_isTutorial)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-              decoration: BoxDecoration(
-                color: _difficultyBgColor,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: _difficultyBorderColor, width: 1.5),
-              ),
-              child: Text(
-                _difficultyLabel.toUpperCase(),
-                style: AppFonts.nunito(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w900,
-                  color: _difficultyColor,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ),
-
-          const Spacer(),
-
           // Moves remaining
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -917,87 +901,14 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   // ══════════════════════════════════════
-  //  Loading overlay (splash-style with bg tiles + progress bar)
+  //  Loading overlay — AppBackground shows through from the parent
   // ══════════════════════════════════════
 
-  static const _loadingLetters = 'ABCÇDEHIMNOPRSTUVXZË';
-  static const _loadingTileColors = [Color(0xFFF4B400), Color(0xFF22C55E), Color(0xFF787c7e)];
-
   Widget _buildLoadingOverlay() {
-    final size = MediaQuery.of(context).size;
-    final rng = Random(42);
-    final tiles = <Widget>[];
-
-    // 15 tiles scattered across the full area with random jitter
-    const cols = 5;
-    const rows = 3;
-    final cellW = (size.width - 40) / cols;
-    final cellH = (size.height * 0.75) / rows;
-    for (int i = 0; i < 15; i++) {
-      final col = i % cols;
-      final row = i ~/ cols;
-      final x = 20 + col * cellW + (rng.nextDouble() - 0.5) * cellW * 0.6;
-      final y = size.height * 0.15 + row * cellH + (rng.nextDouble() - 0.5) * cellH * 0.4;
-      tiles.add(Positioned(
-        left: x,
-        top: y,
-        child: Opacity(
-          opacity: 0.72,
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: _loadingTileColors[i % 3],
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.18),
-                width: 2,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _loadingLetters[rng.nextInt(_loadingLetters.length)],
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ),
-      ));
-    }
-
-    return Stack(
-      children: [
-        ...tiles,
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Progress bar
-              Container(
-                width: 180,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: 0.6,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4B400),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
+    return const Center(
+      child: CircularProgressIndicator(
+        color: Color(0xFFF4B400),
+      ),
     );
   }
 
@@ -1014,6 +925,9 @@ class _GameScreenState extends State<GameScreen> {
       onReward: () async {
         _audio.play(Sfx.solve);
         _game.solveWord();
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
       },
     );
 
@@ -1037,6 +951,9 @@ class _GameScreenState extends State<GameScreen> {
         coinService.add(_coinsEarned);
         _audio.play(Sfx.coin);
       },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
+      },
     );
 
     if (mounted) {
@@ -1058,6 +975,9 @@ class _GameScreenState extends State<GameScreen> {
         _game.continueGame();
         _audio.play(Sfx.coin);
         HapticFeedback.mediumImpact();
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
       },
     );
 
@@ -1082,6 +1002,9 @@ class _GameScreenState extends State<GameScreen> {
         _game.addExtraMoves(5);
         _audio.play(Sfx.coin);
         HapticFeedback.mediumImpact();
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
       },
     );
     if (mounted) setState(() => _loadingAd = false);
@@ -1151,8 +1074,17 @@ class _GameScreenState extends State<GameScreen> {
             Future.microtask(_restartLevel);
           },
           onNextLevel: () {
+            // Paint the loading state first so the frame behind the
+            // modal is already "loading" — then pop the modal with a
+            // zero reverse-transition so it disappears instantly.
+            setState(() {
+              _isCompleted = false;
+              _isLoading = true;
+            });
             Navigator.pop(ctx);
-            Future.microtask(_nextLevel);
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) _nextLevel();
+            });
           },
           onSaveProgress: _shouldShowSavePrompt()
               ? () {
@@ -1164,15 +1096,28 @@ class _GameScreenState extends State<GameScreen> {
               : null,
         ),
       ),
-      transitionBuilder: (ctx, anim, _, child) => ScaleTransition(
-        scale: Tween(begin: 0.72, end: 1.0).animate(
-          CurvedAnimation(parent: anim, curve: Curves.elasticOut),
-        ),
-        child: FadeTransition(
-          opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-          child: child,
-        ),
-      ),
+      transitionBuilder: (ctx, anim, _, child) {
+        // When the modal is dismissing, hide it instantly so the loading
+        // overlay underneath isn't fading under a lingering modal.
+        return AnimatedBuilder(
+          animation: anim,
+          builder: (_, __) {
+            if (anim.status == AnimationStatus.reverse ||
+                anim.status == AnimationStatus.dismissed) {
+              return const SizedBox.shrink();
+            }
+            return ScaleTransition(
+              scale: Tween(begin: 0.72, end: 1.0).animate(
+                CurvedAnimation(parent: anim, curve: Curves.elasticOut),
+              ),
+              child: FadeTransition(
+                opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+                child: child,
+              ),
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1266,11 +1211,12 @@ class _GameScreenState extends State<GameScreen> {
         constraints: const BoxConstraints(maxWidth: 430),
         child: Row(
           children: [
-            // Solve button (green glass)
+            // Solve button (green glass) — in tutorial the cost is hidden so
+            // the player isn't nudged to spend coins they don't track yet.
             Expanded(
               child: _controlButton(
                 icon: Icons.check_circle_outline,
-                label: 'Zgjidh · $solveCost',
+                label: _isTutorial ? 'Zgjidh' : 'Zgjidh · $solveCost',
                 enabled: _game.canSolveWord &&
                     !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 5)),
                 cooling: _game.solveWordCooldown,
@@ -1282,11 +1228,11 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
             const SizedBox(width: 10),
-            // Hint button (yellow glass)
+            // Hint button (yellow glass) — cost hidden during tutorial.
             Expanded(
               child: _controlButton(
                 icon: Icons.lightbulb_outline,
-                label: 'Ndihmë · $hintCost',
+                label: _isTutorial ? 'Ndihmë' : 'Ndihmë · $hintCost',
                 enabled: _game.canHint &&
                     !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 8)),
                 cooling: _game.hintCooldown,

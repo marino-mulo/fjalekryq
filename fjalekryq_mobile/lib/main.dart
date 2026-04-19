@@ -23,10 +23,16 @@ import 'core/services/coin_service.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/ad_service.dart';
+import 'core/services/connectivity_service.dart';
 import 'core/services/level_puzzle_store.dart';
 import 'core/services/daily_puzzle_service.dart';
-import 'core/database/repositories/daily_puzzle_repository.dart';
-import 'core/database/repositories/daily_streak_repository.dart';
+import 'core/network/remote_auth_repository.dart';
+import 'core/network/remote_progress_repository.dart';
+import 'core/network/remote_streak_repository.dart';
+import 'core/network/remote_daily_puzzle_repository.dart';
+import 'core/network/hybrid_progress_repository.dart';
+import 'core/network/hybrid_streak_repository.dart';
+import 'core/network/hybrid_daily_puzzle_repository.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
@@ -79,14 +85,17 @@ Future<_AppServices> _initializeApp() async {
   final userRepo = UserRepository(dbHelper);
   final coinsRepo = CoinsRepository(dbHelper);
   final settingsRepo = SettingsRepository(dbHelper);
-  final progressRepo = ProgressRepository(dbHelper);
+  // Hybrid repos: write-through to the server so the leaderboard and
+  // cross-device progress stay populated. Reads stay local for speed;
+  // the remote sync is best-effort and silently retried on next write.
+  final progressRepo = HybridProgressRepository(dbHelper, RemoteProgressRepository());
   final gameStateRepo = GameStateRepository(dbHelper);
   final levelRepo = LevelRepository(dbHelper);
   final notificationRepo = NotificationRepository(dbHelper);
   final achievementRepo = AchievementRepository(dbHelper);
   final adRewardRepo = AdRewardRepository(dbHelper);
-  final dailyPuzzleRepo = DailyPuzzleRepository(dbHelper);
-  final dailyStreakRepo = DailyStreakRepository(dbHelper);
+  final dailyPuzzleRepo = HybridDailyPuzzleRepository(dbHelper, RemoteDailyPuzzleRepository());
+  final dailyStreakRepo = HybridStreakRepository(dbHelper, RemoteStreakRepository());
 
   final localUser = await userRepo.getOrCreateLocalUser();
   final userId = localUser.id!;
@@ -100,6 +109,12 @@ Future<_AppServices> _initializeApp() async {
     settingsService.init(),
     dailyPuzzleService.init(),
     _migrateFromSharedPrefs(prefs, coinsRepo, settingsRepo, progressRepo, userId),
+    // Guests are first-class API citizens — if no session exists yet,
+    // create one in the background so every protected endpoint
+    // (leaderboard, coins, progress, daily puzzle…) works out of the
+    // box. Silent failure is fine: the user is probably offline and
+    // will see the offline UI we already have.
+    RemoteAuthRepository().ensureSession().then<void>((_) {}),
   ]);
 
   // Don't block startup with font loading — let it happen lazily
@@ -165,6 +180,9 @@ class _AppServices {
     ChangeNotifierProvider.value(value: settingsService),
     ChangeNotifierProvider.value(value: adService),
     ChangeNotifierProvider.value(value: dailyPuzzleService),
+    ChangeNotifierProvider<ConnectivityService>.value(
+      value: ConnectivityService.instance,
+    ),
     Provider<AudioService>.value(value: audioService),
     Provider<LevelPuzzleStore>.value(value: puzzleStore),
     Provider<SharedPreferences>.value(value: prefs),

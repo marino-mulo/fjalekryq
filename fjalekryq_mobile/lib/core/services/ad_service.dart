@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../config/app_config.dart';
 import '../database/repositories/ad_reward_repository.dart';
+import 'connectivity_service.dart';
 
 /// Ad reward types used for daily limit tracking.
 class AdType {
@@ -40,9 +41,15 @@ class AdService extends ChangeNotifier {
   // ── Public API ────────────────────────────────────────────────────────────
 
   /// Show a rewarded ad. Returns true if reward was granted.
+  ///
+  /// [onOffline] is invoked (and `false` is returned immediately) when we
+  /// detect the device has no internet — only meaningful in production
+  /// since dev mode simulates ads offline. Callers use it to surface an
+  /// "internet needed" toast without caring about the ad loader internals.
   Future<bool> showRewardedAd({
     required String adType,
     required Future<void> Function() onReward,
+    void Function()? onOffline,
   }) async {
     // Enforce daily limit regardless of environment
     final limit = adDailyLimits[adType] ?? 3;
@@ -55,7 +62,12 @@ class AdService extends ChangeNotifier {
       await Future.delayed(const Duration(milliseconds: 1500));
       rewarded = true;
     } else {
-      // Prod: show real AdMob rewarded ad
+      // Prod: need internet for the real ad to load. Bail early with a
+      // callback so the UI can toast the user instead of silently failing.
+      if (!await ConnectivityService.hasInternet()) {
+        onOffline?.call();
+        return false;
+      }
       rewarded = await _showRealRewardedAd();
     }
 

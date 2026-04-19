@@ -124,6 +124,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsService>();
+    final coins = context.watch<CoinService>().coins;
+    final canAffordNickname = coins >= _nicknameCost;
     final avatar = _parseAvatar(_user?.avatar);
     final isGuest = _user?.username.startsWith('guest_') ?? true;
 
@@ -203,73 +205,105 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                           if (!_editingName) ...[
                             const SizedBox(width: 10),
-                            GestureDetector(
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                _nameController.text = _user?.username ?? '';
-                                setState(() { _editingName = true; _nameError = null; });
-                              },
-                              child: Stack(
-                                clipBehavior: Clip.none,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.purpleAccent.withValues(alpha: 0.18),
-                                      borderRadius: BorderRadius.circular(50),
-                                      border: Border.all(
-                                        color: AppColors.purpleAccent.withValues(alpha: 0.5),
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
-                                        const SizedBox(width: 5),
-                                        Text(
-                                          'Ndrysho emrin',
-                                          style: AppFonts.nunito(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: -8,
-                                    right: -6,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            Opacity(
+                              opacity: canAffordNickname ? 1.0 : 0.45,
+                              child: GestureDetector(
+                                onTap: canAffordNickname
+                                    ? () {
+                                        HapticFeedback.selectionClick();
+                                        _nameController.text = _user?.username ?? '';
+                                        setState(() {
+                                          _editingName = true;
+                                          _nameError = null;
+                                        });
+                                      }
+                                    : () {
+                                        HapticFeedback.selectionClick();
+                                      },
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                       decoration: BoxDecoration(
-                                        color: AppColors.gold,
+                                        color: canAffordNickname
+                                            ? AppColors.purpleAccent.withValues(alpha: 0.18)
+                                            : Colors.white.withValues(alpha: 0.05),
                                         borderRadius: BorderRadius.circular(50),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: AppColors.gold.withValues(alpha: 0.4),
-                                            blurRadius: 6,
-                                          ),
-                                        ],
+                                        border: Border.all(
+                                          color: canAffordNickname
+                                              ? AppColors.purpleAccent.withValues(alpha: 0.5)
+                                              : Colors.white.withValues(alpha: 0.12),
+                                          width: 1.5,
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Icon(Icons.monetization_on_rounded, size: 9, color: Color(0xFF7A3F00)),
-                                          const SizedBox(width: 2),
+                                          Icon(
+                                            canAffordNickname
+                                                ? Icons.edit_rounded
+                                                : Icons.lock_rounded,
+                                            size: 12,
+                                            color: Colors.white,
+                                          ),
+                                          const SizedBox(width: 5),
                                           Text(
-                                            '$_nicknameCost',
+                                            'Ndrysho emrin',
                                             style: AppFonts.nunito(
-                                              fontSize: 9,
+                                              fontSize: 12,
                                               fontWeight: FontWeight.w900,
-                                              color: const Color(0xFF7A3F00),
                                             ),
                                           ),
                                         ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    Positioned(
+                                      top: -8,
+                                      right: -6,
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: canAffordNickname
+                                              ? AppColors.gold
+                                              : const Color(0xFF6B6B6B),
+                                          borderRadius: BorderRadius.circular(50),
+                                          boxShadow: canAffordNickname
+                                              ? [
+                                                  BoxShadow(
+                                                    color: AppColors.gold.withValues(alpha: 0.4),
+                                                    blurRadius: 6,
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.monetization_on_rounded,
+                                              size: 9,
+                                              color: canAffordNickname
+                                                  ? const Color(0xFF7A3F00)
+                                                  : Colors.white.withValues(alpha: 0.7),
+                                            ),
+                                            const SizedBox(width: 2),
+                                            Text(
+                                              '$_nicknameCost',
+                                              style: AppFonts.nunito(
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.w900,
+                                                color: canAffordNickname
+                                                    ? const Color(0xFF7A3F00)
+                                                    : Colors.white.withValues(alpha: 0.85),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ],
@@ -328,6 +362,29 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         label: 'Njoftimet me Email',
                         value: settings.emailNotificationsEnabled,
                         onChanged: (_) => settings.toggleEmailNotifications(),
+                      ),
+
+                      const SizedBox(height: 16),
+                      _buildDivider(),
+                      const SizedBox(height: 16),
+
+                      // ── Follow us ──────────────────────────────────
+                      _buildSectionLabel('Na ndiqni'),
+                      const SizedBox(height: 10),
+                      _buildLegalRow(
+                        icon: Icons.camera_alt_outlined,
+                        label: 'Instagram',
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _buildLegalRow(
+                        icon: Icons.music_note_outlined,
+                        label: 'TikTok',
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                        },
                       ),
 
                       const SizedBox(height: 16),
