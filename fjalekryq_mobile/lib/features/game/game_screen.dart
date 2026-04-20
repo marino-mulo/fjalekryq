@@ -1167,35 +1167,40 @@ class _GameScreenState extends State<GameScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.78),
-      transitionDuration: const Duration(milliseconds: 420),
-      pageBuilder: (ctx, _, __) => Align(
-        alignment: Alignment.center,
-        child: FailModal(
-          adService: context.read<AdService>(),
-          coinService: context.read<CoinService>(),
-          onWatchAd: () async {
-            Navigator.pop(ctx);
-            await _watchAdToContinue();
-          },
-          onBuyMoves: () {
-            Navigator.pop(ctx);
-            _buyMovesAfterFail();
-          },
-          onRestart: () {
-            Navigator.pop(ctx);
-            setState(() => _showingFailModal = false);
-            _restartLevel();
-          },
-        ),
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (ctx, _, __) => FailModal(
+        adService: context.read<AdService>(),
+        coinService: context.read<CoinService>(),
+        currentGrid: _game.grid,
+        onWatchAd: () async {
+          Navigator.pop(ctx);
+          await _watchAdToContinue();
+        },
+        onBuyMoves: () {
+          Navigator.pop(ctx);
+          _buyMovesAfterFail();
+        },
+        onRestart: () {
+          Navigator.pop(ctx);
+          setState(() => _showingFailModal = false);
+          _restartLevel();
+        },
       ),
-      transitionBuilder: (ctx, anim, _, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.18),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-        child: FadeTransition(opacity: anim, child: child),
-      ),
+      transitionBuilder: (ctx, anim, _, child) {
+        if (anim.status == AnimationStatus.reverse ||
+            anim.status == AnimationStatus.dismissed) {
+          return const SizedBox.shrink();
+        }
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
     );
   }
 
