@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/config/app_config.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../core/services/audio_service.dart';
@@ -59,6 +60,7 @@ class ShopScreen extends StatefulWidget {
 
 class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
   bool _loadingAd = false;
+  bool _loadingRemoveAds = false;
   int _adWatchesRemaining = 5;
   bool _starterPackAvailable = false;
 
@@ -168,11 +170,24 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
     // TODO: implement real IAP
   }
 
+  Future<void> _purchaseRemoveAds() async {
+    if (_loadingRemoveAds) return;
+    HapticFeedback.lightImpact();
+    context.read<AudioService>().play(Sfx.button);
+    setState(() => _loadingRemoveAds = true);
+    final success = await context.read<AdService>().purchaseRemoveAds();
+    if (mounted) {
+      setState(() => _loadingRemoveAds = false);
+      if (success) HapticFeedback.mediumImpact();
+    }
+  }
+
   // ── Build ────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     final coins = context.watch<CoinService>().coins;
+    final adsRemoved = context.watch<AdService>().removeAds;
     // Shop always surfaces the current tier of the daily offer, regardless
     // of where it was opened from (home banner, game screen, daily screen).
     final todaysOffer =
@@ -298,6 +313,9 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
 
                           // ── Free coins (watch ad) ─────────────────────
                           _buildAdSection(),
+
+                          // ── Remove Ads IAP ────────────────────────────
+                          _buildRemoveAdsCard(adsRemoved),
 
                           // ── Restore purchases ─────────────────────────
                           Padding(
@@ -657,6 +675,111 @@ class _ShopScreenState extends State<ShopScreen> with TickerProviderStateMixin {
             )),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Remove Ads IAP ────────────────────────────────────────────────────────
+
+  Widget _buildRemoveAdsCard(bool alreadyPurchased) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF6366F1).withValues(alpha: 0.18),
+              const Color(0xFF8B5CF6).withValues(alpha: 0.22),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFF818CF8).withValues(alpha: 0.4),
+            width: 1.5,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: const Color(0xFF818CF8).withValues(alpha: 0.4),
+                  ),
+                ),
+                child: Icon(
+                  alreadyPurchased ? Icons.block : Icons.block_outlined,
+                  color: const Color(0xFFA5B4FC),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hiq Reklamat',
+                      style: AppFonts.nunito(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      alreadyPurchased
+                          ? '✓ Blerë — Shijoni lojën pa reklama!'
+                          : 'Hiqni banerat dhe reklamat ndërmjet niveleve',
+                      style: AppFonts.quicksand(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (!alreadyPurchased) ...[
+                const SizedBox(width: 10),
+                _loadingRemoveAds
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Color(0xFFA5B4FC),
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: _purchaseRemoveAds,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 9),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6366F1).withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color:
+                                  const Color(0xFF818CF8).withValues(alpha: 0.6),
+                            ),
+                          ),
+                          child: Text(
+                            AppConfig.removeAdsPriceLabel,
+                            style: AppFonts.nunito(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFFE0E7FF),
+                            ),
+                          ),
+                        ),
+                      ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -48,6 +48,31 @@ class AppConfig {
       ? 'ca-app-pub-YOUR_PUBLISHER_ID/YOUR_REWARDED_UNIT_IOS' // ← replace
       : 'ca-app-pub-3940256099942544/1712485313'; // Google test rewarded unit
 
+  /// Banner ad unit ID — Android.
+  static String get bannerAdUnitAndroid => isProd
+      ? 'ca-app-pub-YOUR_PUBLISHER_ID/YOUR_BANNER_UNIT_ANDROID' // ← replace
+      : 'ca-app-pub-3940256099942544/6300978111'; // Google test banner unit
+
+  /// Banner ad unit ID — iOS.
+  static String get bannerAdUnitIos => isProd
+      ? 'ca-app-pub-YOUR_PUBLISHER_ID/YOUR_BANNER_UNIT_IOS' // ← replace
+      : 'ca-app-pub-3940256099942544/2934735716'; // Google test banner unit
+
+  /// Interstitial ad unit ID — Android.
+  /// Shown at natural level-transition break points with a frequency cap.
+  static String get interstitialAdUnitAndroid => isProd
+      ? 'ca-app-pub-YOUR_PUBLISHER_ID/YOUR_INTERSTITIAL_UNIT_ANDROID' // ← replace
+      : 'ca-app-pub-3940256099942544/1033173712'; // Google test interstitial unit
+
+  /// Interstitial ad unit ID — iOS.
+  static String get interstitialAdUnitIos => isProd
+      ? 'ca-app-pub-YOUR_PUBLISHER_ID/YOUR_INTERSTITIAL_UNIT_IOS' // ← replace
+      : 'ca-app-pub-3940256099942544/4411468910'; // Google test interstitial unit
+
+  /// Price shown to users for the "Remove Ads" in-app purchase.
+  /// Replace with the real price from your App Store / Play Store product.
+  static const String removeAdsPriceLabel = '\$3.99';
+
   // ── API / Backend (future) ────────────────────────────────────────────────
   /// Base URL for the backend REST API.
   /// 10.0.2.2 is the Android emulator's alias for host-machine localhost.

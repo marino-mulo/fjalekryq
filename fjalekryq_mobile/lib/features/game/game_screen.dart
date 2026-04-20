@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/puzzle.dart';
@@ -106,6 +107,9 @@ class _GameScreenState extends State<GameScreen> {
   bool _winCoinsDoubled = false;
   bool _continuedAfterLoss = false;
 
+  // Stored so we can call disposeBanner() safely in dispose()
+  late AdService _adServiceRef;
+
   // Replay mode: true when user restarts after already getting 3 stars.
   // In this mode no progress is saved, no rewards are shown, 5-moves warning is skipped.
   bool _isReplayRun = false;
@@ -129,11 +133,16 @@ class _GameScreenState extends State<GameScreen> {
     _game = GameService(_prefs, gameStateRepo, progressRepo, _userId);
     _game.addListener(_onGameChanged);
 
+    _adServiceRef = context.read<AdService>();
+    _adServiceRef.loadBanner();
+    _adServiceRef.preloadInterstitial();
+
     _initializeGame();
   }
 
   @override
   void dispose() {
+    _adServiceRef.disposeBanner();
     _game.removeListener(_onGameChanged);
     _game.dispose();
     super.dispose();
@@ -334,14 +343,13 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _onHint() {
+  void _onHint() async {
     HapticFeedback.mediumImpact();
     final coinService = context.read<CoinService>();
     if (!_isTutorial) {
       if (!coinService.canAfford(hintCost)) {
-        HapticFeedback.heavyImpact();
-        _audio.play(Sfx.error);
-        _showInsufficientCoins('hint');
+        // No coins — watch a rewarded ad for a free hint instead
+        await _watchAdForFreeHint();
         return;
       }
       coinService.spend(hintCost);
@@ -373,7 +381,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _nextLevel() {
+  void _nextLevel() async {
     if (_isTutorial) {
       _prefs.setBool(_tutorialKey, true);
       _isTutorial = false;
@@ -382,6 +390,10 @@ class _GameScreenState extends State<GameScreen> {
       _game.setTutorialMode(false);
       _loadPuzzle();
     } else {
+      // Show interstitial at the natural break between levels (every 3 completions).
+      // The loading spinner is already visible behind the interstitial.
+      await context.read<AdService>().showInterstitialIfDue();
+      if (!mounted) return;
       final progress = _prefs.getInt(_levelKey) ?? 1;
       _prefs.setInt(_playingLevelKey, progress);
       _loadPuzzle();
@@ -561,7 +573,23 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                 ],
 
-                SizedBox(height: bottomPad > 0 ? 8 : 16),
+                // Banner ad — shown at bottom of game screen (prod only).
+                // Hides itself when "Remove Ads" is purchased or not yet loaded.
+                Consumer<AdService>(
+                  builder: (_, ads, __) {
+                    if (!ads.bannerReady) {
+                      return SizedBox(height: bottomPad > 0 ? 8 : 16);
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: SizedBox(
+                        width: ads.bannerAd!.size.width.toDouble(),
+                        height: ads.bannerAd!.size.height.toDouble(),
+                        child: AdWidget(ad: ads.bannerAd!),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -939,6 +967,30 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
+  Future<void> _watchAdForFreeHint() async {
+    final adService = context.read<AdService>();
+    setState(() => _loadingAd = true);
+
+    final success = await adService.showRewardedAd(
+      adType: AdType.freeHint,
+      onReward: () async {
+        _audio.play(Sfx.hint);
+        _game.hint();
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
+      },
+    );
+
+    if (mounted) {
+      setState(() {
+        _loadingAd = false;
+        // If daily limit hit, fall back to the regular insufficient coins banner
+        if (!success) _showInsufficientCoins('hint');
+      });
+    }
+  }
+
   Future<void> _watchAdToDoubleWinCoins() async {
     final adService = context.read<AdService>();
     final coinService = context.read<CoinService>();
@@ -1239,7 +1291,7 @@ class _GameScreenState extends State<GameScreen> {
                 cooldownRemaining: _game.hintCooldownRemaining,
                 pulsing: _isTutorial && _tutorialPhase == 5,
                 onTap: _onHint,
-                showWatchBadge: false,
+                showWatchBadge: !_isTutorial && !canAffordHintNow,
                 noCoins: !_isTutorial && !canAffordHintNow,
               ),
             ),

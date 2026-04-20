@@ -125,7 +125,7 @@ Future<_AppServices> _initializeApp() async {
     coinService: coinService,
     settingsService: settingsService,
     audioService: AudioService(settingsService),
-    adService: AdService(adRewardRepo, userId),
+    adService: AdService(adRewardRepo, userId, prefs),
     dailyPuzzleService: dailyPuzzleService,
     puzzleStore: LevelPuzzleStore(levelRepo),
     progressRepo: progressRepo,
