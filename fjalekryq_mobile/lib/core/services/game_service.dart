@@ -671,8 +671,8 @@ class GameService extends ChangeNotifier {
   }
 
   /// Save level completion progress to database.
-  Future<void> saveProgress(int level, {int stars = 0, bool completed = true}) async {
-    await _progressRepo.upsert(_userId, level, stars: stars, completed: completed);
+  Future<void> saveProgress(int level, {bool completed = true}) async {
+    await _progressRepo.upsert(_userId, level, completed: completed);
   }
 
   /// Get the highest completed level from database.

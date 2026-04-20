@@ -3,14 +3,12 @@ import 'audit_fields.dart';
 class ProgressModel with AuditFields {
   int userId;
   int level;
-  int stars;
   int completed;
 
   ProgressModel({
     int? id,
     required this.userId,
     required this.level,
-    this.stars = 0,
     this.completed = 0,
   }) {
     initAuditDefaults();
@@ -21,7 +19,6 @@ class ProgressModel with AuditFields {
     final model = ProgressModel(
       userId: map['user_id'] as int,
       level: map['level'] as int,
-      stars: map['stars'] as int? ?? 0,
       completed: map['completed'] as int? ?? 0,
     );
     model.loadAudit(map);
@@ -32,7 +29,6 @@ class ProgressModel with AuditFields {
         ...auditToMap(),
         'user_id': userId,
         'level': level,
-        'stars': stars,
         'completed': completed,
       };
 }

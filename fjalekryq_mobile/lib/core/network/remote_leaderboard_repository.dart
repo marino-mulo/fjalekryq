@@ -30,9 +30,6 @@ class RemoteLeaderboardRepository {
   Future<List<LeaderboardEntry>> getByLevel() async =>
       _parse(await ApiClient.getList('/leaderboard/level'));
 
-  Future<List<LeaderboardEntry>> getByStars() async =>
-      _parse(await ApiClient.getList('/leaderboard/stars'));
-
   Future<List<LeaderboardEntry>> getByStreak() async =>
       _parse(await ApiClient.getList('/leaderboard/streak'));
 

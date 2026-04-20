@@ -45,29 +45,16 @@ class ProgressRepository extends BaseRepository<ProgressModel> {
     return (rows.first['cnt'] as int?) ?? 0;
   }
 
-  /// Sum all stars for a user.
-  Future<int> getTotalStars(int userId) async {
-    final db = await dbHelper.database;
-    final rows = await db.rawQuery(
-      'SELECT COALESCE(SUM(stars), 0) as total FROM progress '
-      'WHERE user_id = ? AND invalidated = ?',
-      [userId, DatabaseHelper.statusActive],
-    );
-    return (rows.first['total'] as int?) ?? 0;
-  }
-
   /// Upsert progress: update if exists, insert if not.
-  Future<void> upsert(int userId, int level, {int? stars, bool? completed}) async {
+  Future<void> upsert(int userId, int level, {bool? completed}) async {
     final existing = await getByUserAndLevel(userId, level);
     if (existing != null) {
-      if (stars != null) existing.stars = stars;
       if (completed != null) existing.completed = completed ? 1 : 0;
       await update(existing.id!, existing);
     } else {
       final model = ProgressModel(
         userId: userId,
         level: level,
-        stars: stars ?? 0,
         completed: (completed ?? false) ? 1 : 0,
       );
       await insert(model);

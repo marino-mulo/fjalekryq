@@ -28,7 +28,6 @@ import 'widgets/save_progress_prompt_modal.dart';
 const _levelKey = 'fjalekryq_level';
 const _playingLevelKey = 'fjalekryq_playing_level';
 const _tutorialKey = 'fjalekryq_tutorial_done';
-const _starsKeyPrefix = 'fjalekryq_stars_';
 const _replayRunKeyPrefix = 'fjalekryq_replay_run_';
 
 /// Tutorial puzzle: MALI (vertical), BORA (horizontal), DETI (horizontal)
@@ -93,7 +92,6 @@ class _GameScreenState extends State<GameScreen> {
   // Completion state
   bool _isCompleted = false;
   String _completedPraise = 'Bravo!';
-  int _completedStars = 0;
   int _coinsEarned = 0;
 
   // Loading state
@@ -272,20 +270,6 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  int _computeStars() {
-    final rem = _game.swapsRemaining;
-    if (rem >= 7) return 3;
-    if (rem >= 3) return 2;
-    return 1;
-  }
-
-  int get _previewStars {
-    final rem = _game.swapsRemaining;
-    if (rem >= 7) return 3;
-    if (rem >= 3) return 2;
-    return 1;
-  }
-
   void _onWin() {
     if (_isCompleted) return;
     HapticFeedback.heavyImpact();
@@ -295,12 +279,6 @@ class _GameScreenState extends State<GameScreen> {
     _tutorialHighlightCells = [];
     _isCompleted = true;
     _completedPraise = _praises[DateTime.now().millisecond % _praises.length];
-    final stars = _computeStars();
-    _completedStars = stars;
-    // Play star sounds with staggered delay
-    for (int i = 0; i < stars; i++) {
-      Future.delayed(Duration(milliseconds: 400 + i * 300), () => _audio.play(Sfx.star));
-    }
 
     if (_isTutorial) {
       _coinsEarned = 0;
@@ -308,12 +286,7 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
 
-      // Always save best stars (replay or first clear)
-      final starsKey = '$_starsKeyPrefix$playingLevel';
-      final existing = _prefs.getInt(starsKey) ?? 0;
-      final bestStars = stars > existing ? stars : existing;
-      _prefs.setInt(starsKey, bestStars);
-      _game.saveProgress(playingLevel, stars: bestStars, completed: true);
+      _game.saveProgress(playingLevel, completed: true);
 
       // Clear in-progress and replay flags
       _prefs.remove('fjalekryq_in_progress_$playingLevel');
@@ -862,7 +835,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   // ══════════════════════════════════════
-  //  Info row: stars | difficulty | moves
+  //  Info row: difficulty | moves
   // ══════════════════════════════════════
 
   Widget _buildInfoRow() {
@@ -874,27 +847,6 @@ class _GameScreenState extends State<GameScreen> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
         children: [
-          // Stars preview
-          if (!_isTutorial)
-            Row(
-              children: List.generate(3, (i) {
-                final lit = i < _previewStars;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 3),
-                  child: Icon(
-                    Icons.star,
-                    size: 15,
-                    color: lit ? const Color(0xFFF4B400) : Colors.white.withValues(alpha: 0.18),
-                    shadows: lit
-                        ? [Shadow(color: const Color(0xFFF4B400).withValues(alpha: 0.7), blurRadius: 4)]
-                        : null,
-                  ),
-                );
-              }),
-            )
-          else
-            const SizedBox(width: 48),
-
           const Spacer(),
 
           // Moves remaining
@@ -1109,7 +1061,6 @@ class _GameScreenState extends State<GameScreen> {
       barrierColor: Colors.transparent, // win screen provides its own background
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (ctx, _, __) => WinModal(
-        stars: _completedStars,
         praise: _completedPraise,
         coinsEarned: _coinsEarned,
         winCoinsDoubled: _winCoinsDoubled,

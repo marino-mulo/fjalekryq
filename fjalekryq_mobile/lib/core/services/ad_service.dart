@@ -15,9 +15,6 @@ class AdType {
   static const String bonusCoins = 'bonus_coins';
   static const String continueAfterLoss = 'continue_loss';
   static const String doubleWinCoins = 'double_win';
-
-  /// Shown on win with < 3 stars — watch ad to replay the level.
-  static const String playAgainFor3Stars = 'play_again_3stars';
 }
 
 /// Daily limits per ad type.
@@ -28,7 +25,6 @@ const Map<String, int> adDailyLimits = {
   AdType.bonusCoins: 5,
   AdType.continueAfterLoss: 5,
   AdType.doubleWinCoins: 5,
-  AdType.playAgainFor3Stars: 3,
 };
 
 const String _removeAdsKey = 'fjalekryq_remove_ads';

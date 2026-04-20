@@ -13,7 +13,6 @@ enum Sfx {
   error,
   button,
   levelSelect,
-  star,
   dailyClaim,
 }
 
@@ -28,7 +27,6 @@ const _sfxFiles = {
   Sfx.error: 'audio/sfx/error.wav',
   Sfx.button: 'audio/sfx/button.wav',
   Sfx.levelSelect: 'audio/sfx/level_select.wav',
-  Sfx.star: 'audio/sfx/star.wav',
   Sfx.dailyClaim: 'audio/sfx/daily_claim.wav',
 };
 

@@ -14,19 +14,12 @@ class HybridProgressRepository extends ProgressRepository {
   HybridProgressRepository(super.dbHelper, this._remote);
 
   @override
-  Future<void> upsert(int userId, int level, {int? stars, bool? completed}) async {
-    // Local first — always succeeds, drives the UI.
-    await super.upsert(userId, level, stars: stars, completed: completed);
-
-    // Best-effort remote sync. Only fires on completion because the
-    // server's `user_progress` only cares about finished levels (used
-    // by the leaderboard). In-progress updates stay local.
+  Future<void> upsert(int userId, int level, {bool? completed}) async {
+    await super.upsert(userId, level, completed: completed);
     if (completed == true) {
       try {
-        await _remote.upsert(userId, level, stars: stars, completed: completed);
-      } catch (_) {
-        // Offline / auth / transient server error — the next win retries.
-      }
+        await _remote.upsert(userId, level, completed: completed);
+      } catch (_) {}
     }
   }
 }

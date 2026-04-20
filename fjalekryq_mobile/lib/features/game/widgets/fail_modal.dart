@@ -30,37 +30,14 @@ class FailModal extends StatefulWidget {
   State<FailModal> createState() => _FailModalState();
 }
 
-class _FailModalState extends State<FailModal> with TickerProviderStateMixin {
+class _FailModalState extends State<FailModal> {
   bool _loadingAd = false;
   int _adRemaining = 5;
-
-  // Staggered entrance animations for the 3 empty stars
-  late final List<AnimationController> _starCtrl;
-  late final List<Animation<double>> _starScale;
 
   @override
   void initState() {
     super.initState();
-    _starCtrl = List.generate(
-      3,
-      (_) => AnimationController(
-          vsync: this, duration: const Duration(milliseconds: 480)),
-    );
-    _starScale = _starCtrl
-        .map((c) => CurvedAnimation(parent: c, curve: Curves.easeOutBack))
-        .toList();
-    for (int i = 0; i < 3; i++) {
-      Future.delayed(Duration(milliseconds: 120 + i * 180), () {
-        if (mounted) _starCtrl[i].forward();
-      });
-    }
     _loadRemaining();
-  }
-
-  @override
-  void dispose() {
-    for (final c in _starCtrl) c.dispose();
-    super.dispose();
   }
 
   Future<void> _loadRemaining() async {
@@ -136,10 +113,6 @@ class _FailModalState extends State<FailModal> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 22),
 
-                  // Empty dimmed stars (contrast with win screen's lit ones)
-                  _buildStarsRow(),
-                  const SizedBox(height: 26),
-
                   // Mini grid preview (current incomplete state)
                   if (widget.currentGrid != null) ...[
                     _buildGridPreview(widget.currentGrid!, size.width),
@@ -166,27 +139,6 @@ class _FailModalState extends State<FailModal> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
-  }
-
-  // ── 3 dimmed stars ─────────────────────────────────────────────────────────
-
-  Widget _buildStarsRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (i) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: ScaleTransition(
-            scale: _starScale[i],
-            child: Icon(
-              Icons.star_rounded,
-              size: 54,
-              color: Colors.white.withValues(alpha: 0.18),
-            ),
-          ),
-        );
-      }),
     );
   }
 

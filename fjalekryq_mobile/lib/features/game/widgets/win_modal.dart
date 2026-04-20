@@ -8,7 +8,6 @@ import '../../../shared/widgets/shiko_button.dart';
 enum _AdLoading { none, doubleCoins }
 
 class WinModal extends StatefulWidget {
-  final int stars;
   final String praise;
   final int coinsEarned;
   final bool winCoinsDoubled;
@@ -24,7 +23,6 @@ class WinModal extends StatefulWidget {
 
   const WinModal({
     super.key,
-    required this.stars,
     required this.praise,
     required this.coinsEarned,
     required this.winCoinsDoubled,
@@ -42,9 +40,7 @@ class WinModal extends StatefulWidget {
   State<WinModal> createState() => _WinModalState();
 }
 
-class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
-  late final List<AnimationController> _starCtrl;
-  late final List<Animation<double>> _starScale;
+class _WinModalState extends State<WinModal> {
   _AdLoading _adLoading = _AdLoading.none;
   bool _doubled = false;
 
@@ -52,25 +48,6 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _doubled = widget.winCoinsDoubled;
-    _starCtrl = List.generate(
-      3,
-      (_) => AnimationController(
-          vsync: this, duration: const Duration(milliseconds: 580)),
-    );
-    _starScale = _starCtrl
-        .map((c) => CurvedAnimation(parent: c, curve: Curves.elasticOut))
-        .toList();
-    for (int i = 0; i < widget.stars; i++) {
-      Future.delayed(Duration(milliseconds: 160 + i * 260), () {
-        if (mounted) _starCtrl[i].forward();
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    for (final c in _starCtrl) c.dispose();
-    super.dispose();
   }
 
   Future<void> _watchDoubleCoinsAd() async {
@@ -147,10 +124,6 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 22),
 
-                  // Stars
-                  _buildStarsRow(),
-                  const SizedBox(height: 26),
-
                   // Mini solved grid
                   if (!widget.isTutorial && widget.solvedGrid != null) ...[
                     _buildGridPreview(widget.solvedGrid!, size.width),
@@ -200,40 +173,6 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
           ),
         ],
       ),
-    );
-  }
-
-  // ── Stars row ──────────────────────────────────────────────────────────────
-
-  Widget _buildStarsRow() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(3, (i) {
-        final filled = i < widget.stars;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          child: ScaleTransition(
-            scale: filled
-                ? _starScale[i]
-                : const AlwaysStoppedAnimation(1.0),
-            child: Icon(
-              Icons.star_rounded,
-              size: 56,
-              color: filled
-                  ? const Color(0xFFFDD835)
-                  : Colors.white.withValues(alpha: 0.22),
-              shadows: filled
-                  ? [
-                      Shadow(
-                        color: const Color(0xFFFDD835).withValues(alpha: 0.55),
-                        blurRadius: 18,
-                      ),
-                    ]
-                  : null,
-            ),
-          ),
-        );
-      }),
     );
   }
 
@@ -370,40 +309,6 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
                 ],
               ),
             ),
-          // Divider between rows
-          if (hasCoins)
-            Divider(height: 1, color: Colors.white.withValues(alpha: 0.15)),
-          // Stars row
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            child: Row(
-              children: [
-                Text(
-                  'Yjet e Niveli',
-                  style: AppFonts.quicksand(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white.withValues(alpha: 0.85),
-                  ),
-                ),
-                const Spacer(),
-                Row(
-                  children: List.generate(3, (i) {
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 4),
-                      child: Icon(
-                        Icons.star_rounded,
-                        size: 24,
-                        color: i < widget.stars
-                            ? const Color(0xFFFDD835)
-                            : Colors.white.withValues(alpha: 0.2),
-                      ),
-                    );
-                  }),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

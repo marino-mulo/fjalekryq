@@ -229,8 +229,7 @@ Future<void> _migrateFromSharedPrefs(
 
   final currentLevel = prefs.getInt('fjalekryq_level') ?? 1;
   for (int level = 1; level < currentLevel; level++) {
-    final stars = prefs.getInt('fjalekryq_stars_$level') ?? 0;
-    await progressRepo.upsert(userId, level, stars: stars, completed: true);
+    await progressRepo.upsert(userId, level, completed: true);
   }
 
   await prefs.setBool(migrationKey, true);
