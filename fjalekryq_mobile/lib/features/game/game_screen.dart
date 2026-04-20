@@ -1106,68 +1106,57 @@ class _GameScreenState extends State<GameScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.78),
-      transitionDuration: const Duration(milliseconds: 520),
-      pageBuilder: (ctx, _, __) => Align(
-        alignment: Alignment.center,
-        child: WinModal(
-          stars: _completedStars,
-          praise: _completedPraise,
-          coinsEarned: _coinsEarned,
-          winCoinsDoubled: _winCoinsDoubled,
-          isTutorial: _isTutorial,
-          isReplayRun: _isReplayRun,
-          nextLevelNumber: _nextLevelNumber,
-          onDoubleCoins: () async {
-            await _watchAdToDoubleWinCoins();
-          },
-          onRestart: () {
-            Navigator.pop(ctx);
-            Future.microtask(_restartLevel);
-          },
-          onNextLevel: () {
-            // Paint the loading state first so the frame behind the
-            // modal is already "loading" — then pop the modal with a
-            // zero reverse-transition so it disappears instantly.
-            setState(() {
-              _isCompleted = false;
-              _isLoading = true;
-            });
-            Navigator.pop(ctx);
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _nextLevel();
-            });
-          },
-          onSaveProgress: _shouldShowSavePrompt()
-              ? () {
-                  Navigator.pop(ctx);
-                  Future.delayed(const Duration(milliseconds: 200), () {
-                    if (mounted) _showSaveProgressDialog();
-                  });
-                }
-              : null,
-        ),
+      barrierColor: Colors.transparent, // win screen provides its own background
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (ctx, _, __) => WinModal(
+        stars: _completedStars,
+        praise: _completedPraise,
+        coinsEarned: _coinsEarned,
+        winCoinsDoubled: _winCoinsDoubled,
+        isTutorial: _isTutorial,
+        isReplayRun: _isReplayRun,
+        nextLevelNumber: _nextLevelNumber,
+        solvedGrid: _game.solution,
+        onDoubleCoins: () async {
+          await _watchAdToDoubleWinCoins();
+        },
+        onRestart: () {
+          Navigator.pop(ctx);
+          Future.microtask(_restartLevel);
+        },
+        onNextLevel: () {
+          setState(() {
+            _isCompleted = false;
+            _isLoading = true;
+          });
+          Navigator.pop(ctx);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _nextLevel();
+          });
+        },
+        onSaveProgress: _shouldShowSavePrompt()
+            ? () {
+                Navigator.pop(ctx);
+                Future.delayed(const Duration(milliseconds: 200), () {
+                  if (mounted) _showSaveProgressDialog();
+                });
+              }
+            : null,
       ),
       transitionBuilder: (ctx, anim, _, child) {
-        // When the modal is dismissing, hide it instantly so the loading
-        // overlay underneath isn't fading under a lingering modal.
-        return AnimatedBuilder(
-          animation: anim,
-          builder: (_, __) {
-            if (anim.status == AnimationStatus.reverse ||
-                anim.status == AnimationStatus.dismissed) {
-              return const SizedBox.shrink();
-            }
-            return ScaleTransition(
-              scale: Tween(begin: 0.72, end: 1.0).animate(
-                CurvedAnimation(parent: anim, curve: Curves.elasticOut),
-              ),
-              child: FadeTransition(
-                opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-                child: child,
-              ),
-            );
-          },
+        // Instant dismiss so the loading spinner isn't revealed through a
+        // lingering animation — entrance slides up from the bottom edge.
+        if (anim.status == AnimationStatus.reverse ||
+            anim.status == AnimationStatus.dismissed) {
+          return const SizedBox.shrink();
+        }
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
         );
       },
     );

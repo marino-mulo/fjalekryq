@@ -1,9 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../shared/constants/theme.dart';
 import '../../../shared/widgets/coin_badge.dart';
 import '../../../shared/widgets/shiko_button.dart';
 
-/// Tracks which ad slot is currently loading in the win modal.
 enum _AdLoading { none, doubleCoins }
 
 class WinModal extends StatefulWidget {
@@ -14,6 +15,8 @@ class WinModal extends StatefulWidget {
   final bool isTutorial;
   final bool isReplayRun;
   final int nextLevelNumber;
+  /// Solved grid snapshot used to render the mini puzzle thumbnail.
+  final List<List<String>>? solvedGrid;
   final Future<void> Function() onDoubleCoins;
   final VoidCallback onRestart;
   final VoidCallback onNextLevel;
@@ -28,6 +31,7 @@ class WinModal extends StatefulWidget {
     required this.isTutorial,
     required this.isReplayRun,
     required this.nextLevelNumber,
+    this.solvedGrid,
     required this.onDoubleCoins,
     required this.onRestart,
     required this.onNextLevel,
@@ -41,7 +45,6 @@ class WinModal extends StatefulWidget {
 class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
   late final List<AnimationController> _starCtrl;
   late final List<Animation<double>> _starScale;
-  // Tracks which ad slot is currently loading
   _AdLoading _adLoading = _AdLoading.none;
   bool _doubled = false;
 
@@ -51,14 +54,14 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
     _doubled = widget.winCoinsDoubled;
     _starCtrl = List.generate(
       3,
-      (_) => AnimationController(vsync: this, duration: const Duration(milliseconds: 550)),
+      (_) => AnimationController(
+          vsync: this, duration: const Duration(milliseconds: 580)),
     );
     _starScale = _starCtrl
         .map((c) => CurvedAnimation(parent: c, curve: Curves.elasticOut))
         .toList();
-
     for (int i = 0; i < widget.stars; i++) {
-      Future.delayed(Duration(milliseconds: 180 + i * 240), () {
+      Future.delayed(Duration(milliseconds: 160 + i * 260), () {
         if (mounted) _starCtrl[i].forward();
       });
     }
@@ -74,258 +77,390 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
     if (_adLoading != _AdLoading.none) return;
     setState(() => _adLoading = _AdLoading.doubleCoins);
     await widget.onDoubleCoins();
-    if (mounted) setState(() {
-      _adLoading = _AdLoading.none;
-      _doubled = true;
-    });
+    if (mounted) {
+      setState(() {
+        _adLoading = _AdLoading.none;
+        _doubled = true;
+      });
+    }
   }
+
+  // ── Build ──────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
-    // Replay run (after 3-star restart) → no double-coins ad shown
-    final showDoubleAd =
-        !widget.isTutorial && !widget.isReplayRun && widget.coinsEarned > 0 && !_doubled;
+    final showDoubleAd = !widget.isTutorial &&
+        !widget.isReplayRun &&
+        widget.coinsEarned > 0 &&
+        !_doubled;
+    final size = MediaQuery.of(context).size;
 
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 22),
-        padding: const EdgeInsets.fromLTRB(22, 28, 22, 22),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF112660), Color(0xFF0A1A3E)],
-          ),
-          borderRadius: BorderRadius.circular(26),
-          border: Border.all(
-            color: const Color(0xFF22C55E).withValues(alpha: 0.25),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF22C55E).withValues(alpha: 0.18),
-              blurRadius: 40,
-              spreadRadius: 2,
-            ),
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Animated stars ──
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(3, (i) {
-                final filled = i < widget.stars;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: ScaleTransition(
-                    scale: filled
-                        ? _starScale[i]
-                        : const AlwaysStoppedAnimation(1.0),
-                    child: Icon(
-                      Icons.star_rounded,
-                      size: 52,
-                      color: filled
-                          ? const Color(0xFFF4B400)
-                          : Colors.white.withValues(alpha: 0.12),
-                      shadows: filled
-                          ? [
-                              Shadow(
-                                color: const Color(0xFFF4B400)
-                                    .withValues(alpha: 0.7),
-                                blurRadius: 12,
-                              )
-                            ]
-                          : null,
-                    ),
-                  ),
-                );
-              }),
-            ),
-            const SizedBox(height: 14),
-
-            // ── Praise ──
-            Text(
-              widget.praise,
-              style: AppFonts.nunito(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF4ADE80),
-              ),
-            ),
-
-            // ── Coins earned ──
-            if (widget.coinsEarned > 0) ...[
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    _doubled
-                        ? '+${widget.coinsEarned * 2}'
-                        : '+${widget.coinsEarned}',
-                    style: AppFonts.nunito(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.gold,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  const CoinIcon(size: 18),
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: Stack(
+        children: [
+          // ── Gradient background ──────────────────────────────────────────
+          Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                stops: [0.0, 0.55, 1.0],
+                colors: [
+                  Color(0xFF2196F3), // sky blue
+                  Color(0xFF1565C0), // royal blue
+                  Color(0xFF0D3B8E), // deep blue
                 ],
               ),
-            ],
-
-            // ── Ad offers section ──
-            if (showDoubleAd) ...[
-              const SizedBox(height: 14),
-              _adOfferTile(
-                loading: _adLoading == _AdLoading.doubleCoins,
-                iconBg: AppColors.purpleAccent.withValues(alpha: 0.18),
-                iconBorder: AppColors.purpleAccent.withValues(alpha: 0.35),
-                icon: Icons.videocam,
-                iconColor: const Color(0xFFC084FC),
-                title: 'Dyfisho monedhat',
-                subtitle: '+${widget.coinsEarned * 2} monedha falas',
-                badgeLabel: '×2',
-                onTap: _watchDoubleCoinsAd,
-              ),
-            ],
-
-            // ── Action buttons ──
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Expanded(
-                  child: _modalButton(
-                    label: 'Luaj përsëri',
-                    icon: Icons.refresh,
-                    onTap: widget.onRestart,
-                    isPrimary: false,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _modalButton(
-                    label: widget.isTutorial
-                        ? 'Fillo Lojën'
-                        : 'Nivel ${widget.nextLevelNumber}',
-                    icon: Icons.arrow_forward_ios,
-                    onTap: widget.onNextLevel,
-                    isPrimary: true,
-                  ),
-                ),
-              ],
             ),
+          ),
+          // ── Sunburst rays ────────────────────────────────────────────────
+          CustomPaint(
+            size: Size(size.width, size.height),
+            painter: const _SunburstPainter(),
+          ),
+          // ── Scrollable content ───────────────────────────────────────────
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 32),
 
-            // ── Save progress (guest prompt) ──
-            if (widget.onSaveProgress != null) ...[
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: widget.onSaveProgress,
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4285F4).withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0xFF4285F4).withValues(alpha: 0.35),
+                  // Title
+                  Text(
+                    widget.isTutorial ? 'Bravo!' : 'Niveli Kaluar!',
+                    textAlign: TextAlign.center,
+                    style: AppFonts.nunito(
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ).copyWith(
+                      shadows: [
+                        Shadow(
+                          color: Colors.black.withValues(alpha: 0.22),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'G',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Color(0xFF4285F4),
-                          height: 1.3,
-                        ),
+                  const SizedBox(height: 22),
+
+                  // Stars
+                  _buildStarsRow(),
+                  const SizedBox(height: 26),
+
+                  // Mini solved grid
+                  if (!widget.isTutorial && widget.solvedGrid != null) ...[
+                    _buildGridPreview(widget.solvedGrid!, size.width),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // Stats card
+                  _buildStatsCard(),
+
+                  // Double coins ad
+                  if (showDoubleAd) ...[
+                    const SizedBox(height: 12),
+                    _buildDoubleCoinsOffer(),
+                  ],
+
+                  // Save progress
+                  if (widget.onSaveProgress != null) ...[
+                    const SizedBox(height: 12),
+                    _buildSaveProgressRow(),
+                  ],
+
+                  const SizedBox(height: 32),
+
+                  // Next Level button
+                  _buildNextLevelButton(),
+                  const SizedBox(height: 16),
+
+                  // Play again text link
+                  GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      widget.onRestart();
+                    },
+                    child: Text(
+                      'Luaj Përsëri',
+                      style: AppFonts.nunito(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.82),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Ruaj progresin · +100 monedha',
-                        style: AppFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF93C5FD),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 28),
+                ],
               ),
-            ],
-          ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _adOfferTile({
-    required bool loading,
-    required Color iconBg,
-    required Color iconBorder,
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required String subtitle,
-    required String badgeLabel,
-    Color badgeColor = const Color(0xFFF4B400),
-    Color badgeTextColor = const Color(0xFF7A3F00),
-    required Future<void> Function() onTap,
-  }) {
+  // ── Stars row ──────────────────────────────────────────────────────────────
+
+  Widget _buildStarsRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(3, (i) {
+        final filled = i < widget.stars;
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: ScaleTransition(
+            scale: filled
+                ? _starScale[i]
+                : const AlwaysStoppedAnimation(1.0),
+            child: Icon(
+              Icons.star_rounded,
+              size: 56,
+              color: filled
+                  ? const Color(0xFFFDD835)
+                  : Colors.white.withValues(alpha: 0.22),
+              shadows: filled
+                  ? [
+                      Shadow(
+                        color: const Color(0xFFFDD835).withValues(alpha: 0.55),
+                        blurRadius: 18,
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ── Mini grid preview ──────────────────────────────────────────────────────
+
+  Widget _buildGridPreview(List<List<String>> grid, double screenWidth) {
+    final gridLen = grid.length;
+    const gap = 2.0;
+    // Fit the grid within the available width
+    final maxWidth = (screenWidth - 48 - 28).clamp(0.0, 280.0);
+    final cellSize = ((maxWidth - (gridLen - 1) * gap) / gridLen).floorToDouble();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(22),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.32), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(gridLen, (row) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: row < gridLen - 1 ? gap : 0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(gridLen, (col) {
+                final letter =
+                    row < grid.length && col < grid[row].length
+                        ? grid[row][col]
+                        : 'X';
+                final isLetter = letter != 'X';
+                return Container(
+                  width: cellSize,
+                  height: cellSize,
+                  margin: EdgeInsets.only(right: col < gridLen - 1 ? gap : 0),
+                  decoration: BoxDecoration(
+                    color: isLetter
+                        ? Colors.white.withValues(alpha: 0.92)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: isLetter
+                      ? Center(
+                          child: Text(
+                            letter,
+                            style: AppFonts.nunito(
+                              fontSize: (cellSize * 0.38).clamp(9.0, 14.0),
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFF0D47A1),
+                            ),
+                          ),
+                        )
+                      : null,
+                );
+              }),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ── Stats card ─────────────────────────────────────────────────────────────
+
+  Widget _buildStatsCard() {
+    final coins = _doubled ? widget.coinsEarned * 2 : widget.coinsEarned;
+    final hasCoins = coins > 0;
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.16),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.28), width: 1.5),
+      ),
+      child: Column(
+        children: [
+          // Coins row
+          if (hasCoins)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+              child: Row(
+                children: [
+                  Text(
+                    'Monedha',
+                    style: AppFonts.quicksand(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_doubled) ...[
+                    Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4CAF50).withValues(alpha: 0.28),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color:
+                                const Color(0xFF4CAF50).withValues(alpha: 0.5)),
+                      ),
+                      child: Text(
+                        '×2',
+                        style: AppFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF69F0AE),
+                        ),
+                      ),
+                    ),
+                  ],
+                  Text(
+                    '+$coins',
+                    style: AppFonts.nunito(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFFDD835),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const CoinIcon(size: 20),
+                ],
+              ),
+            ),
+          // Divider between rows
+          if (hasCoins)
+            Divider(height: 1, color: Colors.white.withValues(alpha: 0.15)),
+          // Stars row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+            child: Row(
+              children: [
+                Text(
+                  'Yjet e Niveli',
+                  style: AppFonts.quicksand(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                ),
+                const Spacer(),
+                Row(
+                  children: List.generate(3, (i) {
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Icon(
+                        Icons.star_rounded,
+                        size: 24,
+                        color: i < widget.stars
+                            ? const Color(0xFFFDD835)
+                            : Colors.white.withValues(alpha: 0.2),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Double coins ad tile ───────────────────────────────────────────────────
+
+  Widget _buildDoubleCoinsOffer() {
     return GestureDetector(
-      onTap: (_adLoading != _AdLoading.none) ? null : onTap,
+      onTap: _adLoading != _AdLoading.none ? null : _watchDoubleCoinsAd,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+          color: Colors.white.withValues(alpha: 0.13),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
         ),
         child: Row(
           children: [
             Container(
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: iconBorder),
+                color: AppColors.purpleAccent.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                    color: AppColors.purpleAccent.withValues(alpha: 0.4)),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              child:
+                  const Icon(Icons.videocam, color: Color(0xFFC084FC), size: 20),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: AppFonts.nunito(
-                          fontSize: 13, fontWeight: FontWeight.w900)),
-                  Text(subtitle,
-                      style: AppFonts.quicksand(
-                          fontSize: 11,
-                          color: Colors.white.withValues(alpha: 0.5))),
+                  Text(
+                    'Dyfisho Monedhat',
+                    style: AppFonts.nunito(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white),
+                  ),
+                  Text(
+                    '+${widget.coinsEarned * 2} monedha falas',
+                    style: AppFonts.quicksand(
+                        fontSize: 11,
+                        color: Colors.white.withValues(alpha: 0.6)),
+                  ),
                 ],
               ),
             ),
             ShikoButton(
               size: ShikoSize.medium,
-              loading: loading,
-              badge: badgeLabel,
+              loading: _adLoading == _AdLoading.doubleCoins,
+              badge: '×2',
               onTap: null,
             ),
           ],
@@ -333,48 +468,112 @@ class _WinModalState extends State<WinModal> with TickerProviderStateMixin {
       ),
     );
   }
+
+  // ── Save progress row ──────────────────────────────────────────────────────
+
+  Widget _buildSaveProgressRow() {
+    return GestureDetector(
+      onTap: widget.onSaveProgress,
+      child: Container(
+        width: double.infinity,
+        padding:
+            const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4285F4).withValues(alpha: 0.18),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+              color: const Color(0xFF4285F4).withValues(alpha: 0.38)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'G',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF4285F4),
+                height: 1.3,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Ruaj Progresin · +100 monedha',
+              style: AppFonts.nunito(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF93C5FD),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Next level button ──────────────────────────────────────────────────────
+
+  Widget _buildNextLevelButton() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        widget.onNextLevel();
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(34),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 20,
+              offset: const Offset(0, 7),
+            ),
+          ],
+        ),
+        child: Text(
+          widget.isTutorial ? 'Fillo Lojën' : 'Niveli ${widget.nextLevelNumber}',
+          textAlign: TextAlign.center,
+          style: AppFonts.nunito(
+            fontSize: 19,
+            fontWeight: FontWeight.w900,
+            color: const Color(0xFF1565C0),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-// ── Shared modal button helper ────────────────────────
-Widget _modalButton({
-  required String label,
-  required IconData icon,
-  required VoidCallback onTap,
-  required bool isPrimary,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 15),
-      decoration: isPrimary
-          ? BoxDecoration(
-              color: AppColors.purpleAccent.withValues(alpha: 0.22),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.5)),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.purpleAccent.withValues(alpha: 0.35),
-                  blurRadius: 18,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            )
-          : BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-            ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: AppFonts.nunito(fontSize: 14, fontWeight: FontWeight.w900),
-          ),
-        ],
-      ),
-    ),
-  );
+// ── Sunburst painter ───────────────────────────────────────────────────────────
+
+class _SunburstPainter extends CustomPainter {
+  const _SunburstPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const rays   = 18;
+    final cx     = size.width / 2;
+    final cy     = size.height * 0.26;
+    final radius = size.longestSide * 1.55;
+    final paint  = Paint()
+      ..color = Colors.white.withValues(alpha: 0.1)
+      ..style = PaintingStyle.fill;
+
+    for (int i = 0; i < rays; i++) {
+      final a1 = (i * 2 / rays) * math.pi;
+      final a2 = ((i * 2 + 1) / rays) * math.pi;
+      final path = Path()
+        ..moveTo(cx, cy)
+        ..lineTo(cx + radius * math.cos(a1), cy + radius * math.sin(a1))
+        ..lineTo(cx + radius * math.cos(a2), cy + radius * math.sin(a2))
+        ..close();
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_) => false;
 }
