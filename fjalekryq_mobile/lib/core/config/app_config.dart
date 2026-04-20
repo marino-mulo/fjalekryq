@@ -71,7 +71,7 @@ class AppConfig {
 
   /// Price shown to users for the "Remove Ads" in-app purchase.
   /// Replace with the real price from your App Store / Play Store product.
-  static const String removeAdsPriceLabel = '\$3.99';
+  static const String removeAdsPriceLabel = '\$4.99';
 
   // ── API / Backend (future) ────────────────────────────────────────────────
   /// Base URL for the backend REST API.
