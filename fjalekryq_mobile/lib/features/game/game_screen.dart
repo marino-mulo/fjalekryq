@@ -28,7 +28,6 @@ import 'widgets/save_progress_prompt_modal.dart';
 const _levelKey = 'fjalekryq_level';
 const _playingLevelKey = 'fjalekryq_playing_level';
 const _tutorialKey = 'fjalekryq_tutorial_done';
-const _replayRunKeyPrefix = 'fjalekryq_replay_run_';
 
 /// Tutorial puzzle: MALI (vertical), BORA (horizontal), DETI (horizontal)
 final _tutorialPuzzle = Wordle7Puzzle(
@@ -108,10 +107,6 @@ class _GameScreenState extends State<GameScreen> {
   // Stored so we can call disposeBanner() safely in dispose()
   late AdService _adServiceRef;
 
-  // Replay mode: true when user restarts after already getting 3 stars.
-  // In this mode no progress is saved, no rewards are shown, 5-moves warning is skipped.
-  bool _isReplayRun = false;
-
   // 5-moves warning (shown once per game session)
   bool _fiveMovesWarningShown = false;
   bool _showFiveMovesBanner = false;
@@ -160,9 +155,8 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    // 5-moves warning: offer more moves before it's too late (skip in replay runs)
+    // 5-moves warning: offer more moves before it's too late
     if (!_isTutorial &&
-        !_isReplayRun &&
         !_fiveMovesWarningShown &&
         !_game.gameLost &&
         !_game.gameWon &&
@@ -213,7 +207,6 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final saved = await _game.loadSavedState(playingLevel);
       if (saved != null && saved.puzzle.hash != 'tutorial_v1' && saved.level == playingLevel) {
-        _isReplayRun = _prefs.getBool('$_replayRunKeyPrefix$playingLevel') ?? false;
         _game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount, playingLevel);
       } else {
         _loadPuzzle();
@@ -231,6 +224,9 @@ class _GameScreenState extends State<GameScreen> {
     _showingFailModal = false;
     _failCount = 0;
     _game.clearSavedState();
+    // Mark level as in-progress so home screen shows "Continue"
+    final lvl = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
+    _prefs.setBool('fjalekryq_in_progress_$lvl', true);
 
     final level = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
     final puzzleStore = context.read<LevelPuzzleStore>();
@@ -288,12 +284,11 @@ class _GameScreenState extends State<GameScreen> {
 
       _game.saveProgress(playingLevel, completed: true);
 
-      // Clear in-progress and replay flags
+      // Clear in-progress flag — level complete
       _prefs.remove('fjalekryq_in_progress_$playingLevel');
-      _prefs.remove('$_replayRunKeyPrefix$playingLevel');
 
       // Award coins only on first clear
-      final isFirstClear = !_isReplayRun && playingLevel >= progress;
+      final isFirstClear = playingLevel >= progress;
       if (isFirstClear) {
         final diff = difficultyForLevel(playingLevel);
         _coinsEarned = _difficultyCoinMap[diff] ?? 10;
@@ -374,11 +369,6 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _restartLevel() {
-    final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
-    if (!_isTutorial) {
-      // Mark as replay so we don't re-award coins — best stars already saved on win.
-      _prefs.setBool('$_replayRunKeyPrefix$playingLevel', true);
-    }
     setState(() {
       _isCompleted = false;
       _winCoinsDoubled = false;
@@ -387,7 +377,6 @@ class _GameScreenState extends State<GameScreen> {
       _fiveMovesWarningShown = false;
       _showFiveMovesBanner = false;
       _showingFailModal = false;
-      _isReplayRun = true;
     });
     _game.resetPuzzle();
   }
@@ -1065,15 +1054,10 @@ class _GameScreenState extends State<GameScreen> {
         coinsEarned: _coinsEarned,
         winCoinsDoubled: _winCoinsDoubled,
         isTutorial: _isTutorial,
-        isReplayRun: _isReplayRun,
         nextLevelNumber: _nextLevelNumber,
         solvedGrid: _game.solution,
         onDoubleCoins: () async {
           await _watchAdToDoubleWinCoins();
-        },
-        onRestart: () {
-          Navigator.pop(ctx);
-          Future.microtask(_restartLevel);
         },
         onNextLevel: () {
           setState(() {
@@ -1084,6 +1068,10 @@ class _GameScreenState extends State<GameScreen> {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _nextLevel();
           });
+        },
+        onGoHome: () {
+          Navigator.pop(ctx);
+          Navigator.pop(context);
         },
         onSaveProgress: _shouldShowSavePrompt()
             ? () {

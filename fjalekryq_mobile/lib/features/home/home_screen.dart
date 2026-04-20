@@ -6,12 +6,12 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/daily_puzzle_service.dart';
 import '../../shared/constants/theme.dart';
-import '../level_map/level_map_screen.dart';
 import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
+import '../game/game_screen.dart';
 import 'daily_offer.dart';
 import 'daily_offer_banner.dart';
 import 'leaderboard_full_screen.dart';
@@ -27,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with TickerProviderStateMixin {
   int _level = 1;
+  bool _inProgress = false;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = context.read<SharedPreferences>();
     _level = prefs.getInt(_levelKey) ?? 1;
     if (_level < 1) _level = 1;
+    _inProgress = prefs.getBool('fjalekryq_in_progress_$_level') ?? false;
 
     // Entrance animation
     _fadeController = AnimationController(
@@ -94,12 +96,22 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  void _openLevelMap() {
+  void _openGame() {
     HapticFeedback.lightImpact();
     context.read<AudioService>().play(Sfx.button);
+    final prefs = context.read<SharedPreferences>();
+    final level = prefs.getInt(_levelKey) ?? 1;
+    prefs.setInt('fjalekryq_playing_level', level);
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => const LevelMapScreen(),
-    ));
+      builder: (_) => const GameScreen(),
+    )).then((_) {
+      if (!mounted) return;
+      final p = context.read<SharedPreferences>();
+      setState(() {
+        _level = p.getInt(_levelKey) ?? 1;
+        _inProgress = p.getBool('fjalekryq_in_progress_$_level') ?? false;
+      });
+    });
   }
 
   void _openDailyPuzzle() {
@@ -350,14 +362,11 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Widget _buildLevelButton() {
+    final label = _inProgress ? 'Vazhdo Nivelin $_level' : 'Niveli $_level';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: GestureDetector(
-        onTap: () {
-          HapticFeedback.mediumImpact();
-          context.read<AudioService>().play(Sfx.button);
-          _openLevelMap();
-        },
+        onTap: _openGame,
         child: Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 18),
@@ -378,7 +387,7 @@ class _HomeScreenState extends State<HomeScreen>
           ),
           child: Center(
             child: Text(
-              'Niveli $_level',
+              label,
               style: AppFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,

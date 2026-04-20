@@ -12,13 +12,11 @@ class WinModal extends StatefulWidget {
   final int coinsEarned;
   final bool winCoinsDoubled;
   final bool isTutorial;
-  final bool isReplayRun;
   final int nextLevelNumber;
-  /// Solved grid snapshot used to render the mini puzzle thumbnail.
   final List<List<String>>? solvedGrid;
   final Future<void> Function() onDoubleCoins;
-  final VoidCallback onRestart;
   final VoidCallback onNextLevel;
+  final VoidCallback onGoHome;
   final VoidCallback? onSaveProgress;
 
   const WinModal({
@@ -27,12 +25,11 @@ class WinModal extends StatefulWidget {
     required this.coinsEarned,
     required this.winCoinsDoubled,
     required this.isTutorial,
-    required this.isReplayRun,
     required this.nextLevelNumber,
     this.solvedGrid,
     required this.onDoubleCoins,
-    required this.onRestart,
     required this.onNextLevel,
+    required this.onGoHome,
     this.onSaveProgress,
   });
 
@@ -67,7 +64,6 @@ class _WinModalState extends State<WinModal> {
   @override
   Widget build(BuildContext context) {
     final showDoubleAd = !widget.isTutorial &&
-        !widget.isReplayRun &&
         widget.coinsEarned > 0 &&
         !_doubled;
     final size = MediaQuery.of(context).size;
@@ -151,21 +147,22 @@ class _WinModalState extends State<WinModal> {
                   _buildNextLevelButton(),
                   const SizedBox(height: 16),
 
-                  // Play again text link
-                  GestureDetector(
-                    onTap: () {
-                      HapticFeedback.selectionClick();
-                      widget.onRestart();
-                    },
-                    child: Text(
-                      'Luaj Përsëri',
-                      style: AppFonts.nunito(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white.withValues(alpha: 0.82),
+                  // Go home text link
+                  if (!widget.isTutorial)
+                    GestureDetector(
+                      onTap: () {
+                        HapticFeedback.selectionClick();
+                        widget.onGoHome();
+                      },
+                      child: Text(
+                        'Kthehu në Fillim',
+                        style: AppFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white.withValues(alpha: 0.82),
+                        ),
                       ),
                     ),
-                  ),
                   const SizedBox(height: 28),
                 ],
               ),
