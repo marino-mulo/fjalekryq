@@ -13,7 +13,6 @@ enum Sfx {
   error,
   button,
   levelSelect,
-  star,
   dailyClaim,
 }
 
@@ -28,7 +27,6 @@ const _sfxFiles = {
   Sfx.error: 'audio/sfx/error.wav',
   Sfx.button: 'audio/sfx/button.wav',
   Sfx.levelSelect: 'audio/sfx/level_select.wav',
-  Sfx.star: 'audio/sfx/star.wav',
   Sfx.dailyClaim: 'audio/sfx/daily_claim.wav',
 };
 
@@ -52,7 +50,7 @@ const _bgMusicFile = 'audio/music/bg_music.wav';
 ///   sfx/star.wav       — star awarded (~300ms twinkle)
 ///   sfx/daily_claim.wav — daily reward claimed (~500ms reward jingle)
 ///   music/bg_music.wav — background loop (30-60s ambient track, will loop)
-const bool _audioReady = false;
+const bool _audioReady = true;
 
 class AudioService {
   final SettingsService _settings;

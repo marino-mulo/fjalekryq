@@ -10,7 +10,6 @@ import '../../shared/widgets/app_top_bar.dart';
 import '../game/game_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
-const _starsKeyPrefix = 'fjalekryq_stars_';
 
 const _albanianLetters = 'ABCDEFGHJKLMNOPRSTUVXZÇË';
 const _colPattern = [0, 1, 2, 1]; // zigzag: left, center, right, center
@@ -58,7 +57,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
   late ScrollController _scrollController;
   late AnimationController _pulseController;
   int _currentLevel = 1;
-  final _levelStars = <int, int>{};
 
   @override
   void initState() {
@@ -72,10 +70,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
     final prefs = context.read<SharedPreferences>();
     _currentLevel = prefs.getInt(_levelKey) ?? 1;
     if (_currentLevel < 1) _currentLevel = 1;
-
-    for (int level = 1; level < _currentLevel; level++) {
-      _levelStars[level] = prefs.getInt('$_starsKeyPrefix$level') ?? 0;
-    }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToCurrentLevel();
@@ -115,10 +109,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
     return 'locked';
   }
 
-  int _getStars(int level) => _levelStars[level] ?? 0;
-
-  int get _totalStars => _levelStars.values.fold(0, (sum, s) => sum + s);
-
   void _selectLevel(int level) {
     if (_getState(level) == 'locked') return;
     HapticFeedback.mediumImpact();
@@ -130,9 +120,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
     )).then((_) {
       setState(() {
         _currentLevel = prefs.getInt(_levelKey) ?? 1;
-        for (int l = 1; l < _currentLevel; l++) {
-          _levelStars[l] = prefs.getInt('$_starsKeyPrefix$l') ?? 0;
-        }
       });
     });
   }
@@ -184,10 +171,9 @@ class _LevelMapScreenState extends State<LevelMapScreen>
 
                 final node = nodes[index];
                 final state = _getState(node.level);
-                final stars = _getStars(node.level);
                 final diffColor = _diffColor(node.difficulty);
 
-                return _buildNodeRow(node, state, stars, diffColor);
+                return _buildNodeRow(node, state, diffColor);
               },
             ),
           ),
@@ -216,9 +202,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
                   setState(() {
                     final prefs = context.read<SharedPreferences>();
                     _currentLevel = prefs.getInt(_levelKey) ?? 1;
-                    for (int l = 1; l < _currentLevel; l++) {
-                      _levelStars[l] = prefs.getInt('$_starsKeyPrefix$l') ?? 0;
-                    }
                   });
                 });
               },
@@ -263,40 +246,11 @@ class _LevelMapScreenState extends State<LevelMapScreen>
   Widget _buildHeader(double statusBarHeight) {
     return Padding(
       padding: EdgeInsets.only(top: statusBarHeight),
-      child: AppTopBar(
-        title: 'HARTA E LOJËS',
-        trailing: Container(
-          height: 40,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.2),
-              width: 1.5,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.star_rounded, color: AppColors.gold, size: 18),
-              const SizedBox(width: 6),
-              Text(
-                '$_totalStars',
-                style: AppFonts.nunito(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.gold,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+      child: const AppTopBar(title: 'HARTA E LOJËS'),
     );
   }
 
-  Widget _buildNodeRow(_LevelNode node, String state, int stars, Color diffColor) {
+  Widget _buildNodeRow(_LevelNode node, String state, Color diffColor) {
     // Alignment: col-0=left(8%), col-1=center, col-2=right(8%)
     final alignment = node.col == 0
         ? Alignment.centerLeft
@@ -343,7 +297,6 @@ class _LevelMapScreenState extends State<LevelMapScreen>
                         level: node.level,
                         letter: node.letter,
                         state: state,
-                        stars: stars,
                         isBoss: node.isBoss,
                         diffColor: diffColor,
                       ),
@@ -471,7 +424,6 @@ class _LevelTile extends StatelessWidget {
   final int level;
   final String letter;
   final String state;
-  final int stars;
   final bool isBoss;
   final Color diffColor;
 
@@ -479,7 +431,6 @@ class _LevelTile extends StatelessWidget {
     required this.level,
     required this.letter,
     required this.state,
-    required this.stars,
     required this.isBoss,
     required this.diffColor,
   });
@@ -629,24 +580,6 @@ class _LevelTile extends StatelessWidget {
           ],
         ),
 
-        // Stars below completed (matching web .node-stars)
-        if (isCompleted && stars > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: List.generate(3, (i) => Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 1),
-                child: Icon(
-                  Icons.star_rounded,
-                  size: 12,
-                  color: i < stars
-                      ? AppColors.gold
-                      : Colors.white.withValues(alpha: 0.2),
-                ),
-              )),
-            ),
-          ),
       ],
     );
   }

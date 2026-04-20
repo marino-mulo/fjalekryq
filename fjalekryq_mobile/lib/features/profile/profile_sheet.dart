@@ -45,7 +45,6 @@ class ProfileSheet extends StatefulWidget {
 
 class _ProfileSheetState extends State<ProfileSheet> {
   UserModel? _user;
-  int _totalStars = 0;
   int _levelsCompleted = 0;
   bool _editingName = false;
   late TextEditingController _nameController;
@@ -71,13 +70,11 @@ class _ProfileSheetState extends State<ProfileSheet> {
     final progressRepo = context.read<ProgressRepository>();
 
     final user = await userRepo.getById(userId);
-    final stars = await progressRepo.getTotalStars(userId);
     final levels = await progressRepo.getCompletedCount(userId);
 
     if (mounted) {
       setState(() {
         _user = user;
-        _totalStars = stars;
         _levelsCompleted = levels;
         _nameController.text = user?.username ?? '';
       });
@@ -238,22 +235,11 @@ class _ProfileSheetState extends State<ProfileSheet> {
           // Stats cards
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Expanded(child: _buildStatCard(
-                  icon: Icons.flag_rounded,
-                  iconColor: AppColors.cellGreen,
-                  label: 'Nivele',
-                  value: '$_levelsCompleted',
-                )),
-                const SizedBox(width: 12),
-                Expanded(child: _buildStatCard(
-                  icon: Icons.star_rounded,
-                  iconColor: AppColors.gold,
-                  label: 'Yje',
-                  value: '$_totalStars',
-                )),
-              ],
+            child: _buildStatCard(
+              icon: Icons.flag_rounded,
+              iconColor: AppColors.cellGreen,
+              label: 'Nivele të Kryera',
+              value: '$_levelsCompleted',
             ),
           ),
 

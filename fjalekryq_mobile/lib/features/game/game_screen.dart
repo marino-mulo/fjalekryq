@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/puzzle.dart';
@@ -27,8 +28,6 @@ import 'widgets/save_progress_prompt_modal.dart';
 const _levelKey = 'fjalekryq_level';
 const _playingLevelKey = 'fjalekryq_playing_level';
 const _tutorialKey = 'fjalekryq_tutorial_done';
-const _starsKeyPrefix = 'fjalekryq_stars_';
-const _replayRunKeyPrefix = 'fjalekryq_replay_run_';
 
 /// Tutorial puzzle: MALI (vertical), BORA (horizontal), DETI (horizontal)
 final _tutorialPuzzle = Wordle7Puzzle(
@@ -92,7 +91,6 @@ class _GameScreenState extends State<GameScreen> {
   // Completion state
   bool _isCompleted = false;
   String _completedPraise = 'Bravo!';
-  int _completedStars = 0;
   int _coinsEarned = 0;
 
   // Loading state
@@ -106,9 +104,8 @@ class _GameScreenState extends State<GameScreen> {
   bool _winCoinsDoubled = false;
   bool _continuedAfterLoss = false;
 
-  // Replay mode: true when user restarts after already getting 3 stars.
-  // In this mode no progress is saved, no rewards are shown, 5-moves warning is skipped.
-  bool _isReplayRun = false;
+  // Stored so we can call disposeBanner() safely in dispose()
+  late AdService _adServiceRef;
 
   // 5-moves warning (shown once per game session)
   bool _fiveMovesWarningShown = false;
@@ -129,11 +126,16 @@ class _GameScreenState extends State<GameScreen> {
     _game = GameService(_prefs, gameStateRepo, progressRepo, _userId);
     _game.addListener(_onGameChanged);
 
+    _adServiceRef = context.read<AdService>();
+    _adServiceRef.loadBanner();
+    _adServiceRef.preloadInterstitial();
+
     _initializeGame();
   }
 
   @override
   void dispose() {
+    _adServiceRef.disposeBanner();
     _game.removeListener(_onGameChanged);
     _game.dispose();
     super.dispose();
@@ -153,9 +155,8 @@ class _GameScreenState extends State<GameScreen> {
       }
     }
 
-    // 5-moves warning: offer more moves before it's too late (skip in replay runs)
+    // 5-moves warning: offer more moves before it's too late
     if (!_isTutorial &&
-        !_isReplayRun &&
         !_fiveMovesWarningShown &&
         !_game.gameLost &&
         !_game.gameWon &&
@@ -206,7 +207,6 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final saved = await _game.loadSavedState(playingLevel);
       if (saved != null && saved.puzzle.hash != 'tutorial_v1' && saved.level == playingLevel) {
-        _isReplayRun = _prefs.getBool('$_replayRunKeyPrefix$playingLevel') ?? false;
         _game.restorePuzzle(saved.puzzle, saved.grid, saved.swapCount, saved.hintCount, saved.totalSwapCount, playingLevel);
       } else {
         _loadPuzzle();
@@ -224,6 +224,9 @@ class _GameScreenState extends State<GameScreen> {
     _showingFailModal = false;
     _failCount = 0;
     _game.clearSavedState();
+    // Mark level as in-progress so home screen shows "Continue"
+    final lvl = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
+    _prefs.setBool('fjalekryq_in_progress_$lvl', true);
 
     final level = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
     final puzzleStore = context.read<LevelPuzzleStore>();
@@ -263,20 +266,6 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  int _computeStars() {
-    final rem = _game.swapsRemaining;
-    if (rem >= 7) return 3;
-    if (rem >= 3) return 2;
-    return 1;
-  }
-
-  int get _previewStars {
-    final rem = _game.swapsRemaining;
-    if (rem >= 7) return 3;
-    if (rem >= 3) return 2;
-    return 1;
-  }
-
   void _onWin() {
     if (_isCompleted) return;
     HapticFeedback.heavyImpact();
@@ -286,12 +275,6 @@ class _GameScreenState extends State<GameScreen> {
     _tutorialHighlightCells = [];
     _isCompleted = true;
     _completedPraise = _praises[DateTime.now().millisecond % _praises.length];
-    final stars = _computeStars();
-    _completedStars = stars;
-    // Play star sounds with staggered delay
-    for (int i = 0; i < stars; i++) {
-      Future.delayed(Duration(milliseconds: 400 + i * 300), () => _audio.play(Sfx.star));
-    }
 
     if (_isTutorial) {
       _coinsEarned = 0;
@@ -299,19 +282,13 @@ class _GameScreenState extends State<GameScreen> {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
 
-      // Always save best stars (replay or first clear)
-      final starsKey = '$_starsKeyPrefix$playingLevel';
-      final existing = _prefs.getInt(starsKey) ?? 0;
-      final bestStars = stars > existing ? stars : existing;
-      _prefs.setInt(starsKey, bestStars);
-      _game.saveProgress(playingLevel, stars: bestStars, completed: true);
+      _game.saveProgress(playingLevel, completed: true);
 
-      // Clear in-progress and replay flags
+      // Clear in-progress flag — level complete
       _prefs.remove('fjalekryq_in_progress_$playingLevel');
-      _prefs.remove('$_replayRunKeyPrefix$playingLevel');
 
       // Award coins only on first clear
-      final isFirstClear = !_isReplayRun && playingLevel >= progress;
+      final isFirstClear = playingLevel >= progress;
       if (isFirstClear) {
         final diff = difficultyForLevel(playingLevel);
         _coinsEarned = _difficultyCoinMap[diff] ?? 10;
@@ -334,14 +311,13 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _onHint() {
+  void _onHint() async {
     HapticFeedback.mediumImpact();
     final coinService = context.read<CoinService>();
     if (!_isTutorial) {
       if (!coinService.canAfford(hintCost)) {
-        HapticFeedback.heavyImpact();
-        _audio.play(Sfx.error);
-        _showInsufficientCoins('hint');
+        // No coins — watch a rewarded ad for a free hint instead
+        await _watchAdForFreeHint();
         return;
       }
       coinService.spend(hintCost);
@@ -373,7 +349,7 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  void _nextLevel() {
+  void _nextLevel() async {
     if (_isTutorial) {
       _prefs.setBool(_tutorialKey, true);
       _isTutorial = false;
@@ -382,6 +358,10 @@ class _GameScreenState extends State<GameScreen> {
       _game.setTutorialMode(false);
       _loadPuzzle();
     } else {
+      // Show interstitial at the natural break between levels (every 3 completions).
+      // The loading spinner is already visible behind the interstitial.
+      await context.read<AdService>().showInterstitialIfDue();
+      if (!mounted) return;
       final progress = _prefs.getInt(_levelKey) ?? 1;
       _prefs.setInt(_playingLevelKey, progress);
       _loadPuzzle();
@@ -389,11 +369,6 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _restartLevel() {
-    final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
-    if (!_isTutorial) {
-      // Mark as replay so we don't re-award coins — best stars already saved on win.
-      _prefs.setBool('$_replayRunKeyPrefix$playingLevel', true);
-    }
     setState(() {
       _isCompleted = false;
       _winCoinsDoubled = false;
@@ -402,7 +377,6 @@ class _GameScreenState extends State<GameScreen> {
       _fiveMovesWarningShown = false;
       _showFiveMovesBanner = false;
       _showingFailModal = false;
-      _isReplayRun = true;
     });
     _game.resetPuzzle();
   }
@@ -561,7 +535,23 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                 ],
 
-                SizedBox(height: bottomPad > 0 ? 8 : 16),
+                // Banner ad — shown at bottom of game screen (prod only).
+                // Hides itself when "Remove Ads" is purchased or not yet loaded.
+                Consumer<AdService>(
+                  builder: (_, ads, __) {
+                    if (!ads.bannerReady) {
+                      return SizedBox(height: bottomPad > 0 ? 8 : 16);
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: SizedBox(
+                        width: ads.bannerAd!.size.width.toDouble(),
+                        height: ads.bannerAd!.size.height.toDouble(),
+                        child: AdWidget(ad: ads.bannerAd!),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -834,7 +824,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   // ══════════════════════════════════════
-  //  Info row: stars | difficulty | moves
+  //  Info row: difficulty | moves
   // ══════════════════════════════════════
 
   Widget _buildInfoRow() {
@@ -846,27 +836,6 @@ class _GameScreenState extends State<GameScreen> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
         children: [
-          // Stars preview
-          if (!_isTutorial)
-            Row(
-              children: List.generate(3, (i) {
-                final lit = i < _previewStars;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 3),
-                  child: Icon(
-                    Icons.star,
-                    size: 15,
-                    color: lit ? const Color(0xFFF4B400) : Colors.white.withValues(alpha: 0.18),
-                    shadows: lit
-                        ? [Shadow(color: const Color(0xFFF4B400).withValues(alpha: 0.7), blurRadius: 4)]
-                        : null,
-                  ),
-                );
-              }),
-            )
-          else
-            const SizedBox(width: 48),
-
           const Spacer(),
 
           // Moves remaining
@@ -935,6 +904,30 @@ class _GameScreenState extends State<GameScreen> {
       setState(() {
         _loadingAd = false;
         if (success) _insufficientType = null;
+      });
+    }
+  }
+
+  Future<void> _watchAdForFreeHint() async {
+    final adService = context.read<AdService>();
+    setState(() => _loadingAd = true);
+
+    final success = await adService.showRewardedAd(
+      adType: AdType.freeHint,
+      onReward: () async {
+        _audio.play(Sfx.hint);
+        _game.hint();
+      },
+      onOffline: () {
+        if (mounted) showOfflineSnack(context);
+      },
+    );
+
+    if (mounted) {
+      setState(() {
+        _loadingAd = false;
+        // If daily limit hit, fall back to the regular insufficient coins banner
+        if (!success) _showInsufficientCoins('hint');
       });
     }
   }
@@ -1054,68 +1047,55 @@ class _GameScreenState extends State<GameScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.78),
-      transitionDuration: const Duration(milliseconds: 520),
-      pageBuilder: (ctx, _, __) => Align(
-        alignment: Alignment.center,
-        child: WinModal(
-          stars: _completedStars,
-          praise: _completedPraise,
-          coinsEarned: _coinsEarned,
-          winCoinsDoubled: _winCoinsDoubled,
-          isTutorial: _isTutorial,
-          isReplayRun: _isReplayRun,
-          nextLevelNumber: _nextLevelNumber,
-          onDoubleCoins: () async {
-            await _watchAdToDoubleWinCoins();
-          },
-          onRestart: () {
-            Navigator.pop(ctx);
-            Future.microtask(_restartLevel);
-          },
-          onNextLevel: () {
-            // Paint the loading state first so the frame behind the
-            // modal is already "loading" — then pop the modal with a
-            // zero reverse-transition so it disappears instantly.
-            setState(() {
-              _isCompleted = false;
-              _isLoading = true;
-            });
-            Navigator.pop(ctx);
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) _nextLevel();
-            });
-          },
-          onSaveProgress: _shouldShowSavePrompt()
-              ? () {
-                  Navigator.pop(ctx);
-                  Future.delayed(const Duration(milliseconds: 200), () {
-                    if (mounted) _showSaveProgressDialog();
-                  });
-                }
-              : null,
-        ),
+      barrierColor: Colors.transparent, // win screen provides its own background
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (ctx, _, __) => WinModal(
+        praise: _completedPraise,
+        coinsEarned: _coinsEarned,
+        winCoinsDoubled: _winCoinsDoubled,
+        isTutorial: _isTutorial,
+        nextLevelNumber: _nextLevelNumber,
+        solvedGrid: _game.solution,
+        onDoubleCoins: () async {
+          await _watchAdToDoubleWinCoins();
+        },
+        onNextLevel: () {
+          setState(() {
+            _isCompleted = false;
+            _isLoading = true;
+          });
+          Navigator.pop(ctx);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _nextLevel();
+          });
+        },
+        onGoHome: () {
+          Navigator.pop(ctx);
+          Navigator.pop(context);
+        },
+        onSaveProgress: _shouldShowSavePrompt()
+            ? () {
+                Navigator.pop(ctx);
+                Future.delayed(const Duration(milliseconds: 200), () {
+                  if (mounted) _showSaveProgressDialog();
+                });
+              }
+            : null,
       ),
       transitionBuilder: (ctx, anim, _, child) {
-        // When the modal is dismissing, hide it instantly so the loading
-        // overlay underneath isn't fading under a lingering modal.
-        return AnimatedBuilder(
-          animation: anim,
-          builder: (_, __) {
-            if (anim.status == AnimationStatus.reverse ||
-                anim.status == AnimationStatus.dismissed) {
-              return const SizedBox.shrink();
-            }
-            return ScaleTransition(
-              scale: Tween(begin: 0.72, end: 1.0).animate(
-                CurvedAnimation(parent: anim, curve: Curves.elasticOut),
-              ),
-              child: FadeTransition(
-                opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
-                child: child,
-              ),
-            );
-          },
+        // Instant dismiss so the loading spinner isn't revealed through a
+        // lingering animation — entrance slides up from the bottom edge.
+        if (anim.status == AnimationStatus.reverse ||
+            anim.status == AnimationStatus.dismissed) {
+          return const SizedBox.shrink();
+        }
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
         );
       },
     );
@@ -1126,35 +1106,40 @@ class _GameScreenState extends State<GameScreen> {
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.78),
-      transitionDuration: const Duration(milliseconds: 420),
-      pageBuilder: (ctx, _, __) => Align(
-        alignment: Alignment.center,
-        child: FailModal(
-          adService: context.read<AdService>(),
-          coinService: context.read<CoinService>(),
-          onWatchAd: () async {
-            Navigator.pop(ctx);
-            await _watchAdToContinue();
-          },
-          onBuyMoves: () {
-            Navigator.pop(ctx);
-            _buyMovesAfterFail();
-          },
-          onRestart: () {
-            Navigator.pop(ctx);
-            setState(() => _showingFailModal = false);
-            _restartLevel();
-          },
-        ),
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (ctx, _, __) => FailModal(
+        adService: context.read<AdService>(),
+        coinService: context.read<CoinService>(),
+        currentGrid: _game.grid,
+        onWatchAd: () async {
+          Navigator.pop(ctx);
+          await _watchAdToContinue();
+        },
+        onBuyMoves: () {
+          Navigator.pop(ctx);
+          _buyMovesAfterFail();
+        },
+        onRestart: () {
+          Navigator.pop(ctx);
+          setState(() => _showingFailModal = false);
+          _restartLevel();
+        },
       ),
-      transitionBuilder: (ctx, anim, _, child) => SlideTransition(
-        position: Tween<Offset>(
-          begin: const Offset(0, 0.18),
-          end: Offset.zero,
-        ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-        child: FadeTransition(opacity: anim, child: child),
-      ),
+      transitionBuilder: (ctx, anim, _, child) {
+        if (anim.status == AnimationStatus.reverse ||
+            anim.status == AnimationStatus.dismissed) {
+          return const SizedBox.shrink();
+        }
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(
+              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+          child: child,
+        );
+      },
     );
   }
 
@@ -1239,7 +1224,7 @@ class _GameScreenState extends State<GameScreen> {
                 cooldownRemaining: _game.hintCooldownRemaining,
                 pulsing: _isTutorial && _tutorialPhase == 5,
                 onTap: _onHint,
-                showWatchBadge: false,
+                showWatchBadge: !_isTutorial && !canAffordHintNow,
                 noCoins: !_isTutorial && !canAffordHintNow,
               ),
             ),

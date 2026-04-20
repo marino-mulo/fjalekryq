@@ -18,7 +18,7 @@ const avatarOptions = [
   (color: Color(0xFFF59E0B), icon: Icons.bolt_rounded),               // 8 bolt
   (color: Color(0xFFEC4899), icon: Icons.favorite_rounded),           // 9 heart
   (color: Color(0xFFFF6B35), icon: Icons.local_fire_department_rounded), // 10 fire
-  (color: Color(0xFF22C55E), icon: Icons.star_rounded),               // 11 star
+  (color: Color(0xFF22C55E), icon: Icons.check_circle_rounded),       // 11 check
 ];
 
 // ─── Model ────────────────────────────────────────────────────────────────────
@@ -41,7 +41,6 @@ class LeaderboardEntry {
 // ─── Tab enum (public — shared with full screen) ──────────────────────────────
 enum LeaderboardTab {
   level(icon: Icons.emoji_events_outlined, label: 'Niveli'),
-  stars(icon: Icons.star_rounded, label: 'Yjet'),
   streak(icon: Icons.local_fire_department_rounded, label: 'Ditore');
 
   final IconData icon;
@@ -65,20 +64,6 @@ final mockLevelLeaderboard = <LeaderboardEntry>[
   const LeaderboardEntry(rank: 23, name: 'Ti',         value: 12,  avatarIndex: 0, isCurrentUser: true),
 ];
 
-// Stars: user at rank 4 — IN top 10 → highlighted in place
-final mockStarsLeaderboard = <LeaderboardEntry>[
-  const LeaderboardEntry(rank: 1,  name: 'Elira_K',    value: 135, avatarIndex: 9),
-  const LeaderboardEntry(rank: 2,  name: 'Arben_94',   value: 126, avatarIndex: 10),
-  const LeaderboardEntry(rank: 3,  name: 'Dritan_B',   value: 114, avatarIndex: 8),
-  const LeaderboardEntry(rank: 4,  name: 'Ti',         value: 42,  avatarIndex: 0, isCurrentUser: true),
-  const LeaderboardEntry(rank: 5,  name: 'Fjolla_X',   value: 38,  avatarIndex: 3),
-  const LeaderboardEntry(rank: 6,  name: 'Gentian_M',  value: 31,  avatarIndex: 14),
-  const LeaderboardEntry(rank: 7,  name: 'Besiana',    value: 24,  avatarIndex: 13),
-  const LeaderboardEntry(rank: 8,  name: 'Klea_S',     value: 19,  avatarIndex: 15),
-  const LeaderboardEntry(rank: 9,  name: 'Mimoza_H',   value: 15,  avatarIndex: 4),
-  const LeaderboardEntry(rank: 10, name: 'Alban_R',    value: 12,  avatarIndex: 1),
-];
-
 // Streak: user at rank 12 — not in top 10 → sticky row shown
 final mockStreakLeaderboard = <LeaderboardEntry>[
   const LeaderboardEntry(rank: 1,  name: 'Dritan_B',   value: 42,  avatarIndex: 8),
@@ -97,7 +82,6 @@ final mockStreakLeaderboard = <LeaderboardEntry>[
 List<LeaderboardEntry> entriesForTab(LeaderboardTab tab) {
   switch (tab) {
     case LeaderboardTab.level:  return mockLevelLeaderboard;
-    case LeaderboardTab.stars:  return mockStarsLeaderboard;
     case LeaderboardTab.streak: return mockStreakLeaderboard;
   }
 }
@@ -105,7 +89,6 @@ List<LeaderboardEntry> entriesForTab(LeaderboardTab tab) {
 Color valueColorForTab(LeaderboardTab tab) {
   switch (tab) {
     case LeaderboardTab.level:  return AppColors.cellGreen;
-    case LeaderboardTab.stars:  return AppColors.gold;
     case LeaderboardTab.streak: return const Color(0xFFFF6B35);
   }
 }
@@ -150,7 +133,6 @@ Future<LeaderboardLoadResult> loadLeaderboard(LeaderboardTab tab) async {
     final repo = remote.RemoteLeaderboardRepository();
     final apiEntries = switch (tab) {
       LeaderboardTab.level  => await repo.getByLevel(),
-      LeaderboardTab.stars  => await repo.getByStars(),
       LeaderboardTab.streak => await repo.getByStreak(),
     };
 

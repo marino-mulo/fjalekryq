@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../config/app_config.dart';
 import '../database/repositories/ad_reward_repository.dart';
 import 'connectivity_service.dart';
@@ -10,35 +11,184 @@ import 'connectivity_service.dart';
 class AdType {
   static const String dailyDouble = 'daily_double';
   static const String freeSolve = 'free_solve';
+  static const String freeHint = 'free_hint';
   static const String bonusCoins = 'bonus_coins';
   static const String continueAfterLoss = 'continue_loss';
   static const String doubleWinCoins = 'double_win';
-
-  /// Shown on win with < 3 stars — watch ad to replay the level.
-  static const String playAgainFor3Stars = 'play_again_3stars';
 }
 
 /// Daily limits per ad type.
 const Map<String, int> adDailyLimits = {
   AdType.dailyDouble: 5,
   AdType.freeSolve: 5,
+  AdType.freeHint: 10,
   AdType.bonusCoins: 5,
   AdType.continueAfterLoss: 5,
   AdType.doubleWinCoins: 5,
-  AdType.playAgainFor3Stars: 3,
 };
 
-/// Manages rewarded ad display and daily limit tracking.
+const String _removeAdsKey = 'fjalekryq_remove_ads';
+const String _levelCompletionCountKey = 'fjalekryq_level_completions';
+
+/// Show an interstitial every N level completions.
+const int _interstitialEveryN = 3;
+
+/// Manages all ad types: rewarded, banner, and interstitial.
 ///
-/// In dev  → simulates a 1.5-second ad viewing delay (no real network calls).
-/// In prod → loads and shows a real Google AdMob rewarded ad.
+/// Remove Ads: once purchased, banners and interstitials are suppressed.
+/// Rewarded ads (user-initiated) remain available even after purchasing
+/// "Remove Ads", consistent with the Easybrain monetization model.
 class AdService extends ChangeNotifier {
   final AdRewardRepository _adRewardRepo;
   final int _userId;
+  final SharedPreferences _prefs;
 
-  AdService(this._adRewardRepo, this._userId);
+  AdService(this._adRewardRepo, this._userId, this._prefs);
 
-  // ── Public API ────────────────────────────────────────────────────────────
+  // ── Remove Ads ────────────────────────────────────────────────────────────
+
+  bool get removeAds => _prefs.getBool(_removeAdsKey) ?? false;
+
+  /// Purchase "Remove Ads". In dev: instant success. In prod: TODO real IAP.
+  ///
+  /// Replace the prod branch with your in_app_purchase flow before shipping.
+  Future<bool> purchaseRemoveAds() async {
+    if (removeAds) return true;
+    if (AppConfig.isDev) {
+      await Future.delayed(const Duration(milliseconds: 600));
+    }
+    // TODO (prod): call real in_app_purchase flow here and only proceed on
+    // confirmed receipt. Until then this grants free removal for testing.
+    await _prefs.setBool(_removeAdsKey, true);
+    _disposeBanner();
+    _disposeInterstitial();
+    notifyListeners();
+    return true;
+  }
+
+  // ── Banner Ad ─────────────────────────────────────────────────────────────
+
+  BannerAd? _bannerAd;
+  bool _bannerReady = false;
+
+  /// True when a banner is loaded and "Remove Ads" has not been purchased.
+  bool get bannerReady => _bannerReady && !removeAds;
+
+  /// The loaded banner, or null if not ready.
+  BannerAd? get bannerAd => bannerReady ? _bannerAd : null;
+
+  /// Load a banner for the game screen. No-op if ads are removed.
+  void loadBanner() {
+    if (removeAds) return;
+    _bannerAd?.dispose();
+    _bannerReady = false;
+
+    final adUnitId = Platform.isAndroid
+        ? AppConfig.bannerAdUnitAndroid
+        : AppConfig.bannerAdUnitIos;
+
+    _bannerAd = BannerAd(
+      adUnitId: adUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (_) {
+          _bannerReady = true;
+          notifyListeners();
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          _bannerAd = null;
+          _bannerReady = false;
+          debugPrint('AdMob: banner failed to load: $error');
+        },
+      ),
+    )..load();
+  }
+
+  /// Dispose the banner. Call from the host widget's dispose().
+  void disposeBanner() => _disposeBanner();
+
+  void _disposeBanner() {
+    _bannerAd?.dispose();
+    _bannerAd = null;
+    _bannerReady = false;
+  }
+
+  // ── Interstitial Ad ───────────────────────────────────────────────────────
+
+  InterstitialAd? _interstitialAd;
+  bool _interstitialReady = false;
+
+  /// Preload an interstitial so it is ready for the next level transition.
+  /// No-op if ads are removed or an ad is already loaded/loading.
+  void preloadInterstitial() {
+    if (removeAds || _interstitialReady) return;
+
+    final adUnitId = Platform.isAndroid
+        ? AppConfig.interstitialAdUnitAndroid
+        : AppConfig.interstitialAdUnitIos;
+
+    InterstitialAd.load(
+      adUnitId: adUnitId,
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) {
+          _interstitialAd = ad;
+          _interstitialReady = true;
+        },
+        onAdFailedToLoad: (error) {
+          _interstitialReady = false;
+          debugPrint('AdMob: interstitial failed to load: $error');
+        },
+      ),
+    );
+  }
+
+  /// Show an interstitial if the frequency cap allows it (every 3 completions).
+  ///
+  /// Always increments the completion counter. Returns true if an ad was shown.
+  Future<bool> showInterstitialIfDue() async {
+    if (removeAds) return false;
+
+    final count = (_prefs.getInt(_levelCompletionCountKey) ?? 0) + 1;
+    await _prefs.setInt(_levelCompletionCountKey, count);
+
+    if (count % _interstitialEveryN != 0) return false;
+
+    if (!_interstitialReady || _interstitialAd == null) {
+      preloadInterstitial();
+      return false;
+    }
+
+    final completer = Completer<bool>();
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _interstitialAd = null;
+        _interstitialReady = false;
+        if (!completer.isCompleted) completer.complete(true);
+        preloadInterstitial();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        _interstitialAd = null;
+        _interstitialReady = false;
+        debugPrint('AdMob: interstitial failed to show: $error');
+        if (!completer.isCompleted) completer.complete(false);
+      },
+    );
+    _interstitialAd!.show();
+    return completer.future;
+  }
+
+  void _disposeInterstitial() {
+    _interstitialAd?.dispose();
+    _interstitialAd = null;
+    _interstitialReady = false;
+  }
+
+  // ── Rewarded Ad ────────────────────────────────────────────────────────────
 
   /// Show a rewarded ad. Returns true if reward was granted.
   ///
@@ -51,19 +201,15 @@ class AdService extends ChangeNotifier {
     required Future<void> Function() onReward,
     void Function()? onOffline,
   }) async {
-    // Enforce daily limit regardless of environment
     final limit = adDailyLimits[adType] ?? 3;
     final claimedToday = await _adRewardRepo.claimedTodayCount(_userId, adType);
     if (claimedToday >= limit) return false;
 
     final bool rewarded;
     if (AppConfig.isDev) {
-      // Dev: simulate ad with a short delay
       await Future.delayed(const Duration(milliseconds: 1500));
       rewarded = true;
     } else {
-      // Prod: need internet for the real ad to load. Bail early with a
-      // callback so the UI can toast the user instead of silently failing.
       if (!await ConnectivityService.hasInternet()) {
         onOffline?.call();
         return false;
@@ -98,7 +244,7 @@ class AdService extends ChangeNotifier {
     return (limit - claimedToday).clamp(0, limit);
   }
 
-  // ── Real AdMob implementation (prod only) ─────────────────────────────────
+  // ── Real AdMob rewarded implementation (prod only) ────────────────────────
 
   Future<bool> _showRealRewardedAd() async {
     final adUnitId = Platform.isAndroid
@@ -115,8 +261,6 @@ class AdService extends ChangeNotifier {
           ad.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
-              // User closed ad without earning reward — complete(false) only
-              // if reward wasn't already granted
               if (!completer.isCompleted) completer.complete(false);
             },
             onAdFailedToShowFullScreenContent: (ad, error) {

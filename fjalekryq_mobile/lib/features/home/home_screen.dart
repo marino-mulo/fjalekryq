@@ -6,13 +6,12 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/daily_puzzle_service.dart';
 import '../../shared/constants/theme.dart';
-import '../level_map/level_map_screen.dart';
 import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../shared/widgets/app_button.dart';
+import '../game/game_screen.dart';
 import 'daily_offer.dart';
 import 'daily_offer_banner.dart';
 import 'leaderboard_full_screen.dart';
@@ -28,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen>
     with TickerProviderStateMixin {
   int _level = 1;
+  bool _inProgress = false;
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen>
     final prefs = context.read<SharedPreferences>();
     _level = prefs.getInt(_levelKey) ?? 1;
     if (_level < 1) _level = 1;
+    _inProgress = prefs.getBool('fjalekryq_in_progress_$_level') ?? false;
 
     // Entrance animation
     _fadeController = AnimationController(
@@ -95,12 +96,22 @@ class _HomeScreenState extends State<HomeScreen>
     super.dispose();
   }
 
-  void _openLevelMap() {
+  void _openGame() {
     HapticFeedback.lightImpact();
     context.read<AudioService>().play(Sfx.button);
+    final prefs = context.read<SharedPreferences>();
+    final level = prefs.getInt(_levelKey) ?? 1;
+    prefs.setInt('fjalekryq_playing_level', level);
     Navigator.push(context, MaterialPageRoute(
-      builder: (_) => const LevelMapScreen(),
-    ));
+      builder: (_) => const GameScreen(),
+    )).then((_) {
+      if (!mounted) return;
+      final p = context.read<SharedPreferences>();
+      setState(() {
+        _level = p.getInt(_levelKey) ?? 1;
+        _inProgress = p.getBool('fjalekryq_in_progress_$_level') ?? false;
+      });
+    });
   }
 
   void _openDailyPuzzle() {
@@ -155,74 +166,76 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
     final dailyAvailable = coinService.peekDaily() != null;
+    final statusBarH = MediaQuery.of(context).padding.top;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppBackground(
         child: Stack(
           children: [
-          // Header pinned at top, edge-to-edge (matching web .menu-header)
-          _buildHeader(dailyAvailable, MediaQuery.of(context).padding.top),
+            // Header pinned at top
+            _buildHeader(dailyAvailable, statusBarH),
 
-          // Top-right floating daily offer banner (always shown; tier
-          // progression is tracked in SharedPreferences).
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 72,
-            right: 12,
-            child: DailyOfferBanner(
-              offer: offerForPrefs(context.read<SharedPreferences>()),
-              onTap: _openDailyOffer,
+            // Top-right floating daily offer banner
+            Positioned(
+              top: statusBarH + 72,
+              right: 12,
+              child: DailyOfferBanner(
+                offer: offerForPrefs(context.read<SharedPreferences>()),
+                onTap: _openDailyOffer,
+              ),
             ),
-          ),
 
-          // Main content below header
-          Positioned.fill(
-            child: SafeArea(
-              child: FadeTransition(
-                opacity: _fadeAnim,
-                child: SlideTransition(
-                  position: _slideAnim,
-                  child: Column(
-                    children: [
-                      // Space for the header
-                      const SizedBox(height: 56),
+            // Main content
+            Positioned.fill(
+              child: SafeArea(
+                child: FadeTransition(
+                  opacity: _fadeAnim,
+                  child: SlideTransition(
+                    position: _slideAnim,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Space for the header
+                        const SizedBox(height: 60),
 
-                      const Spacer(flex: 5),
+                        // ── Horizontal card carousel ─────────────────────────
+                        _buildCardCarousel(),
 
-                      // Logo area with float animation
-                      AnimatedBuilder(
-                        animation: _logoScale,
-                        builder: (context, child) => Transform.scale(
-                          scale: _logoScale.value,
-                          child: Transform.translate(
-                            offset: Offset(0, -7 * (_logoScale.value - 1) / 0.03),
-                            child: child,
+                        const Spacer(flex: 4),
+
+                        // Logo + subtitle
+                        AnimatedBuilder(
+                          animation: _logoScale,
+                          builder: (context, child) => Transform.scale(
+                            scale: _logoScale.value,
+                            child: Transform.translate(
+                              offset: Offset(0, -7 * (_logoScale.value - 1) / 0.03),
+                              child: child,
+                            ),
                           ),
+                          child: _buildLogoSection(),
                         ),
-                        child: _buildLogoSection(),
-                      ),
 
-                      const Spacer(flex: 3),
+                        const Spacer(flex: 3),
 
-                      // CTA buttons side-by-side (matching web: flex-direction: row)
-                      _buildActionButtons(),
+                        // ── Level pill CTA ───────────────────────────────────
+                        _buildLevelButton(),
 
-                      const Spacer(flex: 4),
-                    ],
+                        const SizedBox(height: 36),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
           ],
         ),
       ),
     );
   }
 
-  // Web: .menu-header — full-width glass bar pinned at top
   Widget _buildHeader(bool dailyAvailable, double statusBarHeight) {
-    final coins = context.watch<CoinService>().coins;
     return Positioned(
       top: 0,
       left: 0,
@@ -234,22 +247,17 @@ class _HomeScreenState extends State<HomeScreen>
           left: 20,
           right: 20,
         ),
-        decoration: const BoxDecoration(
-          color: Colors.transparent,
-        ),
+        color: Colors.transparent,
         child: Row(
           children: [
+            // Daily reward — left
             _DailyRewardButton(
               onTap: _openDailyReward,
               available: dailyAvailable,
               pulseController: _pulseController,
             ),
-            const SizedBox(width: 8),
-            _HeaderButton(
-              icon: Icons.leaderboard_rounded,
-              onTap: _openLeaderboard,
-            ),
             const Spacer(),
+            // Settings — right
             _HeaderButton(
               icon: Icons.settings,
               onTap: _openSettings,
@@ -260,23 +268,70 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  // ── Horizontal scrollable cards ──────────────────────────────────────────────
+
+  Widget _buildCardCarousel() {
+    final streak = context.watch<DailyPuzzleService>().currentStreak;
+    final now = DateTime.now();
+    final months = [
+      'Janar', 'Shkurt', 'Mars', 'Prill', 'Maj', 'Qershor',
+      'Korrik', 'Gusht', 'Shtator', 'Tetor', 'Nëntor', 'Dhjetor',
+    ];
+    final dateLabel = '${months[now.month - 1]} ${now.day}';
+
+    return SizedBox(
+      height: 180,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          // Daily Challenge card
+          _HomeCard(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+            ),
+            icon: Icons.today_rounded,
+            iconColor: const Color(0xFFFBBF24),
+            label: 'SFIDA DITORE',
+            title: dateLabel,
+            buttonLabel: streak > 0 ? 'Vazhdo' : 'Luaj',
+            badge: streak > 0 ? '🔥 $streak' : null,
+            onTap: _openDailyPuzzle,
+          ),
+          const SizedBox(width: 14),
+          // Leaderboard card
+          _HomeCard(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
+            ),
+            icon: Icons.emoji_events_rounded,
+            iconColor: const Color(0xFFFBBF24),
+            label: 'RENDITJA',
+            title: 'Tabelë Kryesore',
+            buttonLabel: 'Shiko',
+            onTap: _openLeaderboard,
+          ),
+          const SizedBox(width: 20),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLogoSection() {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          'assets/images/logo.png',
-          width: 200,
-          height: 200,
-        ),
-        const SizedBox(height: 14),
-        // Game tag: "LOJA E FJALEVE SHQIP" with dots (matching web .game-tag)
+        Image.asset('assets/images/logo.png', width: 180, height: 180),
+        const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 4,
-              height: 4,
+              width: 4, height: 4,
               decoration: BoxDecoration(
                 color: const Color(0xFFFFBA27).withValues(alpha: 0.6),
                 shape: BoxShape.circle,
@@ -294,8 +349,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             const SizedBox(width: 8),
             Container(
-              width: 4,
-              height: 4,
+              width: 4, height: 4,
               decoration: BoxDecoration(
                 color: const Color(0xFFFFBA27).withValues(alpha: 0.6),
                 shape: BoxShape.circle,
@@ -307,45 +361,152 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // Web: .menu-actions { flex-direction: row; gap: 10px; }
-  Widget _buildActionButtons() {
-    final streak = context.watch<DailyPuzzleService>().currentStreak;
+  Widget _buildLevelButton() {
+    final label = _inProgress ? 'Vazhdo Nivelin $_level' : 'Niveli $_level';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 340),
-        child: Row(
-          children: [
-            // Play button - primary CTA
-            Expanded(
-              child: AppButton(
-                label: 'LUAJ',
-                icon: Icons.play_arrow_rounded,
-                onTap: _openLevelMap,
-                expanded: true,
-                height: 56,
+      child: GestureDetector(
+        onTap: _openGame,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(34),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF1D4ED8).withValues(alpha: 0.45),
+                blurRadius: 22,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: AppFonts.nunito(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
               ),
             ),
-            const SizedBox(width: 10),
-            // Daily puzzle button - secondary glass with streak badge
-            Expanded(
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  AppButton(
-                    label: 'DITOR',
-                    icon: Icons.today_rounded,
-                    onTap: _openDailyPuzzle,
-                    variant: AppButtonVariant.secondary,
-                    expanded: true,
-                    height: 56,
-                  ),
-                  Positioned(
-                    top: -8,
-                    right: -8,
-                    child: _StreakBadge(streak: streak),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ── Home card widget ──────────────────────────────────────────────────────────
+
+class _HomeCard extends StatelessWidget {
+  final Gradient gradient;
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final String title;
+  final String buttonLabel;
+  final String? badge;
+  final VoidCallback onTap;
+
+  const _HomeCard({
+    required this.gradient,
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    required this.title,
+    required this.buttonLabel,
+    this.badge,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 180,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon + optional timer/badge badge
+            Row(
+              children: [
+                Icon(icon, color: iconColor, size: 30),
+                if (badge != null) ...[
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      badge!,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                 ],
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Small label
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
+                color: Colors.white.withValues(alpha: 0.65),
+              ),
+            ),
+            const SizedBox(height: 2),
+            // Title
+            Text(
+              title,
+              style: AppFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const Spacer(),
+            // Play/Continue button
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                buttonLabel,
+                style: AppFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
               ),
             ),
           ],
@@ -353,7 +514,6 @@ class _HomeScreenState extends State<HomeScreen>
       ),
     );
   }
-
 }
 
 /// Daily reward button with gold tint + pulsing when available (matching web .daily-reward-btn).
@@ -427,58 +587,6 @@ class _DailyRewardButton extends StatelessWidget {
                 ),
               ),
             ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Flame streak badge shown on the Ditor button.
-class _StreakBadge extends StatelessWidget {
-  final int streak;
-  const _StreakBadge({required this.streak});
-
-  @override
-  Widget build(BuildContext context) {
-    final active = streak > 0;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: active
-            ? const Color(0xFFFF6B35)
-            : const Color(0xFF2A3B6B),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFF0C1F4A), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.local_fire_department,
-            color: active
-                ? Colors.white
-                : Colors.white.withValues(alpha: 0.6),
-            size: 11,
-          ),
-          const SizedBox(width: 2),
-          Text(
-            '$streak',
-            style: TextStyle(
-              color: active
-                  ? Colors.white
-                  : Colors.white.withValues(alpha: 0.75),
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              height: 1.1,
-            ),
-          ),
         ],
       ),
     );

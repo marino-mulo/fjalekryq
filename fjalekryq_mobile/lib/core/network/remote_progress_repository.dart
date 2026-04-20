@@ -13,7 +13,6 @@ class RemoteProgressRepository {
     return ProgressModel(
       userId:    userId,
       level:     match['level']     as int,
-      stars:     match['stars']     as int? ?? 0,
       completed: (match['completed'] as bool? ?? false) ? 1 : 0,
     );
   }
@@ -31,17 +30,10 @@ class RemoteProgressRepository {
         .length;
   }
 
-  Future<int> getTotalStars(int userId) async {
-    final data = await ApiClient.get('/progress');
-    return (data['totalStars'] as int?) ?? 0;
-  }
-
   /// Upsert is called by the service layer when a level is completed.
-  Future<void> upsert(int userId, int level, {int? stars, bool? completed}) async {
+  Future<void> upsert(int userId, int level, {bool? completed}) async {
     if (completed == true) {
-      await ApiClient.postVoid('/progress/$level', body: {
-        'stars': stars ?? 0,
-      });
+      await ApiClient.postVoid('/progress/$level', body: {});
     }
   }
 }
