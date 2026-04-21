@@ -1,0 +1,83 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" font-family="Nunito, Arial, sans-serif">
+  <!-- Mini-crossword logo: two Albanian words intersecting.
+       Horizontal: LOJA (= "game") at row 1
+       Vertical:   FJALË (= "word") at col 2
+       Shared letter "J" at (row 1, col 2) is highlighted in gold. -->
+
+  <defs>
+    <!-- Green tile gradient (cellGreen-based) -->
+    <linearGradient id="greenTile" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#4ADE80"/>
+      <stop offset="100%" stop-color="#16A34A"/>
+    </linearGradient>
+    <!-- Gold tile gradient (highlighted intersection) -->
+    <linearGradient id="goldTile" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"   stop-color="#FFE27A"/>
+      <stop offset="100%" stop-color="#F4B400"/>
+    </linearGradient>
+    <!-- Top highlight overlay -->
+    <linearGradient id="tileShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%"  stop-color="#FFFFFF" stop-opacity="0.35"/>
+      <stop offset="50%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!--
+    Grid math (5 cols × 5 rows):
+      tile   = 32×32 px
+      gap    =  4 px
+      total  = 5×32 + 4×4 = 176
+      origin = (200-176)/2 = 12
+      x(col) = 12 + col*36,  y(row) = 12 + row*36
+  -->
+
+  <!-- Row 0 — F on col 2 -->
+  <g transform="translate(84,12)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">F</text>
+  </g>
+
+  <!-- Row 1 — LOJA, intersection J is gold -->
+  <g transform="translate(12,48)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">L</text>
+  </g>
+  <g transform="translate(48,48)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">O</text>
+  </g>
+  <g transform="translate(84,48)">
+    <rect width="32" height="32" rx="5" fill="url(#goldTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#0D1B40">J</text>
+  </g>
+  <g transform="translate(120,48)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">A</text>
+  </g>
+
+  <!-- Row 2 — A on col 2 -->
+  <g transform="translate(84,84)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">A</text>
+  </g>
+
+  <!-- Row 3 — L on col 2 -->
+  <g transform="translate(84,120)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">L</text>
+  </g>
+
+  <!-- Row 4 — Ë on col 2 -->
+  <g transform="translate(84,156)">
+    <rect width="32" height="32" rx="5" fill="url(#greenTile)"/>
+    <rect width="32" height="32" rx="5" fill="url(#tileShine)"/>
+    <text x="16" y="24" font-size="20" font-weight="900" text-anchor="middle" fill="#FFFFFF">Ë</text>
+  </g>
+</svg>

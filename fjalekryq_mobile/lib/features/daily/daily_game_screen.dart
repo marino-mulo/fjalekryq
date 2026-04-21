@@ -12,6 +12,7 @@ import '../../core/services/audio_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../core/services/daily_puzzle_service.dart';
 import '../../core/services/connectivity_service.dart';
+import '../../core/network/api_client.dart';
 import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
@@ -138,6 +139,28 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       _isOffline = false;
     });
 
+    // The daily puzzle is server-authoritative — every user must see the
+    // same layout. If the API is unreachable, bail out to Home with a
+    // "try again later" snackbar rather than letting the user play a
+    // locally-generated fallback puzzle (which would desync streaks).
+    final apiOk = await _probeDailyApi();
+    if (!apiOk) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Provoni përsëri më vonë.',
+            style: AppFonts.nunito(
+                fontSize: 13, fontWeight: FontWeight.w700),
+          ),
+          backgroundColor: AppColors.backgroundLight,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pop();
+      return;
+    }
+
     // Ensure daily service is loaded
     if (!_dailyService.isLoaded) {
       await _dailyService.init();
@@ -205,6 +228,18 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     }
 
     if (mounted) setState(() => _isLoading = false);
+  }
+
+  /// Quick probe for the daily-puzzle endpoint. Returns `false` on any
+  /// failure (no network, DNS miss, server down, 5xx, timeout) so the
+  /// caller can bail out instead of hanging on the loading spinner.
+  Future<bool> _probeDailyApi() async {
+    try {
+      await ApiClient.get('/daily/today');
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   Future<void> _onWin() async {

@@ -147,11 +147,15 @@ Future<LeaderboardLoadResult> loadLeaderboard(LeaderboardTab tab) async {
         )).toList();
 
     return LeaderboardData(ui);
-  } on ApiException catch (e) {
-    return LeaderboardError(e.message);
+  } on ApiException catch (_) {
+    // Server replied with a non-2xx — treat as "try again later".
+    return const LeaderboardError('Provoni përsëri më vonë.');
   } catch (_) {
-    // Anything slipped past DNS — network hiccup mid-request.
-    return const LeaderboardOffline();
+    // Reaching here means connectivity said "online" but the actual
+    // request still failed (API is down / unreachable / timed out).
+    // Show the same "try again later" message so the user isn't told
+    // they have no internet when they do.
+    return const LeaderboardError('Provoni përsëri më vonë.');
   }
 }
 

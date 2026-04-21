@@ -37,6 +37,7 @@ import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
 import 'shared/widgets/app_background.dart';
+import 'shared/widgets/app_logo.dart';
 
 late final Future<_AppServices> _initFuture;
 
@@ -104,18 +105,31 @@ Future<_AppServices> _initializeApp() async {
   final settingsService = SettingsService(settingsRepo, userId);
   final dailyPuzzleService = DailyPuzzleService(dailyPuzzleRepo, dailyStreakRepo, userId);
 
+  // Local-only work must finish before we hand the UI over.
   await Future.wait([
     coinService.init(),
     settingsService.init(),
-    dailyPuzzleService.init(),
     _migrateFromSharedPrefs(prefs, coinsRepo, settingsRepo, progressRepo, userId),
-    // Guests are first-class API citizens — if no session exists yet,
-    // create one in the background so every protected endpoint
-    // (leaderboard, coins, progress, daily puzzle…) works out of the
-    // box. Silent failure is fine: the user is probably offline and
-    // will see the offline UI we already have.
-    RemoteAuthRepository().ensureSession().then<void>((_) {}),
   ]);
+
+  // Remote-touching work gets a hard cap so the splash can never hang
+  // when the API is flaky (timeouts + TCP resets can otherwise stack up
+  // to tens of seconds). Whatever hasn't finished keeps running in the
+  // background; the UI starts from local cache and syncs on the fly.
+  try {
+    await Future.wait([
+      dailyPuzzleService.init(),
+      // Guests are first-class API citizens — if no session exists yet,
+      // create one in the background so every protected endpoint
+      // (leaderboard, coins, progress, daily puzzle…) works out of the
+      // box. Silent failure is fine: the UI already has offline paths.
+      RemoteAuthRepository().ensureSession().then<void>((_) {}),
+    ]).timeout(const Duration(seconds: 6));
+  } catch (_) {
+    // API is unreachable / crashing. Continue booting — the app is
+    // fully usable from the local SQLite cache. Any pending remote
+    // calls keep running; they'll just settle later.
+  }
 
   // Don't block startup with font loading — let it happen lazily
   return _AppServices(
@@ -319,6 +333,10 @@ class _SlideUpTransitionBuilder extends PageTransitionsBuilder {
 
 // ── Splash Screen (matches web home: dark gradient + shared bg tiles) ──
 
+/// Splash / loading screen shown while the service graph boots up.
+/// Uses the shared app background and the animated [AppLogo] so the
+/// transition into the home screen feels continuous — same backdrop,
+/// same logo, only the surrounding chrome changes.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -326,7 +344,11 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return const Scaffold(
       backgroundColor: Colors.transparent,
-      body: AppBackground(child: SizedBox.expand()),
+      body: AppBackground(
+        child: Center(
+          child: AppLogo(size: 200, animated: true),
+        ),
+      ),
     );
   }
 }

@@ -17,7 +17,7 @@ class Wordle7Dictionary {
   ];
 
   static const List<String> _words4 = [
-    'ARKA','ARRË','BAZË','DETI','HËNA','FIKU',
+    'xARKA','ARRË','BAZË','DETI','HËNA','FIKU',
     'BOTA','BUKË','CIPË','BABI','BLEJ','LUGA','MIKU',
     'DERË','DIKU','DITË','DJEP','DORË',
     'EMËR','EPIK','FARË','FUND','FURI',

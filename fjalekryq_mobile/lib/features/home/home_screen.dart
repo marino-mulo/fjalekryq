@@ -11,6 +11,7 @@ import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_logo.dart';
 import '../game/game_screen.dart';
 import 'daily_offer.dart';
 import 'daily_offer_banner.dart';
@@ -325,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset('assets/images/logo.png', width: 180, height: 180),
+        const AppLogo(size: 180),
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -372,14 +373,14 @@ class _HomeScreenState extends State<HomeScreen>
           padding: const EdgeInsets.symmetric(vertical: 18),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
+              colors: [AppColors.gold, Color(0xFFFFD86B)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(34),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1D4ED8).withValues(alpha: 0.45),
+                color: AppColors.gold.withValues(alpha: 0.45),
                 blurRadius: 22,
                 offset: const Offset(0, 8),
               ),
@@ -391,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen>
               style: AppFonts.nunito(
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
-                color: Colors.white,
+                color: AppColors.backgroundDark,
               ),
             ),
           ),
