@@ -21,9 +21,8 @@ import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_overlay.dart';
 import '../shop/shop_screen.dart';
 import 'widgets/game_board.dart';
-import 'widgets/win_modal.dart';
-import 'widgets/fail_modal.dart';
 import 'widgets/save_progress_prompt_modal.dart';
+import 'widgets/win_modal.dart';
 
 const _levelKey = 'fjalekryq_level';
 const _playingLevelKey = 'fjalekryq_playing_level';
@@ -115,6 +114,7 @@ class _GameScreenState extends State<GameScreen> {
   // Counts fails on the same level — unlocks Special Offer after 2+
   int _failCount = 0;
 
+
   @override
   void initState() {
     super.initState();
@@ -174,14 +174,10 @@ class _GameScreenState extends State<GameScreen> {
       });
     }
 
-    // Auto-trigger fail modal (once)
     if (_game.gameLost && !_isCompleted && !_showingFailModal) {
       _showingFailModal = true;
       _failCount++;
       _audio.play(Sfx.lose);
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _showFailModal();
-      });
     }
 
     setState(() {});
@@ -305,10 +301,52 @@ class _GameScreenState extends State<GameScreen> {
     }
     setState(() {});
 
-    // Show animated win modal after a brief celebration pause
-    Future.delayed(const Duration(milliseconds: 350), () {
+    Future.delayed(const Duration(milliseconds: 380), () {
       if (mounted) _showWinModal();
     });
+  }
+
+  void _showWinModal() {
+    final nextLevel = _nextLevelNumber;
+    final solvedGrid = _game.grid;
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 380),
+      pageBuilder: (ctx, _, __) => WinModal(
+        praise: _completedPraise,
+        coinsEarned: _coinsEarned,
+        winCoinsDoubled: _winCoinsDoubled,
+        isTutorial: _isTutorial,
+        nextLevelNumber: nextLevel,
+        solvedGrid: solvedGrid,
+        onDoubleCoins: _watchAdToDoubleWinCoins,
+        onNextLevel: () {
+          Navigator.pop(ctx);
+          setState(() { _isCompleted = false; _isLoading = true; });
+          WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _nextLevel(); });
+        },
+        onGoHome: () {
+          Navigator.pop(ctx);
+          Navigator.pop(context);
+        },
+        onSaveProgress: _shouldShowSavePrompt()
+            ? () {
+                Navigator.pop(ctx);
+                _prefs.setBool('fjalekryq_save_prompt_shown', true);
+                Future.delayed(const Duration(milliseconds: 120), () {
+                  if (mounted) _showSaveProgressDialog();
+                });
+              }
+            : null,
+      ),
+      transitionBuilder: (ctx, anim, _, child) => SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+            .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+        child: child,
+      ),
+    );
   }
 
   void _onHint() async {
@@ -467,72 +505,59 @@ class _GameScreenState extends State<GameScreen> {
                 else
                   Expanded(child: _buildLoadingOverlay()),
 
-                // Bottom controls (solve/hint) — only during active play
-                if (!_isCompleted && !_game.gameLost && !_isLoading)
-                  const SizedBox(height: 12),
-
-                if (!_isCompleted && !_game.gameLost && !_isLoading)
-                  _buildBottomControls(coinService),
-
-                // Banners (hints / insufficient coins / tutorial tips)
-                if (!_isCompleted && !_game.gameLost && !_isLoading) ...[
-                  const SizedBox(height: 8),
-                  if (_game.hintMessage.isNotEmpty && !_isTutorial && _insufficientType == null)
-                    _buildInlineBanner(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.lightbulb_outline, color: Color(0xFFFFD86B), size: 15),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Text(
-                              _game.hintMessage,
-                              style: AppFonts.quicksand(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFFFFD86B),
+                // ── Bottom section: active play / win / fail ─────────────
+                if (_isLoading)
+                  const SizedBox.shrink()
+                else if (_isCompleted)
+                  const SizedBox.shrink()
+                else if (_game.gameLost)
+                  _buildFailContent(coinService)
+                else ...[
+                  if (!_isCompleted && !_game.gameLost)
+                    const SizedBox(height: 12),
+                  if (!_isCompleted && !_game.gameLost)
+                    _buildBottomControls(coinService),
+                  if (!_isCompleted && !_game.gameLost) ...[
+                    const SizedBox(height: 8),
+                    if (_game.hintMessage.isNotEmpty && !_isTutorial && _insufficientType == null)
+                      _buildInlineBanner(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.lightbulb_outline, color: Color(0xFFFFD86B), size: 15),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                _game.hintMessage,
+                                style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600, color: const Color(0xFFFFD86B)),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        bgColor: const Color(0xFFC9B458).withValues(alpha: 0.2),
+                        borderColor: const Color(0xFFFFBA27).withValues(alpha: 0.4),
                       ),
-                      bgColor: const Color(0xFFC9B458).withValues(alpha: 0.2),
-                      borderColor: const Color(0xFFFFBA27).withValues(alpha: 0.4),
-                    ),
-                  if (_showFiveMovesBanner)
-                    _buildFiveMovesBanner(),
-                  if (_insufficientType != null)
-                    _buildInlineInsufficientBanner(),
-                  if (_isTutorial && _tutorialPhase == 2)
-                    _buildInlineBanner(
-                      child: Text(
-                        '👆 Kliko shkronjat për të bërë 1 lëvizje',
-                        textAlign: TextAlign.center,
-                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
+                    if (_showFiveMovesBanner) _buildFiveMovesBanner(),
+                    if (_insufficientType != null) _buildInlineInsufficientBanner(),
+                    if (_isTutorial && _tutorialPhase == 2)
+                      _buildInlineBanner(
+                        child: Text('👆 Kliko shkronjat për të bërë 1 lëvizje', textAlign: TextAlign.center, style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600)),
+                        bgColor: Colors.white.withValues(alpha: 0.12),
+                        borderColor: Colors.white.withValues(alpha: 0.25),
                       ),
-                      bgColor: Colors.white.withValues(alpha: 0.12),
-                      borderColor: Colors.white.withValues(alpha: 0.25),
-                    ),
-                  if (_isTutorial && _tutorialPhase == 5)
-                    _buildInlineBanner(
-                      child: Text(
-                        '💡 Kliko Ndihmën për $hintCost\$ — shkronjat, ruaj lëvizjet!',
-                        textAlign: TextAlign.center,
-                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
+                    if (_isTutorial && _tutorialPhase == 5)
+                      _buildInlineBanner(
+                        child: Text('💡 Kliko Ndihmën për $hintCost\$ — shkronjat, ruaj lëvizjet!', textAlign: TextAlign.center, style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600)),
+                        bgColor: Colors.white.withValues(alpha: 0.12),
+                        borderColor: Colors.white.withValues(alpha: 0.25),
                       ),
-                      bgColor: Colors.white.withValues(alpha: 0.12),
-                      borderColor: Colors.white.withValues(alpha: 0.25),
-                    ),
-                  if (_isTutorial && _tutorialPhase == 8)
-                    _buildInlineBanner(
-                      child: Text(
-                        '✅ Kliko Zgjidh për $solveCost\$ — zgjidhni fjalën, ruaj lëvizjet!',
-                        textAlign: TextAlign.center,
-                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
+                    if (_isTutorial && _tutorialPhase == 8)
+                      _buildInlineBanner(
+                        child: Text('✅ Kliko Zgjidh për $solveCost\$ — zgjidhni fjalën, ruaj lëvizjet!', textAlign: TextAlign.center, style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600)),
+                        bgColor: Colors.white.withValues(alpha: 0.12),
+                        borderColor: Colors.white.withValues(alpha: 0.25),
                       ),
-                      bgColor: Colors.white.withValues(alpha: 0.12),
-                      borderColor: Colors.white.withValues(alpha: 0.25),
-                    ),
+                  ],
                 ],
 
                 // Banner ad — shown at bottom of game screen (prod only).
@@ -1021,13 +1046,13 @@ class _GameScreenState extends State<GameScreen> {
   // ── Coins: buy 5 moves after loss ───────────────────────
   void _buyMovesAfterFail() {
     final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(30)) {
+    if (!coinService.canAfford(50)) {
       HapticFeedback.heavyImpact();
       _audio.play(Sfx.error);
       _openShop();
       return;
     }
-    coinService.spend(30);
+    coinService.spend(50);
     _game.continueGame();
     _audio.play(Sfx.coin);
     HapticFeedback.mediumImpact();
@@ -1037,110 +1062,115 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
+  // ── Fail content (inline, below puzzle) ──────────────────
+  Widget _buildFailContent(CoinService coinService) {
+    final canAfford = coinService.canAfford(50);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Lëvizjet Mbaruan!',
+            textAlign: TextAlign.center,
+            style: AppFonts.nunito(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+
+          // Two continue options side by side
+          Row(
+            children: [
+              // Buy 5 moves for 50 coins
+              Expanded(
+                child: GestureDetector(
+                  onTap: canAfford ? () { HapticFeedback.mediumImpact(); _buyMovesAfterFail(); } : null,
+                  child: Opacity(
+                    opacity: canAfford ? 1.0 : 0.45,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.gold.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
+                      ),
+                      child: Column(
+                        children: [
+                          const Icon(Icons.add_circle_outline_rounded, color: Color(0xFFFDD835), size: 20),
+                          const SizedBox(height: 4),
+                          Text('+5 Lëvizje', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.monetization_on_rounded, color: Color(0xFFFDD835), size: 12),
+                              const SizedBox(width: 2),
+                              Text('50', style: AppFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFFFDD835))),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Watch ad for +5 moves
+              Expanded(
+                child: GestureDetector(
+                  onTap: _loadingAd ? null : () async {
+                    HapticFeedback.mediumImpact();
+                    setState(() => _loadingAd = true);
+                    await _watchAdToContinue();
+                    if (mounted) setState(() => _loadingAd = false);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.purpleAccent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35)),
+                    ),
+                    child: Column(
+                      children: [
+                        _loadingAd
+                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFC084FC)))
+                            : const Icon(Icons.videocam_rounded, color: Color(0xFFC084FC), size: 20),
+                        const SizedBox(height: 4),
+                        Text('+5 Lëvizje', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900, color: Colors.white)),
+                        const SizedBox(height: 2),
+                        Text('Falas', style: AppFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: const Color(0xFFC084FC))),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // Restart text link
+          GestureDetector(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              setState(() => _showingFailModal = false);
+              _restartLevel();
+            },
+            child: Text(
+              'Rifillo',
+              textAlign: TextAlign.center,
+              style: AppFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.65)),
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
   // ── 5-moves warning banner ───────────────────────────────
   void _showFiveMovesOffer() {
     setState(() => _showFiveMovesBanner = true);
-  }
-
-  // ── Win modal ────────────────────────────────────────────
-  void _showWinModal() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.transparent, // win screen provides its own background
-      transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (ctx, _, __) => WinModal(
-        praise: _completedPraise,
-        coinsEarned: _coinsEarned,
-        winCoinsDoubled: _winCoinsDoubled,
-        isTutorial: _isTutorial,
-        nextLevelNumber: _nextLevelNumber,
-        solvedGrid: _game.solution,
-        onDoubleCoins: () async {
-          await _watchAdToDoubleWinCoins();
-        },
-        onNextLevel: () {
-          setState(() {
-            _isCompleted = false;
-            _isLoading = true;
-          });
-          Navigator.pop(ctx);
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _nextLevel();
-          });
-        },
-        onGoHome: () {
-          Navigator.pop(ctx);
-          Navigator.pop(context);
-        },
-        onSaveProgress: _shouldShowSavePrompt()
-            ? () {
-                Navigator.pop(ctx);
-                Future.delayed(const Duration(milliseconds: 200), () {
-                  if (mounted) _showSaveProgressDialog();
-                });
-              }
-            : null,
-      ),
-      transitionBuilder: (ctx, anim, _, child) {
-        // Instant dismiss so the loading spinner isn't revealed through a
-        // lingering animation — entrance slides up from the bottom edge.
-        if (anim.status == AnimationStatus.reverse ||
-            anim.status == AnimationStatus.dismissed) {
-          return const SizedBox.shrink();
-        }
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(
-              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    );
-  }
-
-  // ── Fail modal ───────────────────────────────────────────
-  void _showFailModal() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (ctx, _, __) => FailModal(
-        adService: context.read<AdService>(),
-        coinService: context.read<CoinService>(),
-        currentGrid: _game.grid,
-        onWatchAd: () async {
-          Navigator.pop(ctx);
-          await _watchAdToContinue();
-        },
-        onBuyMoves: () {
-          Navigator.pop(ctx);
-          _buyMovesAfterFail();
-        },
-        onRestart: () {
-          Navigator.pop(ctx);
-          setState(() => _showingFailModal = false);
-          _restartLevel();
-        },
-      ),
-      transitionBuilder: (ctx, anim, _, child) {
-        if (anim.status == AnimationStatus.reverse ||
-            anim.status == AnimationStatus.dismissed) {
-          return const SizedBox.shrink();
-        }
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(
-              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    );
   }
 
   // ── Save-progress prompt (guest → Google) ───────────────
