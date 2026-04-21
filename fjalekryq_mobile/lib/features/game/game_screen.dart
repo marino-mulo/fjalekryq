@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -23,6 +22,7 @@ import '../tutorial/tutorial_overlay.dart';
 import '../shop/shop_screen.dart';
 import 'widgets/game_board.dart';
 import 'widgets/save_progress_prompt_modal.dart';
+import 'widgets/win_modal.dart';
 
 const _levelKey = 'fjalekryq_level';
 const _playingLevelKey = 'fjalekryq_playing_level';
@@ -114,8 +114,6 @@ class _GameScreenState extends State<GameScreen> {
   // Counts fails on the same level — unlocks Special Offer after 2+
   int _failCount = 0;
 
-  late AnimationController _confettiCtrl;
-  late List<_ConfettiParticle> _confettiParticles;
 
   @override
   void initState() {
@@ -132,15 +130,11 @@ class _GameScreenState extends State<GameScreen> {
     _adServiceRef.loadBanner();
     _adServiceRef.preloadInterstitial();
 
-    _confettiParticles = _generateParticles();
-    _confettiCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 3200));
-
     _initializeGame();
   }
 
   @override
   void dispose() {
-    _confettiCtrl.dispose();
     _adServiceRef.disposeBanner();
     _game.removeListener(_onGameChanged);
     _game.dispose();
@@ -307,9 +301,52 @@ class _GameScreenState extends State<GameScreen> {
     }
     setState(() {});
 
-    Future.delayed(const Duration(milliseconds: 350), () {
-      if (mounted) { _confettiCtrl.reset(); _confettiCtrl.forward(); setState(() {}); }
+    Future.delayed(const Duration(milliseconds: 380), () {
+      if (mounted) _showWinModal();
     });
+  }
+
+  void _showWinModal() {
+    final nextLevel = _nextLevelNumber;
+    final solvedGrid = _game.grid;
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 380),
+      pageBuilder: (ctx, _, __) => WinModal(
+        praise: _completedPraise,
+        coinsEarned: _coinsEarned,
+        winCoinsDoubled: _winCoinsDoubled,
+        isTutorial: _isTutorial,
+        nextLevelNumber: nextLevel,
+        solvedGrid: solvedGrid,
+        onDoubleCoins: _watchAdToDoubleWinCoins,
+        onNextLevel: () {
+          Navigator.pop(ctx);
+          setState(() { _isCompleted = false; _isLoading = true; });
+          WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _nextLevel(); });
+        },
+        onGoHome: () {
+          Navigator.pop(ctx);
+          Navigator.pop(context);
+        },
+        onSaveProgress: _shouldShowSavePrompt()
+            ? () {
+                Navigator.pop(ctx);
+                _prefs.setBool('fjalekryq_save_prompt_shown', true);
+                Future.delayed(const Duration(milliseconds: 120), () {
+                  if (mounted) _showSaveProgressDialog();
+                });
+              }
+            : null,
+      ),
+      transitionBuilder: (ctx, anim, _, child) => SlideTransition(
+        position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+            .animate(CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
+        child: child,
+      ),
+    );
   }
 
   void _onHint() async {
@@ -472,7 +509,7 @@ class _GameScreenState extends State<GameScreen> {
                 if (_isLoading)
                   const SizedBox.shrink()
                 else if (_isCompleted)
-                  _buildWinContent(coinService)
+                  const SizedBox.shrink()
                 else if (_game.gameLost)
                   _buildFailContent(coinService)
                 else ...[
@@ -543,22 +580,6 @@ class _GameScreenState extends State<GameScreen> {
               ],
             ),
           ),
-
-          // Confetti overlay
-          if (_isCompleted)
-            Positioned.fill(
-              child: IgnorePointer(
-                child: AnimatedBuilder(
-                  animation: _confettiCtrl,
-                  builder: (_, __) => CustomPaint(
-                    painter: _ConfettiPainter(
-                      progress: _confettiCtrl.value,
-                      particles: _confettiParticles,
-                    ),
-                  ),
-                ),
-              ),
-            ),
 
           // Tutorial overlays (blocking modals)
           if (_isTutorial && [1, 3, 4, 6, 7].contains(_tutorialPhase))
@@ -1041,173 +1062,6 @@ class _GameScreenState extends State<GameScreen> {
     });
   }
 
-  // ── Win content (inline, below puzzle) ──────────────────
-  Widget _buildWinContent(CoinService coinService) {
-    final coins = _winCoinsDoubled ? _coinsEarned * 2 : _coinsEarned;
-    final showDoubleAd = !_isTutorial && !_winCoinsDoubled && _coinsEarned > 0;
-    final savePrompt = _shouldShowSavePrompt();
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Title
-          Text(
-            _completedPraise,
-            textAlign: TextAlign.center,
-            style: AppFonts.nunito(fontSize: 26, fontWeight: FontWeight.w900, color: Colors.white),
-          ),
-          if (!_isTutorial)
-            Text(
-              'Niveli Kaluar! 🏆',
-              textAlign: TextAlign.center,
-              style: AppFonts.quicksand(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white.withValues(alpha: 0.7)),
-            ),
-          const SizedBox(height: 12),
-
-          // Coins earned row (glass card)
-          if (coins > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.gold.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: AppColors.gold.withValues(alpha: 0.35)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.monetization_on_rounded, color: Color(0xFFFDD835), size: 18),
-                  const SizedBox(width: 8),
-                  Text(
-                    '+$coins monedha',
-                    style: AppFonts.nunito(fontSize: 15, fontWeight: FontWeight.w900, color: const Color(0xFFFDD835)),
-                  ),
-                  if (_winCoinsDoubled) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4CAF50).withValues(alpha: 0.25),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFF4CAF50).withValues(alpha: 0.5)),
-                      ),
-                      child: Text('×2', style: AppFonts.nunito(fontSize: 11, fontWeight: FontWeight.w900, color: const Color(0xFF69F0AE))),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-
-          // Double coins ad tile (same glass card style)
-          if (showDoubleAd) ...[
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _loadingAd ? null : () async {
-                setState(() => _loadingAd = true);
-                await _watchAdToDoubleWinCoins();
-                if (mounted) setState(() => _loadingAd = false);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.purpleAccent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35)),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 14, offset: const Offset(0, 4))],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.videocam_rounded, color: Color(0xFFC084FC), size: 18),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Dyfisho Monedhat · ×2',
-                        style: AppFonts.nunito(fontSize: 14, fontWeight: FontWeight.w800, color: Colors.white),
-                      ),
-                    ),
-                    ShikoButton(size: ShikoSize.small, loading: _loadingAd, badge: '×2', onTap: null),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          if (savePrompt) ...[
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: () {
-                _prefs.setBool('fjalekryq_save_prompt_shown', true);
-                Future.delayed(const Duration(milliseconds: 100), () {
-                  if (mounted) _showSaveProgressDialog();
-                });
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.gold.withValues(alpha: 0.2)),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.cloud_upload_outlined, color: Color(0xFFFFD86B), size: 16),
-                    const SizedBox(width: 8),
-                    Expanded(child: Text('Ruaj progresin tënd', style: AppFonts.quicksand(fontSize: 12, fontWeight: FontWeight.w600, color: const Color(0xFFFFD86B)))),
-                    const Icon(Icons.chevron_right, color: Color(0xFFFFD86B), size: 16),
-                  ],
-                ),
-              ),
-            ),
-          ],
-
-          const SizedBox(height: 16),
-
-          // Next level big button
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.mediumImpact();
-              setState(() { _isCompleted = false; _isLoading = true; });
-              WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) _nextLevel(); });
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [BoxShadow(color: const Color(0xFF1D4ED8).withValues(alpha: 0.45), blurRadius: 18, offset: const Offset(0, 6))],
-              ),
-              child: Text(
-                _isTutorial ? 'Fillo Lojën' : 'Niveli $_nextLevelNumber',
-                textAlign: TextAlign.center,
-                style: AppFonts.nunito(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 10),
-
-          // Go home text link
-          if (!_isTutorial)
-            GestureDetector(
-              onTap: () { HapticFeedback.selectionClick(); Navigator.pop(context); },
-              child: Text(
-                'Kthehu në Fillim',
-                textAlign: TextAlign.center,
-                style: AppFonts.nunito(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white.withValues(alpha: 0.75)),
-              ),
-            ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
   // ── Fail content (inline, below puzzle) ──────────────────
   Widget _buildFailContent(CoinService coinService) {
     final canAfford = coinService.canAfford(50);
@@ -1521,68 +1375,4 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
-}
-
-class _ConfettiParticle {
-  final double x;      // 0–1 fractional start x
-  final double vy;     // fall speed multiplier
-  final double vx;     // horizontal drift multiplier
-  final double freq;   // wobble frequency
-  final double phase;  // wobble phase offset
-  final double amplitude; // wobble amplitude 0–1
-  final Color color;
-  final double size;
-  final bool isRect;
-  const _ConfettiParticle({required this.x, required this.vy, required this.vx, required this.freq, required this.phase, required this.amplitude, required this.color, required this.size, required this.isRect});
-}
-
-List<_ConfettiParticle> _generateParticles() {
-  final rng = math.Random(42);
-  const colors = [
-    Color(0xFFFFBA27), Color(0xFF3B82F6), Color(0xFF4ADE80),
-    Color(0xFFC084FC), Color(0xFFFF6B35), Color(0xFFFFFFFF),
-    Color(0xFFFBBF24), Color(0xFF60A5FA),
-  ];
-  return List.generate(55, (_) => _ConfettiParticle(
-    x: rng.nextDouble(),
-    vy: 0.55 + rng.nextDouble() * 0.6,
-    vx: (rng.nextDouble() - 0.5) * 0.15,
-    freq: 2 + rng.nextDouble() * 4,
-    phase: rng.nextDouble() * 6.28,
-    amplitude: 0.02 + rng.nextDouble() * 0.04,
-    color: colors[rng.nextInt(colors.length)],
-    size: 6 + rng.nextDouble() * 8,
-    isRect: rng.nextBool(),
-  ));
-}
-
-class _ConfettiPainter extends CustomPainter {
-  final double progress;
-  final List<_ConfettiParticle> particles;
-  _ConfettiPainter({required this.progress, required this.particles}) : super();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progress <= 0) return;
-    for (final p in particles) {
-      final t = progress;
-      final px = (p.x + p.vx * t + p.amplitude * math.sin(p.freq * t * math.pi * 2 + p.phase)) * size.width;
-      final py = -30.0 + p.vy * t * size.height * 1.1;
-      final alpha = t < 0.75 ? 1.0 : (1.0 - t) / 0.25;
-      if (alpha <= 0) continue;
-      final paint = Paint()..color = p.color.withValues(alpha: alpha.clamp(0.0, 1.0));
-      canvas.save();
-      canvas.translate(px, py);
-      canvas.rotate(t * p.freq * math.pi);
-      if (p.isRect) {
-        canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * 0.45), paint);
-      } else {
-        canvas.drawCircle(Offset.zero, p.size * 0.5, paint);
-      }
-      canvas.restore();
-    }
-  }
-
-  @override
-  bool shouldRepaint(_ConfettiPainter old) => old.progress != progress;
 }
