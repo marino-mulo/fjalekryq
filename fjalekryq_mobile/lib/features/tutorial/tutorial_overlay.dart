@@ -57,9 +57,57 @@ class TutorialOverlay extends StatelessWidget {
         return _buildMovesModal();
       case 7:
         return _buildSolveModal();
+      case 9:
+        return _buildCompletedModal();
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildCompletedModal() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Success badge (green tile with check)
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: AppColors.cellGreen.withValues(alpha: 0.22),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: AppColors.cellGreen.withValues(alpha: 0.55),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.cellGreen.withValues(alpha: 0.4),
+                blurRadius: 24,
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.check_rounded,
+            color: Colors.white,
+            size: 40,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          'Tutoriali Përfundoi!',
+          textAlign: TextAlign.center,
+          style: AppFonts.nunito(
+            fontSize: 22,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _desc('Të gjitha bazat i ke mësuar. Tani kthehu në kreu dhe nis me nivelet.'),
+        const SizedBox(height: 18),
+        _nextButton('Shko në Kreu'),
+      ],
+    );
   }
 
   Widget _buildSwapModal() {
