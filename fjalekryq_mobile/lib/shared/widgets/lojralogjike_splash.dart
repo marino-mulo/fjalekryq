@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/theme.dart';
 import 'app_background.dart';
-import 'app_logo.dart';
+import 'puzzle_logo.dart';
 
 /// Brand splash shown as the very first screen when the app launches.
 ///
@@ -21,8 +21,8 @@ class LojraLogjikeSplash extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Logo with shimmer sweep.
-              const AppLogo(size: 150, animated: true),
+              // Brand mark — animated breathing pulse.
+              const PuzzleLogo(size: 120, animated: true),
               const SizedBox(height: 26),
 
               // Wordmark — gold, tracked out, heavy weight.

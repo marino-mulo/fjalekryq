@@ -7,6 +7,7 @@ import '../../core/services/coin_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_button.dart';
+import '../../shared/widgets/puzzle_logo.dart';
 import '../home/home_screen.dart';
 
 const _onboardingDoneKey = 'fjalekryq_onboarding_done';
@@ -143,31 +144,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       children: [
                         const Spacer(flex: 2),
 
-                        // Logo tile
-                        Container(
-                          width: 88,
-                          height: 88,
-                          decoration: BoxDecoration(
-                            color: AppColors.purpleAccent.withValues(alpha: 0.18),
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(
-                              color: AppColors.purpleAccent.withValues(alpha: 0.45),
-                              width: 2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.purpleAccent.withValues(alpha: 0.3),
-                                blurRadius: 32,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                          child: const Icon(
-                            Icons.grid_view_rounded,
-                            color: Color(0xFFD8B4FE),
-                            size: 44,
-                          ),
-                        ),
+                        // Logo tile — shared brand mark.
+                        const PuzzleLogo(size: 88),
                         const SizedBox(height: 24),
 
                         // Title

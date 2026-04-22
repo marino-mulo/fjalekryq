@@ -1,28 +1,16 @@
 import 'package:flutter/material.dart';
-import '../constants/theme.dart';
 import 'app_background.dart';
+import 'puzzle_logo.dart';
 
-/// Standard indeterminate progress bar used by every loading/splash screen.
-///
-/// Renders a single 180x6 rounded bar driven by Flutter's indeterminate
-/// [LinearProgressIndicator] so the motion is consistent everywhere.
+/// Standard loading mark used by every loading/splash screen — the
+/// animated brand [PuzzleLogo] centered on the host surface.
 class AppLoadingIndicator extends StatelessWidget {
   const AppLoadingIndicator({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        width: 180,
-        height: 6,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(3),
-          child: LinearProgressIndicator(
-            backgroundColor: Colors.white.withValues(alpha: 0.2),
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.gold),
-          ),
-        ),
-      ),
+    return const Center(
+      child: PuzzleLogo(size: 88, animated: true),
     );
   }
 }

@@ -11,7 +11,7 @@ import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/puzzle_logo.dart';
 import '../game/game_screen.dart';
 import 'daily_offer.dart';
 import 'daily_offer_banner.dart';
@@ -326,7 +326,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const AppLogo(size: 180),
+        const PuzzleLogo(size: 140),
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
