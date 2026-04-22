@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/offline_view.dart';
 import 'leaderboard_data.dart';
@@ -150,9 +151,7 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
   Widget _buildTabContent(LeaderboardTab tab) {
     // ── Load state dispatch ────────────────────────────────────────────────
     if (_loading.contains(tab) || _results[tab] == null) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.gold),
-      );
+      return const AppLoadingIndicator();
     }
     final result = _results[tab]!;
     if (result is LeaderboardOffline) {

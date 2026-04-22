@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -17,6 +16,7 @@ import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/coin_badge.dart';
@@ -665,83 +665,8 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   //  Loading overlay
   // ══════════════════════════════════════
 
-  static const _loadingLetters = 'ABCCDEHIMNOPRSTUVXZE';
-  static const _loadingTileColors = [Color(0xFFF4B400), Color(0xFF22C55E), Color(0xFF787c7e)];
-
   Widget _buildLoadingOverlay() {
-    final size = MediaQuery.of(context).size;
-    final rng = Random(42);
-    final tiles = <Widget>[];
-
-    const cols = 5;
-    const rows = 3;
-    final cellW = (size.width - 40) / cols;
-    final cellH = (size.height * 0.75) / rows;
-    for (int i = 0; i < 15; i++) {
-      final col = i % cols;
-      final row = i ~/ cols;
-      final x = 20 + col * cellW + (rng.nextDouble() - 0.5) * cellW * 0.6;
-      final y = size.height * 0.15 + row * cellH + (rng.nextDouble() - 0.5) * cellH * 0.4;
-      tiles.add(Positioned(
-        left: x,
-        top: y,
-        child: Opacity(
-          opacity: 0.72,
-          child: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: _loadingTileColors[i % 3],
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.18),
-                width: 2,
-              ),
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              _loadingLetters[rng.nextInt(_loadingLetters.length)],
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ),
-        ),
-      ));
-    }
-
-    return Stack(
-      children: [
-        ...tiles,
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 180,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                alignment: Alignment.centerLeft,
-                child: FractionallySizedBox(
-                  widthFactor: 0.6,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4B400),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    return const AppLoadingIndicator();
   }
 
   // ══════════════════════════════════════

@@ -36,8 +36,7 @@ import 'core/network/hybrid_daily_puzzle_repository.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
-import 'shared/widgets/app_background.dart';
-import 'shared/widgets/app_logo.dart';
+import 'shared/widgets/app_loading_view.dart';
 
 late final Future<_AppServices> _initFuture;
 
@@ -293,7 +292,7 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
       home: s == null
-          ? const SplashScreen()
+          ? const AppLoadingView()
           : (s.prefs.getBool(_onboardingDoneKey) ?? false)
               ? const HomeScreen()
               : const OnboardingScreen(),
@@ -331,24 +330,3 @@ class _SlideUpTransitionBuilder extends PageTransitionsBuilder {
   }
 }
 
-// ── Splash Screen (matches web home: dark gradient + shared bg tiles) ──
-
-/// Splash / loading screen shown while the service graph boots up.
-/// Uses the shared app background and the animated [AppLogo] so the
-/// transition into the home screen feels continuous — same backdrop,
-/// same logo, only the surrounding chrome changes.
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.transparent,
-      body: AppBackground(
-        child: Center(
-          child: AppLogo(size: 200, animated: true),
-        ),
-      ),
-    );
-  }
-}

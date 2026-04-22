@@ -14,6 +14,7 @@ import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/offline_view.dart';
@@ -174,14 +175,12 @@ class _GameScreenState extends State<GameScreen> {
       });
     }
 
-    // Auto-trigger fail modal (once)
+    // Auto-process the fail event once (sfx + counter). The fail panel is
+    // rendered inline below the puzzle in build() whenever _game.gameLost.
     if (_game.gameLost && !_isCompleted && !_showingFailModal) {
       _showingFailModal = true;
       _failCount++;
       _audio.play(Sfx.lose);
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _showFailModal();
-      });
     }
 
     setState(() {});
@@ -466,6 +465,19 @@ class _GameScreenState extends State<GameScreen> {
                   )
                 else
                   Expanded(child: _buildLoadingOverlay()),
+
+                // Inline fail panel — shown below the puzzle on loss.
+                if (_game.gameLost && !_isCompleted && !_isLoading)
+                  InlineFailPanel(
+                    adService: context.read<AdService>(),
+                    coinService: context.read<CoinService>(),
+                    onWatchAd: _watchAdToContinue,
+                    onBuyMoves: _buyMovesAfterFail,
+                    onRestart: () {
+                      setState(() => _showingFailModal = false);
+                      _restartLevel();
+                    },
+                  ),
 
                 // Bottom controls (solve/hint) — only during active play
                 if (!_isCompleted && !_game.gameLost && !_isLoading)
@@ -877,11 +889,7 @@ class _GameScreenState extends State<GameScreen> {
   // ══════════════════════════════════════
 
   Widget _buildLoadingOverlay() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: Color(0xFFF4B400),
-      ),
-    );
+    return const AppLoadingIndicator();
   }
 
   // ══════════════════════════════════════
@@ -1088,48 +1096,6 @@ class _GameScreenState extends State<GameScreen> {
       transitionBuilder: (ctx, anim, _, child) {
         // Instant dismiss so the loading spinner isn't revealed through a
         // lingering animation — entrance slides up from the bottom edge.
-        if (anim.status == AnimationStatus.reverse ||
-            anim.status == AnimationStatus.dismissed) {
-          return const SizedBox.shrink();
-        }
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(
-              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    );
-  }
-
-  // ── Fail modal ───────────────────────────────────────────
-  void _showFailModal() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (ctx, _, __) => FailModal(
-        adService: context.read<AdService>(),
-        coinService: context.read<CoinService>(),
-        currentGrid: _game.grid,
-        onWatchAd: () async {
-          Navigator.pop(ctx);
-          await _watchAdToContinue();
-        },
-        onBuyMoves: () {
-          Navigator.pop(ctx);
-          _buyMovesAfterFail();
-        },
-        onRestart: () {
-          Navigator.pop(ctx);
-          setState(() => _showingFailModal = false);
-          _restartLevel();
-        },
-      ),
-      transitionBuilder: (ctx, anim, _, child) {
         if (anim.status == AnimationStatus.reverse ||
             anim.status == AnimationStatus.dismissed) {
           return const SizedBox.shrink();
