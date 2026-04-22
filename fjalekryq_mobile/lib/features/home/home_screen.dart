@@ -177,16 +177,6 @@ class _HomeScreenState extends State<HomeScreen>
             // Header pinned at top
             _buildHeader(dailyAvailable, statusBarH),
 
-            // Top-right floating daily offer banner
-            Positioned(
-              top: statusBarH + 72,
-              right: 12,
-              child: DailyOfferBanner(
-                offer: offerForPrefs(context.read<SharedPreferences>()),
-                onTap: _openDailyOffer,
-              ),
-            ),
-
             // Main content
             Positioned.fill(
               child: SafeArea(
@@ -202,6 +192,22 @@ class _HomeScreenState extends State<HomeScreen>
 
                         // ── Daily + Leaderboard cards (full-width, stacked)
                         _buildCards(),
+
+                        const SizedBox(height: 14),
+
+                        // Daily offer — inline so it never collides with
+                        // the cards above or the logo below.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: DailyOfferBanner(
+                              offer: offerForPrefs(
+                                  context.read<SharedPreferences>()),
+                              onTap: _openDailyOffer,
+                            ),
+                          ),
+                        ),
 
                         const Spacer(flex: 4),
 
