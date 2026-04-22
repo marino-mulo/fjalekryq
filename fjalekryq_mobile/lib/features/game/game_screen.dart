@@ -433,10 +433,24 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
-    final bottomPad = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      // Banner ad pinned to the very bottom — lives OUTSIDE the body so it
+      // can never squeeze or overlap the puzzle area above it.
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Consumer<AdService>(
+          builder: (_, ads, __) {
+            if (!ads.bannerReady) return const SizedBox(height: 0);
+            return SizedBox(
+              width: ads.bannerAd!.size.width.toDouble(),
+              height: ads.bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: ads.bannerAd!),
+            );
+          },
+        ),
+      ),
       body: AppBackground(
         child: Stack(
         children: [
@@ -547,26 +561,10 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                 ],
 
-                // Spacer pushes the banner ad to the very bottom of the
-                // screen so it never sits directly below the buttons or
-                // interferes with the puzzle / control area. Skipped while
-                // the loading overlay uses Expanded() to claim the space.
+                // Spacer claims remaining vertical space so the control
+                // cluster stays in place regardless of board size. Skipped
+                // while the loading overlay uses Expanded() already.
                 if (!_isLoading) const Spacer(),
-
-                // Banner ad — pinned to the bottom edge (prod only).
-                // Hides itself when "Remove Ads" is purchased or not yet loaded.
-                Consumer<AdService>(
-                  builder: (_, ads, __) {
-                    if (!ads.bannerReady) {
-                      return SizedBox(height: bottomPad > 0 ? 8 : 16);
-                    }
-                    return SizedBox(
-                      width: ads.bannerAd!.size.width.toDouble(),
-                      height: ads.bannerAd!.size.height.toDouble(),
-                      child: AdWidget(ad: ads.bannerAd!),
-                    );
-                  },
-                ),
               ],
             ),
           ),
