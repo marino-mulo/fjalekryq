@@ -138,19 +138,21 @@ class _GameBoardState extends State<GameBoard>
         width: totalSize + 6,
         height: totalSize + 6,
         decoration: BoxDecoration(
-          color: AppColors.background,
+          // Glass tint that lets the shared AppBackground gradient show
+          // through — no more solid navy rectangle fighting the backdrop.
+          color: Colors.white.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: game.gameWon
-                ? AppColors.cellGreen.withValues(alpha: 0.4)
-                : Colors.white.withValues(alpha: 0.1),
-            width: 2.5,
+                ? AppColors.cellGreen.withValues(alpha: 0.45)
+                : Colors.white.withValues(alpha: 0.12),
+            width: 1.5,
           ),
           boxShadow: [
             if (game.gameWon)
               BoxShadow(
-                color: AppColors.cellGreen.withValues(alpha: 0.15),
-                blurRadius: 20,
+                color: AppColors.cellGreen.withValues(alpha: 0.18),
+                blurRadius: 24,
                 spreadRadius: 4,
               ),
           ],

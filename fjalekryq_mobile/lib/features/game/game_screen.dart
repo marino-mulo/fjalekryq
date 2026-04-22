@@ -14,10 +14,12 @@ import '../../core/database/repositories/game_state_repository.dart';
 import '../../core/database/repositories/progress_repository.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
+import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
+import '../tutorial/tutorial_finger.dart';
 import '../tutorial/tutorial_overlay.dart';
 import '../shop/shop_screen.dart';
 import 'widgets/game_board.dart';
@@ -167,21 +169,22 @@ class _GameScreenState extends State<GameScreen> {
       });
     }
 
-    // Auto-trigger win modal (skip if we're loading a new puzzle)
-    if (_game.gameWon && !_isCompleted && !_isLoading) {
+    // Auto-trigger win modal (skip if we're loading or in tutorial — the
+    // tutorial "completed" overlay handles its own ending).
+    if (_game.gameWon && !_isCompleted && !_isLoading && !_isTutorial) {
       Future.delayed(const Duration(milliseconds: 600), () {
         if (mounted && !_isLoading) _onWin();
       });
     }
 
-    // Auto-trigger fail modal (once)
-    if (_game.gameLost && !_isCompleted && !_showingFailModal) {
+    // Auto-process the fail event once (sfx + counter). The fail panel is
+    // rendered inline below the puzzle in build() whenever _game.gameLost.
+    // Suppressed in tutorial so the training session always ends on
+    // the completion overlay.
+    if (_game.gameLost && !_isCompleted && !_showingFailModal && !_isTutorial) {
       _showingFailModal = true;
       _failCount++;
       _audio.play(Sfx.lose);
-      Future.delayed(const Duration(milliseconds: 400), () {
-        if (mounted) _showFailModal();
-      });
     }
 
     setState(() {});
@@ -253,6 +256,21 @@ class _GameScreenState extends State<GameScreen> {
       debugPrint('Puzzle generation failed: $e');
       setState(() => _isLoading = false);
     });
+  }
+
+  /// Finish the tutorial after the player completes phase 9 (the final
+  /// "Tutorial completed" modal). Marks the pref so the tutorial never
+  /// auto-runs again and returns the player to home.
+  void _finishTutorial() {
+    _prefs.setBool(_tutorialKey, true);
+    setState(() {
+      _isTutorial = false;
+      _tutorialPhase = 0;
+      _tutorialHighlightCells = [];
+    });
+    _game.setTutorialMode(false);
+    HapticFeedback.mediumImpact();
+    if (mounted) Navigator.pop(context);
   }
 
   void _setTutorialPhase(int phase) {
@@ -434,10 +452,24 @@ class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     final coinService = context.watch<CoinService>();
-    final bottomPad = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
+      // Banner ad pinned to the very bottom — lives OUTSIDE the body so it
+      // can never squeeze or overlap the puzzle area above it.
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Consumer<AdService>(
+          builder: (_, ads, __) {
+            if (!ads.bannerReady) return const SizedBox(height: 0);
+            return SizedBox(
+              width: ads.bannerAd!.size.width.toDouble(),
+              height: ads.bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: ads.bannerAd!),
+            );
+          },
+        ),
+      ),
       body: AppBackground(
         child: Stack(
         children: [
@@ -466,6 +498,19 @@ class _GameScreenState extends State<GameScreen> {
                   )
                 else
                   Expanded(child: _buildLoadingOverlay()),
+
+                // Inline fail panel — shown below the puzzle on loss.
+                if (_game.gameLost && !_isCompleted && !_isLoading)
+                  InlineFailPanel(
+                    adService: context.read<AdService>(),
+                    coinService: context.read<CoinService>(),
+                    onWatchAd: _watchAdToContinue,
+                    onBuyMoves: _buyMovesAfterFail,
+                    onRestart: () {
+                      setState(() => _showingFailModal = false);
+                      _restartLevel();
+                    },
+                  ),
 
                 // Bottom controls (solve/hint) — only during active play
                 if (!_isCompleted && !_game.gameLost && !_isLoading)
@@ -504,66 +549,36 @@ class _GameScreenState extends State<GameScreen> {
                   if (_insufficientType != null)
                     _buildInlineInsufficientBanner(),
                   if (_isTutorial && _tutorialPhase == 2)
-                    _buildInlineBanner(
-                      child: Text(
-                        '👆 Kliko shkronjat për të bërë 1 lëvizje',
-                        textAlign: TextAlign.center,
-                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
-                      ),
-                      bgColor: Colors.white.withValues(alpha: 0.12),
-                      borderColor: Colors.white.withValues(alpha: 0.25),
+                    _buildTutorialInstruction(
+                      'Kliko shkronjat për të bërë 1 lëvizje',
                     ),
                   if (_isTutorial && _tutorialPhase == 5)
-                    _buildInlineBanner(
-                      child: Text(
-                        '💡 Kliko Ndihmën për $hintCost\$ — shkronjat, ruaj lëvizjet!',
-                        textAlign: TextAlign.center,
-                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
-                      ),
-                      bgColor: Colors.white.withValues(alpha: 0.12),
-                      borderColor: Colors.white.withValues(alpha: 0.25),
+                    _buildTutorialInstruction(
+                      'Kliko Ndihmën — shkronjat, ruaj lëvizjet!',
                     ),
                   if (_isTutorial && _tutorialPhase == 8)
-                    _buildInlineBanner(
-                      child: Text(
-                        '✅ Kliko Zgjidh për $solveCost\$ — zgjidhni fjalën, ruaj lëvizjet!',
-                        textAlign: TextAlign.center,
-                        style: AppFonts.quicksand(fontSize: 13, fontWeight: FontWeight.w600),
-                      ),
-                      bgColor: Colors.white.withValues(alpha: 0.12),
-                      borderColor: Colors.white.withValues(alpha: 0.25),
+                    _buildTutorialInstruction(
+                      'Kliko Zgjidh — zgjidh fjalën, ruaj lëvizjet!',
                     ),
                 ],
 
-                // Spacer pushes the banner ad to the very bottom of the
-                // screen so it never sits directly below the buttons or
-                // interferes with the puzzle / control area. Skipped while
-                // the loading overlay uses Expanded() to claim the space.
+                // Spacer claims remaining vertical space so the control
+                // cluster stays in place regardless of board size. Skipped
+                // while the loading overlay uses Expanded() already.
                 if (!_isLoading) const Spacer(),
-
-                // Banner ad — pinned to the bottom edge (prod only).
-                // Hides itself when "Remove Ads" is purchased or not yet loaded.
-                Consumer<AdService>(
-                  builder: (_, ads, __) {
-                    if (!ads.bannerReady) {
-                      return SizedBox(height: bottomPad > 0 ? 8 : 16);
-                    }
-                    return SizedBox(
-                      width: ads.bannerAd!.size.width.toDouble(),
-                      height: ads.bannerAd!.size.height.toDouble(),
-                      child: AdWidget(ad: ads.bannerAd!),
-                    );
-                  },
-                ),
               ],
             ),
           ),
 
-          // Tutorial overlays (blocking modals)
-          if (_isTutorial && [1, 3, 4, 6, 7].contains(_tutorialPhase))
+          // Tutorial overlays (blocking modals). Phase 9 is the final
+          // "tutorial completed" modal — its CTA finishes the tutorial
+          // and pops back to home rather than advancing a step.
+          if (_isTutorial && [1, 3, 4, 6, 7, 9].contains(_tutorialPhase))
             TutorialOverlay(
               phase: _tutorialPhase,
-              onNext: () => _setTutorialPhase(_tutorialPhase + 1),
+              onNext: _tutorialPhase == 9
+                  ? _finishTutorial
+                  : () => _setTutorialPhase(_tutorialPhase + 1),
             ),
         ],
       ),
@@ -574,6 +589,34 @@ class _GameScreenState extends State<GameScreen> {
   // ══════════════════════════════════════
   //  Inline banner (above buttons in column)
   // ══════════════════════════════════════
+
+  /// Banner + animated pointing finger used for every interactive tutorial
+  /// step. The finger makes it unambiguous which element the player should
+  /// tap next.
+  Widget _buildTutorialInstruction(String text) {
+    return _buildInlineBanner(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const TutorialFinger(direction: FingerDirection.down, size: 22),
+          const SizedBox(width: 10),
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: AppFonts.quicksand(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.gold,
+              ),
+            ),
+          ),
+        ],
+      ),
+      bgColor: AppColors.gold.withValues(alpha: 0.14),
+      borderColor: AppColors.gold.withValues(alpha: 0.4),
+    );
+  }
 
   Widget _buildInlineBanner({
     required Widget child,
@@ -877,11 +920,7 @@ class _GameScreenState extends State<GameScreen> {
   // ══════════════════════════════════════
 
   Widget _buildLoadingOverlay() {
-    return const Center(
-      child: CircularProgressIndicator(
-        color: Color(0xFFF4B400),
-      ),
-    );
+    return const AppLoadingIndicator();
   }
 
   // ══════════════════════════════════════
@@ -1104,48 +1143,6 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
-  // ── Fail modal ───────────────────────────────────────────
-  void _showFailModal() {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.transparent,
-      transitionDuration: const Duration(milliseconds: 400),
-      pageBuilder: (ctx, _, __) => FailModal(
-        adService: context.read<AdService>(),
-        coinService: context.read<CoinService>(),
-        currentGrid: _game.grid,
-        onWatchAd: () async {
-          Navigator.pop(ctx);
-          await _watchAdToContinue();
-        },
-        onBuyMoves: () {
-          Navigator.pop(ctx);
-          _buyMovesAfterFail();
-        },
-        onRestart: () {
-          Navigator.pop(ctx);
-          setState(() => _showingFailModal = false);
-          _restartLevel();
-        },
-      ),
-      transitionBuilder: (ctx, anim, _, child) {
-        if (anim.status == AnimationStatus.reverse ||
-            anim.status == AnimationStatus.dismissed) {
-          return const SizedBox.shrink();
-        }
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 1),
-            end: Offset.zero,
-          ).animate(
-              CurvedAnimation(parent: anim, curve: Curves.easeOutCubic)),
-          child: child,
-        );
-      },
-    );
-  }
-
   // ── Save-progress prompt (guest → Google) ───────────────
   bool _shouldShowSavePrompt() {
     final isGuest = (_prefs.getString('fjalekryq_account_type') ?? '') == 'guest';
@@ -1193,42 +1190,68 @@ class _GameScreenState extends State<GameScreen> {
     final canAffordHintNow = _isTutorial || coinService.canAfford(hintCost);
     final canAffordSolveNow = _isTutorial || coinService.canAfford(solveCost);
 
+    final pointSolve = _isTutorial && _tutorialPhase == 8;
+    final pointHint = _isTutorial && _tutorialPhase == 5;
+
+    Widget withFinger({required bool show, required Widget child}) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            height: 28,
+            child: show
+                ? const TutorialFinger(
+                    direction: FingerDirection.down, size: 24)
+                : null,
+          ),
+          child,
+        ],
+      );
+    }
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 430),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             // Solve button (green glass) — in tutorial the cost is hidden so
             // the player isn't nudged to spend coins they don't track yet.
             Expanded(
-              child: _controlButton(
-                icon: Icons.check_circle_outline,
-                label: _isTutorial ? 'Zgjidh' : 'Zgjidh · $solveCost',
-                enabled: _game.canSolveWord &&
-                    !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 5)),
-                cooling: _game.solveWordCooldown,
-                cooldownRemaining: _game.solveWordCooldownRemaining,
-                pulsing: _isTutorial && _tutorialPhase == 8,
-                onTap: _onSolveWord,
-                showWatchBadge: !_isTutorial && !canAffordSolveNow,
-                isSolve: true,
+              child: withFinger(
+                show: pointSolve,
+                child: _controlButton(
+                  icon: Icons.check_circle_outline,
+                  label: _isTutorial ? 'Zgjidh' : 'Zgjidh · $solveCost',
+                  enabled: _game.canSolveWord &&
+                      !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 5)),
+                  cooling: _game.solveWordCooldown,
+                  cooldownRemaining: _game.solveWordCooldownRemaining,
+                  pulsing: _isTutorial && _tutorialPhase == 8,
+                  onTap: _onSolveWord,
+                  showWatchBadge: !_isTutorial && !canAffordSolveNow,
+                  isSolve: true,
+                ),
               ),
             ),
             const SizedBox(width: 10),
             // Hint button (yellow glass) — cost hidden during tutorial.
             Expanded(
-              child: _controlButton(
-                icon: Icons.lightbulb_outline,
-                label: _isTutorial ? 'Ndihmë' : 'Ndihmë · $hintCost',
-                enabled: _game.canHint &&
-                    !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 8)),
-                cooling: _game.hintCooldown,
-                cooldownRemaining: _game.hintCooldownRemaining,
-                pulsing: _isTutorial && _tutorialPhase == 5,
-                onTap: _onHint,
-                showWatchBadge: !_isTutorial && !canAffordHintNow,
-                noCoins: !_isTutorial && !canAffordHintNow,
+              child: withFinger(
+                show: pointHint,
+                child: _controlButton(
+                  icon: Icons.lightbulb_outline,
+                  label: _isTutorial ? 'Ndihmë' : 'Ndihmë · $hintCost',
+                  enabled: _game.canHint &&
+                      !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 8)),
+                  cooling: _game.hintCooldown,
+                  cooldownRemaining: _game.hintCooldownRemaining,
+                  pulsing: _isTutorial && _tutorialPhase == 5,
+                  onTap: _onHint,
+                  showWatchBadge: !_isTutorial && !canAffordHintNow,
+                  noCoins: !_isTutorial && !canAffordHintNow,
+                ),
               ),
             ),
           ],

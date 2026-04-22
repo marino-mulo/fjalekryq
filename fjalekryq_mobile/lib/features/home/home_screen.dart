@@ -11,7 +11,7 @@ import '../settings/settings_sheet.dart';
 import '../shop/daily_reward_sheet.dart';
 import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
-import '../../shared/widgets/app_logo.dart';
+import '../../shared/widgets/puzzle_logo.dart';
 import '../game/game_screen.dart';
 import 'daily_offer.dart';
 import 'daily_offer_banner.dart';
@@ -177,16 +177,6 @@ class _HomeScreenState extends State<HomeScreen>
             // Header pinned at top
             _buildHeader(dailyAvailable, statusBarH),
 
-            // Top-right floating daily offer banner
-            Positioned(
-              top: statusBarH + 72,
-              right: 12,
-              child: DailyOfferBanner(
-                offer: offerForPrefs(context.read<SharedPreferences>()),
-                onTap: _openDailyOffer,
-              ),
-            ),
-
             // Main content
             Positioned.fill(
               child: SafeArea(
@@ -200,8 +190,24 @@ class _HomeScreenState extends State<HomeScreen>
                         // Space for the header
                         const SizedBox(height: 60),
 
-                        // ── Horizontal card carousel ─────────────────────────
-                        _buildCardCarousel(),
+                        // ── Daily + Leaderboard cards (full-width, stacked)
+                        _buildCards(),
+
+                        const SizedBox(height: 14),
+
+                        // Daily offer — inline so it never collides with
+                        // the cards above or the logo below.
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: DailyOfferBanner(
+                              offer: offerForPrefs(
+                                  context.read<SharedPreferences>()),
+                              onTap: _openDailyOffer,
+                            ),
+                          ),
+                        ),
 
                         const Spacer(flex: 4),
 
@@ -269,9 +275,9 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  // ── Horizontal scrollable cards ──────────────────────────────────────────────
+  // ── Daily + Leaderboard cards (full-width, glass-morphism) ────────────────
 
-  Widget _buildCardCarousel() {
+  Widget _buildCards() {
     final streak = context.watch<DailyPuzzleService>().currentStreak;
     final now = DateTime.now();
     final months = [
@@ -280,43 +286,28 @@ class _HomeScreenState extends State<HomeScreen>
     ];
     final dateLabel = '${months[now.month - 1]} ${now.day}';
 
-    return SizedBox(
-      height: 180,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
         children: [
-          // Daily Challenge card
           _HomeCard(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF3B82F6), Color(0xFF1D4ED8)],
-            ),
+            accent: const Color(0xFF60A5FA),
             icon: Icons.today_rounded,
-            iconColor: const Color(0xFFFBBF24),
             label: 'SFIDA DITORE',
             title: dateLabel,
             buttonLabel: streak > 0 ? 'Vazhdo' : 'Luaj',
             badge: streak > 0 ? '🔥 $streak' : null,
             onTap: _openDailyPuzzle,
           ),
-          const SizedBox(width: 14),
-          // Leaderboard card
+          const SizedBox(height: 12),
           _HomeCard(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFF7C3AED), Color(0xFF4C1D95)],
-            ),
+            accent: AppColors.purpleAccent,
             icon: Icons.emoji_events_rounded,
-            iconColor: const Color(0xFFFBBF24),
             label: 'RENDITJA',
             title: 'Tabelë Kryesore',
             buttonLabel: 'Shiko',
             onTap: _openLeaderboard,
           ),
-          const SizedBox(width: 20),
         ],
       ),
     );
@@ -326,7 +317,7 @@ class _HomeScreenState extends State<HomeScreen>
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const AppLogo(size: 180),
+        const PuzzleLogo(size: 140),
         const SizedBox(height: 10),
         Row(
           mainAxisSize: MainAxisSize.min,
@@ -405,9 +396,9 @@ class _HomeScreenState extends State<HomeScreen>
 // ── Home card widget ──────────────────────────────────────────────────────────
 
 class _HomeCard extends StatelessWidget {
-  final Gradient gradient;
+  /// Accent color that tints the border, glow, icon, and CTA button.
+  final Color accent;
   final IconData icon;
-  final Color iconColor;
   final String label;
   final String title;
   final String buttonLabel;
@@ -415,9 +406,8 @@ class _HomeCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _HomeCard({
-    required this.gradient,
+    required this.accent,
     required this.icon,
-    required this.iconColor,
     required this.label,
     required this.title,
     required this.buttonLabel,
@@ -430,15 +420,19 @@ class _HomeCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 180,
-        padding: const EdgeInsets.all(18),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
         decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(22),
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: accent.withValues(alpha: 0.38),
+            width: 1.5,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 18,
+              color: accent.withValues(alpha: 0.22),
+              blurRadius: 22,
               offset: const Offset(0, 6),
             ),
           ],
@@ -446,67 +440,92 @@ class _HomeCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Icon + optional timer/badge badge
             Row(
               children: [
-                Icon(icon, color: iconColor, size: 30),
-                if (badge != null) ...[
-                  const Spacer(),
+                // Accent-tinted icon tile
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: accent.withValues(alpha: 0.45),
+                    ),
+                  ),
+                  child: Icon(icon, color: accent, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: AppFonts.nunito(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 1.4,
+                          color: Colors.white.withValues(alpha: 0.55),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        title,
+                        style: AppFonts.nunito(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                if (badge != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.28),
+                      color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.14),
+                      ),
                     ),
                     child: Text(
                       badge!,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: AppFonts.nunito(
                         fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
                       ),
                     ),
                   ),
-                ],
               ],
             ),
-            const SizedBox(height: 8),
-            // Small label
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.2,
-                color: Colors.white.withValues(alpha: 0.65),
-              ),
-            ),
-            const SizedBox(height: 2),
-            // Title
-            Text(
-              title,
-              style: AppFonts.nunito(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const Spacer(),
-            // Play/Continue button
+            const SizedBox(height: 12),
+            // Full-width CTA
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 11),
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(20),
+                color: accent.withValues(alpha: 0.22),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: accent.withValues(alpha: 0.5),
+                ),
               ),
-              child: Text(
-                buttonLabel,
-                style: AppFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
+              child: Center(
+                child: Text(
+                  buttonLabel,
+                  style: AppFonts.nunito(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.6,
+                  ),
                 ),
               ),
             ),

@@ -36,8 +36,8 @@ import 'core/network/hybrid_daily_puzzle_repository.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
-import 'shared/widgets/app_background.dart';
-import 'shared/widgets/app_logo.dart';
+import 'shared/widgets/app_loading_view.dart';
+import 'shared/widgets/lojralogjike_splash.dart';
 
 late final Future<_AppServices> _initFuture;
 
@@ -260,12 +260,20 @@ class FjalekryqApp extends StatefulWidget {
 
 class _FjalekryqAppState extends State<FjalekryqApp> {
   _AppServices? _services;
+  // Controls the first-launch brand splash. Flips to true after
+  // [_brandSplashDuration] so the loading view can take over.
+  bool _brandSplashDone = false;
+
+  static const _brandSplashDuration = Duration(milliseconds: 1800);
 
   @override
   void initState() {
     super.initState();
     _initFuture.then((s) {
       if (mounted) setState(() => _services = s);
+    });
+    Future.delayed(_brandSplashDuration, () {
+      if (mounted) setState(() => _brandSplashDone = true);
     });
   }
 
@@ -275,7 +283,7 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
 
     // ONE MaterialApp — never recreated.
     // `builder` injects providers above the Navigator so bottom sheets see them.
-    // `home` swaps from splash → home when services are ready.
+    // `home` swaps brand splash → loading view → home as state advances.
     return MaterialApp(
       debugShowCheckedModeBanner: AppConfig.showDebugBanner,
       theme: ThemeData(
@@ -292,11 +300,13 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
       builder: s != null
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
-      home: s == null
-          ? const SplashScreen()
-          : (s.prefs.getBool(_onboardingDoneKey) ?? false)
-              ? const HomeScreen()
-              : const OnboardingScreen(),
+      home: !_brandSplashDone
+          ? const LojraLogjikeSplash()
+          : s == null
+              ? const AppLoadingView()
+              : (s.prefs.getBool(_onboardingDoneKey) ?? false)
+                  ? const HomeScreen()
+                  : const OnboardingScreen(),
     );
   }
 }
@@ -331,24 +341,3 @@ class _SlideUpTransitionBuilder extends PageTransitionsBuilder {
   }
 }
 
-// ── Splash Screen (matches web home: dark gradient + shared bg tiles) ──
-
-/// Splash / loading screen shown while the service graph boots up.
-/// Uses the shared app background and the animated [AppLogo] so the
-/// transition into the home screen feels continuous — same backdrop,
-/// same logo, only the surrounding chrome changes.
-class SplashScreen extends StatelessWidget {
-  const SplashScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Colors.transparent,
-      body: AppBackground(
-        child: Center(
-          child: AppLogo(size: 200, animated: true),
-        ),
-      ),
-    );
-  }
-}

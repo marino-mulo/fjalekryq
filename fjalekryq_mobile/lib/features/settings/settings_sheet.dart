@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/models/user_model.dart';
 import '../../core/database/repositories/user_repository.dart';
 import '../../core/services/coin_service.dart';
@@ -8,6 +9,7 @@ import '../../core/services/settings_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../game/game_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 
 const int _nicknameCost = 100;
@@ -109,6 +111,19 @@ class _SettingsSheetState extends State<SettingsSheet> {
       _editingName = false;
       _nameError = null;
     });
+  }
+
+  Future<void> _openTutorial() async {
+    HapticFeedback.selectionClick();
+    final prefs = context.read<SharedPreferences>();
+    await prefs.setBool('fjalekryq_force_tutorial', true);
+    if (!mounted) return;
+    // Replace settings with the game screen so the back stack stays clean:
+    // finishing the tutorial pops straight back to home.
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const GameScreen()),
+    );
   }
 
   Future<void> _selectAvatar(int index) async {
@@ -356,12 +371,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         value: settings.notificationsEnabled,
                         onChanged: (_) => settings.toggleNotifications(),
                       ),
-                      const SizedBox(height: 6),
-                      _SettingToggle(
-                        icon: Icons.email,
-                        label: 'Njoftimet me Email',
-                        value: settings.emailNotificationsEnabled,
-                        onChanged: (_) => settings.toggleEmailNotifications(),
+
+                      const SizedBox(height: 16),
+                      _buildDivider(),
+                      const SizedBox(height: 16),
+
+                      // ── Help ───────────────────────────────────────
+                      _buildSectionLabel('Ndihmë'),
+                      const SizedBox(height: 10),
+                      _buildLegalRow(
+                        icon: Icons.school_outlined,
+                        label: 'Si të luash',
+                        onTap: _openTutorial,
                       ),
 
                       const SizedBox(height: 16),

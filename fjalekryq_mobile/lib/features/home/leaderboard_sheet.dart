@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/offline_view.dart';
 import 'leaderboard_data.dart';
 import 'leaderboard_full_screen.dart';
@@ -143,9 +144,7 @@ class _LeaderboardPreviewSheetState extends State<LeaderboardPreviewSheet>
           if (_loading.contains(tab) || result == null)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 40),
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.gold),
-              ),
+              child: AppLoadingIndicator(),
             )
           else if (result is LeaderboardOffline)
             SizedBox(

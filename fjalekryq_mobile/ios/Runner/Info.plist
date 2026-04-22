@@ -11,6 +11,13 @@
 	<key>NSUserTrackingUsageDescription</key>
 	<string>Loja përdor reklamat për të mbajtur lojën falas. Lejimi i gjurmimit na ndihmon të shfaqim reklama më relevante.</string>
 
+	<!-- Export-compliance: the app does not use non-exempt encryption beyond
+	     what Apple already exempts (HTTPS, standard iOS crypto). Declaring
+	     this avoids the export-compliance question on every TestFlight /
+	     App Store Connect upload. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
