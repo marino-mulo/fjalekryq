@@ -31,6 +31,19 @@ class SettingsService extends ChangeNotifier {
   bool get notificationsEnabled => _notificationsEnabled;
   bool get emailNotificationsEnabled => _emailNotificationsEnabled;
 
+  /// Unified "Sounds" state used by the simplified settings UI. True iff
+  /// both music and SFX are on — toggling this flips both together so
+  /// the user has a single control to mute everything.
+  bool get audioEnabled => _musicEnabled && _soundEnabled;
+
+  void toggleAudio() {
+    final next = !audioEnabled;
+    _musicEnabled = next;
+    _soundEnabled = next;
+    _saveAll();
+    notifyListeners();
+  }
+
   void toggleMusic() {
     _musicEnabled = !_musicEnabled;
     _saveAll();

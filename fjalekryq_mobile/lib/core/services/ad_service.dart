@@ -66,6 +66,21 @@ class AdService extends ChangeNotifier {
     return true;
   }
 
+  /// Restore previously purchased non-consumables (Remove Ads). Required
+  /// by Apple for any app with IAP — must be callable without requiring
+  /// a new purchase. In dev: returns the current local state after a
+  /// short delay so the UI can show a spinner. In prod: wire this into
+  /// the `in_app_purchase` plugin's `restorePurchases` flow.
+  Future<bool> restorePurchases() async {
+    if (AppConfig.isDev) {
+      await Future.delayed(const Duration(milliseconds: 600));
+      return removeAds;
+    }
+    // TODO (prod): call InAppPurchase.instance.restorePurchases(), then
+    // reconcile the results with [_removeAdsKey] here.
+    return removeAds;
+  }
+
   // ── Banner Ad ─────────────────────────────────────────────────────────────
 
   BannerAd? _bannerAd;
