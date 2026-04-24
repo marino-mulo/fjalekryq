@@ -4,12 +4,14 @@ class ProgressModel with AuditFields {
   int userId;
   int level;
   int completed;
+  int? movesLeft;
 
   ProgressModel({
     int? id,
     required this.userId,
     required this.level,
     this.completed = 0,
+    this.movesLeft,
   }) {
     initAuditDefaults();
     this.id = id;
@@ -20,6 +22,7 @@ class ProgressModel with AuditFields {
       userId: map['user_id'] as int,
       level: map['level'] as int,
       completed: map['completed'] as int? ?? 0,
+      movesLeft: map['moves_left'] as int?,
     );
     model.loadAudit(map);
     return model;
@@ -30,5 +33,6 @@ class ProgressModel with AuditFields {
         'user_id': userId,
         'level': level,
         'completed': completed,
+        'moves_left': movesLeft,
       };
 }

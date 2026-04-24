@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/material.dart';
@@ -15,8 +16,8 @@ import 'core/database/repositories/coins_repository.dart';
 import 'core/database/repositories/settings_repository.dart';
 import 'core/database/repositories/progress_repository.dart';
 import 'core/database/repositories/game_state_repository.dart';
-import 'core/database/repositories/level_repository.dart';
 import 'core/database/repositories/notification_repository.dart';
+import 'core/database/repositories/user_generated_level_repository.dart';
 import 'core/database/repositories/achievement_repository.dart';
 import 'core/database/repositories/ad_reward_repository.dart';
 import 'core/services/coin_service.dart';
@@ -26,7 +27,9 @@ import 'core/services/ad_service.dart';
 import 'core/services/connectivity_service.dart';
 import 'core/services/level_puzzle_store.dart';
 import 'core/services/daily_puzzle_service.dart';
+import 'core/services/sync_service.dart';
 import 'core/network/remote_auth_repository.dart';
+import 'core/network/remote_coins_repository.dart';
 import 'core/network/remote_level_repository.dart';
 import 'core/network/remote_progress_repository.dart';
 import 'core/network/remote_streak_repository.dart';
@@ -92,7 +95,7 @@ Future<_AppServices> _initializeApp() async {
   // the remote sync is best-effort and silently retried on next write.
   final progressRepo = HybridProgressRepository(dbHelper, RemoteProgressRepository());
   final gameStateRepo = GameStateRepository(dbHelper);
-  final levelRepo = LevelRepository(dbHelper);
+  final userGeneratedLevelRepo = UserGeneratedLevelRepository(dbHelper);
   final notificationRepo = NotificationRepository(dbHelper);
   final achievementRepo = AchievementRepository(dbHelper);
   final adRewardRepo = AdRewardRepository(dbHelper);
@@ -132,6 +135,20 @@ Future<_AppServices> _initializeApp() async {
     // calls keep running; they'll just settle later.
   }
 
+  // Once auth is settled, reconcile anything that was written locally
+  // while offline (level completions, coin balance) with the server.
+  // Runs in the background — the UI doesn't wait on it. A listener
+  // fires the same sync whenever connectivity flips back online.
+  final syncService = SyncService(
+    userId:          userId,
+    progressRepo:    progressRepo,
+    remoteProgress:  RemoteProgressRepository(),
+    remoteCoins:     RemoteCoinsRepository(),
+    coinService:     coinService,
+    connectivity:    ConnectivityService.instance,
+  )..start();
+  unawaited(syncService.syncAll());
+
   // Don't block startup with font loading — let it happen lazily
   return _AppServices(
     prefs: prefs,
@@ -142,14 +159,19 @@ Future<_AppServices> _initializeApp() async {
     audioService: AudioService(settingsService),
     adService: AdService(adRewardRepo, userId, prefs),
     dailyPuzzleService: dailyPuzzleService,
-    puzzleStore: LevelPuzzleStore(RemoteLevelRepository()),
+    puzzleStore: LevelPuzzleStore(
+      RemoteLevelRepository(),
+      userGeneratedLevelRepo,
+      userId,
+    ),
     progressRepo: progressRepo,
     gameStateRepo: gameStateRepo,
     userRepo: userRepo,
-    levelRepo: levelRepo,
+    userGeneratedLevelRepo: userGeneratedLevelRepo,
     notificationRepo: notificationRepo,
     achievementRepo: achievementRepo,
     adRewardRepo: adRewardRepo,
+    coinsRepo: coinsRepo,
   );
 }
 
@@ -166,10 +188,11 @@ class _AppServices {
   final ProgressRepository progressRepo;
   final GameStateRepository gameStateRepo;
   final UserRepository userRepo;
-  final LevelRepository levelRepo;
+  final UserGeneratedLevelRepository userGeneratedLevelRepo;
   final NotificationRepository notificationRepo;
   final AchievementRepository achievementRepo;
   final AdRewardRepository adRewardRepo;
+  final CoinsRepository coinsRepo;
 
   const _AppServices({
     required this.prefs,
@@ -184,10 +207,11 @@ class _AppServices {
     required this.progressRepo,
     required this.gameStateRepo,
     required this.userRepo,
-    required this.levelRepo,
+    required this.userGeneratedLevelRepo,
     required this.notificationRepo,
     required this.achievementRepo,
     required this.adRewardRepo,
+    required this.coinsRepo,
   });
 
   List<SingleChildWidget> get providers => [
@@ -206,7 +230,7 @@ class _AppServices {
     Provider<ProgressRepository>.value(value: progressRepo),
     Provider<GameStateRepository>.value(value: gameStateRepo),
     Provider<UserRepository>.value(value: userRepo),
-    Provider<LevelRepository>.value(value: levelRepo),
+    Provider<UserGeneratedLevelRepository>.value(value: userGeneratedLevelRepo),
     Provider<NotificationRepository>.value(value: notificationRepo),
     Provider<AchievementRepository>.value(value: achievementRepo),
     Provider<AdRewardRepository>.value(value: adRewardRepo),
