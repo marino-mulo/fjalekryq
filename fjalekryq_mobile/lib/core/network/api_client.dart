@@ -94,14 +94,17 @@ class ApiClient {
         throw ArgumentError('Unsupported HTTP method: $method');
     }
 
-    // 401 → try to refresh once, then retry
+    // 401 → try to refresh once, then retry. Tokens are effectively
+    // permanent server-side now, so a failed refresh is almost always a
+    // transient / network blip rather than a truly invalidated session.
+    // Don't clear tokens or bounce the user to a login screen — let the
+    // call surface a normal ApiException so the UI can show a soft toast
+    // and the user keeps playing.
     if (response.statusCode == 401 && !isRetry) {
       final refreshed = await _tryRefresh();
       if (refreshed) {
         return _request(method, path, body: body, isRetry: true);
       }
-      await AuthTokenStore.clear();
-      throw ApiException(401, 'Session expired. Please log in again.');
     }
 
     if (response.statusCode < 200 || response.statusCode >= 300) {

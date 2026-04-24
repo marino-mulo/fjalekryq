@@ -55,9 +55,6 @@ int coinsForDifficulty(Difficulty d) {
   }
 }
 
-/// Total number of active levels.
-const int totalActiveLevels = 10;
-
 /// Total level slots shown in the map.
 const int totalMapLevels = 500;
 

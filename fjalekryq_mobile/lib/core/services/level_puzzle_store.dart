@@ -1,53 +1,66 @@
-import '../database/repositories/level_repository.dart';
+import 'dart:convert';
+
+import '../database/models/user_generated_level_model.dart';
+import '../database/repositories/user_generated_level_repository.dart';
 import '../models/puzzle.dart';
-import '../models/level_config.dart';
-import 'puzzle_generator.dart';
+import '../network/remote_level_repository.dart';
 
-/// Generates puzzles on-demand from the seed stored in the DB.
-/// Puzzles are cached in memory to avoid re-generating on replay.
+/// Fetches puzzles for numbered levels from the server, caches them to
+/// the local `user_generated_levels` table, and falls back to that cache
+/// when offline. The server stays authoritative — we only read from
+/// cache if the network call fails.
 class LevelPuzzleStore {
-  final LevelRepository _levelRepo;
-  final Map<int, Wordle7Puzzle> _cache = {};
+  final RemoteLevelRepository _remoteRepo;
+  final UserGeneratedLevelRepository _cacheRepo;
+  final int _userId;
+  final Map<int, Wordle7Puzzle> _memCache = {};
 
-  LevelPuzzleStore(this._levelRepo);
+  LevelPuzzleStore(this._remoteRepo, this._cacheRepo, this._userId);
 
-  /// Generate the puzzle for [level].
-  /// Returns null if the level row doesn't exist.
+  /// Fetch the puzzle for [level]. Tries the server first (so the user
+  /// always gets the authoritative puzzle), then falls back to the
+  /// per-user SQLite cache for offline replay.
   Future<Wordle7Puzzle?> generate(int level) async {
-    // Return cached puzzle if available
-    if (_cache.containsKey(level)) {
-      return _cache[level];
+    if (_memCache.containsKey(level)) {
+      return _memCache[level];
     }
-
-    final levelModel = await _levelRepo.getByLevel(level);
-    if (levelModel == null) return null;
-
-    final difficulty = difficultyForLevel(level);
-
-    // Generate on main thread — dictionary is small (~880 words),
-    // generation is fast. Isolate.run was too slow on emulators.
-    // Use Future.delayed to let the loading UI paint first.
-    await Future.delayed(const Duration(milliseconds: 50));
 
     try {
-      final puzzle = PuzzleGenerator.generateRandom(
-        levelModel.seed,
-        difficulty: difficulty,
-      );
-      _cache[level] = puzzle;
-      return puzzle;
-    } catch (e) {
-      // If generation fails, try with a different seed offset
+      final remote = await _remoteRepo.getLevel(level);
+      _memCache[level] = remote.puzzle;
+      // Write-through to the local cache so this puzzle survives an
+      // offline relaunch. Swallow cache errors — the game can still run.
       try {
-        final puzzle = PuzzleGenerator.generateRandom(
-          levelModel.seed + 7,
-          difficulty: difficulty,
-        );
-        _cache[level] = puzzle;
-        return puzzle;
-      } catch (_) {
-        return null;
-      }
+        await _cacheRepo.upsert(UserGeneratedLevelModel(
+          userId:     _userId,
+          level:      remote.level,
+          difficulty: remote.difficulty,
+          puzzleJson: jsonEncode(remote.puzzle.toJson()),
+        ));
+      } catch (_) {}
+      return remote.puzzle;
+    } catch (_) {
+      // Network failure — try the cache.
+      try {
+        final cached = await _cacheRepo.getByUserAndLevel(_userId, level);
+        if (cached != null) {
+          final puzzle = Wordle7Puzzle.fromJson(
+            jsonDecode(cached.puzzleJson) as Map<String, dynamic>,
+          );
+          _memCache[level] = puzzle;
+          return puzzle;
+        }
+      } catch (_) {}
+      return null;
     }
+  }
+
+  /// Evict the cached puzzle for a cleared level. Called after a win so
+  /// the next playthrough re-fetches a fresh puzzle from the server.
+  Future<void> evict(int level) async {
+    _memCache.remove(level);
+    try {
+      await _cacheRepo.deleteByUserAndLevel(_userId, level);
+    } catch (_) {}
   }
 }
