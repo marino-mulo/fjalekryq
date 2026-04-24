@@ -40,6 +40,14 @@ class CoinService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Overwrite the local balance with the server's authoritative value
+  /// (e.g. after a level-complete call returns `newBalance`).
+  void setBalance(int amount) {
+    _coins = amount;
+    _save();
+    notifyListeners();
+  }
+
   bool spend(int amount) {
     if (!canAfford(amount)) return false;
     _coins -= amount;

@@ -27,6 +27,7 @@ import 'core/services/connectivity_service.dart';
 import 'core/services/level_puzzle_store.dart';
 import 'core/services/daily_puzzle_service.dart';
 import 'core/network/remote_auth_repository.dart';
+import 'core/network/remote_level_repository.dart';
 import 'core/network/remote_progress_repository.dart';
 import 'core/network/remote_streak_repository.dart';
 import 'core/network/remote_daily_puzzle_repository.dart';
@@ -141,7 +142,7 @@ Future<_AppServices> _initializeApp() async {
     audioService: AudioService(settingsService),
     adService: AdService(adRewardRepo, userId, prefs),
     dailyPuzzleService: dailyPuzzleService,
-    puzzleStore: LevelPuzzleStore(levelRepo),
+    puzzleStore: LevelPuzzleStore(RemoteLevelRepository()),
     progressRepo: progressRepo,
     gameStateRepo: gameStateRepo,
     userRepo: userRepo,

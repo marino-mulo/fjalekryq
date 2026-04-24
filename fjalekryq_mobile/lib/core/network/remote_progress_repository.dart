@@ -1,6 +1,19 @@
 import '../database/models/progress_model.dart';
 import 'api_client.dart';
 
+/// Server's response for a level-completion call.
+class LevelCompletionResult {
+  final int level;
+  final int coinsAwarded;
+  final int newBalance;
+
+  const LevelCompletionResult({
+    required this.level,
+    required this.coinsAwarded,
+    required this.newBalance,
+  });
+}
+
 /// Remote implementation mirroring [ProgressRepository]'s public interface.
 class RemoteProgressRepository {
   Future<ProgressModel?> getByUserAndLevel(int userId, int level) async {
@@ -30,10 +43,24 @@ class RemoteProgressRepository {
         .length;
   }
 
-  /// Upsert is called by the service layer when a level is completed.
-  Future<void> upsert(int userId, int level, {bool? completed}) async {
-    if (completed == true) {
-      await ApiClient.postVoid('/progress/$level', body: {});
-    }
+  /// Mark [level] cleared. Server requires `movesLeft` and returns the
+  /// coin reward + new balance so the client can show the authoritative
+  /// numbers without duplicating the reward math.
+  Future<LevelCompletionResult?> upsert(
+    int userId,
+    int level, {
+    bool? completed,
+    int movesLeft = 0,
+  }) async {
+    if (completed != true) return null;
+    final data = await ApiClient.post(
+      '/progress/$level',
+      body: {'movesLeft': movesLeft < 0 ? 0 : movesLeft},
+    );
+    return LevelCompletionResult(
+      level:        data['level']        as int,
+      coinsAwarded: data['coinsAwarded'] as int,
+      newBalance:   data['newBalance']   as int,
+    );
   }
 }

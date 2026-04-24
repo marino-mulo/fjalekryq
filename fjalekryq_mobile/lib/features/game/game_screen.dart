@@ -64,14 +64,6 @@ final _tutorialInitialGrid = [
 
 const _praises = ['Bravo!', 'Të lumtë!', 'Shkëlqyeshëm!', 'Fantastike!', 'Mahnitëse!'];
 
-/// Coins earned per difficulty on first clear.
-const _difficultyCoinMap = {
-  Difficulty.easy: 20,
-  Difficulty.medium: 35,
-  Difficulty.hard: 50,
-  Difficulty.expert: 80,
-};
-
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
@@ -299,25 +291,38 @@ class _GameScreenState extends State<GameScreen> {
     } else {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
-
-      _game.saveProgress(playingLevel, completed: true);
+      final movesLeft = _game.swapsRemaining;
 
       // Clear in-progress flag — level complete
       _prefs.remove('fjalekryq_in_progress_$playingLevel');
 
-      // Award coins only on first clear
+      // Server is authoritative for the coin reward now (tiered off
+      // movesLeft). Apply the local fallback immediately so the win
+      // modal never shows 0 while the network call is in-flight, then
+      // reconcile when the response arrives.
       final isFirstClear = playingLevel >= progress;
       if (isFirstClear) {
-        final diff = difficultyForLevel(playingLevel);
-        _coinsEarned = _difficultyCoinMap[diff] ?? 10;
-        coinService.add(_coinsEarned);
+        _coinsEarned = movesLeft >= 5 ? 30 : (movesLeft == 4 ? 25 : 20);
         Future.delayed(const Duration(milliseconds: 800), () => _audio.play(Sfx.coin));
       } else {
         _coinsEarned = 0;
       }
 
-      // Advance progress on first clear
-      if (isFirstClear && playingLevel < totalActiveLevels) {
+      _game
+          .saveProgress(playingLevel, completed: true, movesLeft: movesLeft)
+          .then((result) {
+        if (!mounted || result == null) return;
+        // Trust the server's balance absolutely — it already accounts for
+        // the coin reward, so we must not `add()` on top of it.
+        coinService.setBalance(result.newBalance);
+        if (isFirstClear && result.coinsAwarded != _coinsEarned) {
+          setState(() => _coinsEarned = result.coinsAwarded);
+        }
+      });
+
+      // Advance progress on first clear. No upper cap — the server
+      // generates every level on demand.
+      if (isFirstClear) {
         _prefs.setInt(_levelKey, playingLevel + 1);
       }
     }

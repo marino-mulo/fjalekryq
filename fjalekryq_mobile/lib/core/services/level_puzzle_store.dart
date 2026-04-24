@@ -1,53 +1,27 @@
-import '../database/repositories/level_repository.dart';
 import '../models/puzzle.dart';
-import '../models/level_config.dart';
-import 'puzzle_generator.dart';
+import '../network/remote_level_repository.dart';
 
-/// Generates puzzles on-demand from the seed stored in the DB.
-/// Puzzles are cached in memory to avoid re-generating on replay.
+/// Fetches puzzles for numbered levels from the server.
+/// Puzzles are cached in memory so replays don't re-fetch.
 class LevelPuzzleStore {
-  final LevelRepository _levelRepo;
+  final RemoteLevelRepository _remoteRepo;
   final Map<int, Wordle7Puzzle> _cache = {};
 
-  LevelPuzzleStore(this._levelRepo);
+  LevelPuzzleStore(this._remoteRepo);
 
-  /// Generate the puzzle for [level].
-  /// Returns null if the level row doesn't exist.
+  /// Fetch the puzzle for [level] from the server.
+  /// Throws if the server call fails (offline, server down, etc.) —
+  /// callers handle the error the same way as any other API failure.
   Future<Wordle7Puzzle?> generate(int level) async {
-    // Return cached puzzle if available
     if (_cache.containsKey(level)) {
       return _cache[level];
     }
-
-    final levelModel = await _levelRepo.getByLevel(level);
-    if (levelModel == null) return null;
-
-    final difficulty = difficultyForLevel(level);
-
-    // Generate on main thread — dictionary is small (~880 words),
-    // generation is fast. Isolate.run was too slow on emulators.
-    // Use Future.delayed to let the loading UI paint first.
-    await Future.delayed(const Duration(milliseconds: 50));
-
     try {
-      final puzzle = PuzzleGenerator.generateRandom(
-        levelModel.seed,
-        difficulty: difficulty,
-      );
-      _cache[level] = puzzle;
-      return puzzle;
-    } catch (e) {
-      // If generation fails, try with a different seed offset
-      try {
-        final puzzle = PuzzleGenerator.generateRandom(
-          levelModel.seed + 7,
-          difficulty: difficulty,
-        );
-        _cache[level] = puzzle;
-        return puzzle;
-      } catch (_) {
-        return null;
-      }
+      final remote = await _remoteRepo.getLevel(level);
+      _cache[level] = remote.puzzle;
+      return remote.puzzle;
+    } catch (_) {
+      return null;
     }
   }
 }

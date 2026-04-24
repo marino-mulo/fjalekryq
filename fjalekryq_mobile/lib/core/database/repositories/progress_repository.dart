@@ -1,3 +1,4 @@
+import '../../network/remote_progress_repository.dart';
 import '../database_helper.dart';
 import '../models/progress_model.dart';
 import 'base_repository.dart';
@@ -46,7 +47,15 @@ class ProgressRepository extends BaseRepository<ProgressModel> {
   }
 
   /// Upsert progress: update if exists, insert if not.
-  Future<void> upsert(int userId, int level, {bool? completed}) async {
+  /// [movesLeft] is accepted for signature parity with the hybrid/remote
+  /// repos, which forward it to the server for coin rewards. The local
+  /// repo doesn't need it.
+  Future<void> upsert(
+    int userId,
+    int level, {
+    bool? completed,
+    int movesLeft = 0,
+  }) async {
     final existing = await getByUserAndLevel(userId, level);
     if (existing != null) {
       if (completed != null) existing.completed = completed ? 1 : 0;
@@ -59,5 +68,17 @@ class ProgressRepository extends BaseRepository<ProgressModel> {
       );
       await insert(model);
     }
+  }
+
+  /// Mark [level] complete locally and report the server's coin reward
+  /// back to the caller. The base local implementation has nothing to
+  /// report — the hybrid repo overrides this to actually hit the API.
+  Future<LevelCompletionResult?> completeLevel(
+    int userId,
+    int level, {
+    required int movesLeft,
+  }) async {
+    await upsert(userId, level, completed: true, movesLeft: movesLeft);
+    return null;
   }
 }
