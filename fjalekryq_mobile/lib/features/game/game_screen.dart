@@ -387,7 +387,19 @@ class _GameScreenState extends State<GameScreen> {
     } else {
       // Show interstitial at the natural break between levels (every 3 completions).
       // The loading spinner is already visible behind the interstitial.
-      await context.read<AdService>().showInterstitialIfDue();
+      final adService = context.read<AdService>();
+      final coinService = context.read<CoinService>();
+      await adService.showInterstitialIfDue();
+      if (!mounted) return;
+      // Exercise the rewarded-ad path on the same 3-level cadence as
+      // the interstitial — grants a small bonus so the reward callback
+      // is visibly verified in test.
+      await adService.showRewardedIfDue(
+        onReward: () async {
+          coinService.add(10);
+          _audio.play(Sfx.coin);
+        },
+      );
       if (!mounted) return;
       final progress = _prefs.getInt(_levelKey) ?? 1;
       _prefs.setInt(_playingLevelKey, progress);
