@@ -11,7 +11,7 @@ import '../config/app_config.dart';
 ///   invalidated (20 = active, 10 = soft-deleted)
 class DatabaseHelper {
   static String get _databaseName => AppConfig.databaseName;
-  static const _databaseVersion = 3;
+  static const _databaseVersion = 4;
 
   static const int statusActive = 20;
   static const int statusDeleted = 10;
@@ -64,28 +64,14 @@ class DatabaseHelper {
       'CREATE UNIQUE INDEX idx_users_username ON users(username) WHERE invalidated = $statusActive',
     );
 
-    // ── 2. level ────────────────────────────────────────────
-    batch.execute('''
-      CREATE TABLE level (
-        id            INTEGER PRIMARY KEY AUTOINCREMENT,
-        level         INTEGER NOT NULL,
-        difficulty    TEXT NOT NULL,
-        coins_to_earn INTEGER NOT NULL DEFAULT 0,
-        seed          INTEGER NOT NULL DEFAULT 0,
-        $_auditColumns
-      )
-    ''');
-    batch.execute(
-      'CREATE UNIQUE INDEX idx_level_level ON level(level) WHERE invalidated = $statusActive',
-    );
-
-    // ── 3. progress ─────────────────────────────────────────
+    // ── 2. progress ─────────────────────────────────────────
     batch.execute('''
       CREATE TABLE progress (
         id            INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id       INTEGER NOT NULL,
         level         INTEGER NOT NULL,
         completed     INTEGER NOT NULL DEFAULT 0,
+        moves_left    INTEGER,
         $_auditColumns,
         FOREIGN KEY (user_id) REFERENCES users(id)
       )
@@ -226,38 +212,52 @@ class DatabaseHelper {
       'CREATE UNIQUE INDEX idx_daily_streak_user ON daily_streak(user_id) WHERE invalidated = $statusActive',
     );
 
-    // ── Seed default level data ─────────────────────────────
-    _seedLevels(batch);
+    // ── 12. level_patterns (rotating difficulty cycle) ─────
+    batch.execute('''
+      CREATE TABLE level_patterns (
+        id          INTEGER PRIMARY KEY AUTOINCREMENT,
+        slot_index  INTEGER NOT NULL,
+        difficulty  TEXT    NOT NULL
+      )
+    ''');
+    batch.execute(
+      'CREATE UNIQUE INDEX ix_level_patterns_slot ON level_patterns(slot_index)',
+    );
+    for (final entry in _levelPatternSeed) {
+      batch.insert('level_patterns', {
+        'slot_index': entry.$1,
+        'difficulty': entry.$2,
+      });
+    }
+
+    // ── 13. user_generated_levels (per-user puzzle cache) ──
+    batch.execute('''
+      CREATE TABLE user_generated_levels (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id      INTEGER NOT NULL,
+        level        INTEGER NOT NULL,
+        difficulty   TEXT    NOT NULL,
+        puzzle_json  TEXT    NOT NULL,
+        created_at   TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    ''');
+    batch.execute(
+      'CREATE UNIQUE INDEX ix_user_generated_levels_user_level '
+      'ON user_generated_levels(user_id, level)',
+    );
 
     await batch.commit(noResult: true);
   }
 
-  /// Seed the level table with the 10 active levels.
-  void _seedLevels(Batch batch) {
-    const levels = {
-      1: ('easy',   20),
-      2: ('easy',   20),
-      3: ('easy',   20),
-      4: ('medium', 35),
-      5: ('medium', 35),
-      6: ('medium', 35),
-      7: ('hard',   50),
-      8: ('hard',   50),
-      9: ('hard',   50),
-      10: ('expert', 80),
-    };
-
-    for (final entry in levels.entries) {
-      final seed = entry.key * 99991 + 42013;
-      batch.insert('level', {
-        'level': entry.key,
-        'difficulty': entry.value.$1,
-        'coins_to_earn': entry.value.$2,
-        'seed': seed,
-        'invalidated': statusActive,
-      });
-    }
-  }
+  /// Seed data for `level_patterns`. Level N uses slot ((N - 1) % 5).
+  static const List<(int, String)> _levelPatternSeed = [
+    (0, 'Medium'),
+    (1, 'Medium'),
+    (2, 'Hard'),
+    (3, 'Easy'),
+    (4, 'Medium'),
+  ];
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
@@ -326,6 +326,119 @@ class DatabaseHelper {
 
       await batch.commit(noResult: true);
     }
+
+    if (oldVersion < 4) {
+      await _upgradeTo4(db);
+    }
+  }
+
+  /// Server-driven levels migration.
+  ///
+  /// Wrapped in a transaction so either every step lands or none do.
+  /// Each step is idempotent — re-running is safe even if the previous
+  /// run partially applied the schema before crashing.
+  Future<void> _upgradeTo4(Database db) async {
+    await db.transaction((txn) async {
+      // Step 1. Remap `invalidated` values: 0 → 20 (active), 1 → 10 (deleted).
+      // The app already uses 20/10 for new rows, but old installs may still
+      // carry the 0/1 convention. Apply to every client-side table that has
+      // the column (mapping from the task's logical names to our names:
+      // user_coins → coins, user_streaks → daily_streak,
+      // user_progress → progress, user_daily_progress → daily_puzzle).
+      const remapTables = [
+        'users',
+        'coins',
+        'daily_streak',
+        'progress',
+        'daily_puzzle',
+      ];
+      for (final t in remapTables) {
+        if (!await _tableExists(txn, t)) continue;
+        await txn.update(t, {'invalidated': statusActive},
+            where: 'invalidated = 0');
+        await txn.update(t, {'invalidated': statusDeleted},
+            where: 'invalidated = 1');
+      }
+
+      // Step 2. Drop `stars` from `user_progress` if present. Our local
+      // `progress` table never had a `stars` column — skip silently.
+
+      // Step 3. Drop the bundled-levels table. The server now generates
+      // every level on demand, so the seeded puzzles are obsolete.
+      await txn.execute('DROP TABLE IF EXISTS level');
+
+      // Step 4. No app_config / max_level / level_cap table exists locally.
+
+      // Step 5. No level_rewards table exists locally.
+
+      // Step 6. Create `level_patterns` + seed the rotating cycle. Use
+      // IF NOT EXISTS + INSERT OR IGNORE so re-running is a no-op.
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS level_patterns (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          slot_index  INTEGER NOT NULL,
+          difficulty  TEXT    NOT NULL
+        )
+      ''');
+      await txn.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS ix_level_patterns_slot '
+        'ON level_patterns(slot_index)',
+      );
+      for (final entry in _levelPatternSeed) {
+        await txn.rawInsert(
+          'INSERT OR IGNORE INTO level_patterns (slot_index, difficulty) '
+          'VALUES (?, ?)',
+          [entry.$1, entry.$2],
+        );
+      }
+
+      // Step 7. Create `user_generated_levels` puzzle cache.
+      await txn.execute('''
+        CREATE TABLE IF NOT EXISTS user_generated_levels (
+          id           INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id      INTEGER NOT NULL,
+          level        INTEGER NOT NULL,
+          difficulty   TEXT    NOT NULL,
+          puzzle_json  TEXT    NOT NULL,
+          created_at   TEXT    NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+          FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+      ''');
+      await txn.execute(
+        'CREATE UNIQUE INDEX IF NOT EXISTS ix_user_generated_levels_user_level '
+        'ON user_generated_levels(user_id, level)',
+      );
+
+      // Step 8. Add `moves_left` to `progress` if missing. SQLite lacks
+      // `ADD COLUMN IF NOT EXISTS`, so check PRAGMA first.
+      if (!await _columnExists(txn, 'progress', 'moves_left')) {
+        await txn.execute(
+          'ALTER TABLE progress ADD COLUMN moves_left INTEGER',
+        );
+      }
+
+      // Step 9. No pending-sync queue table exists locally.
+    });
+  }
+
+  static Future<bool> _tableExists(
+    DatabaseExecutor db,
+    String name,
+  ) async {
+    final rows = await db.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?",
+      [name],
+    );
+    return rows.isNotEmpty;
+  }
+
+  static Future<bool> _columnExists(
+    DatabaseExecutor db,
+    String table,
+    String column,
+  ) async {
+    final rows = await db.rawQuery('PRAGMA table_info($table)');
+    return rows.any((r) => r['name'] == column);
   }
 
   /// Close the database connection.

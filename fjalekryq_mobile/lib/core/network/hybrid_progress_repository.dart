@@ -14,12 +14,43 @@ class HybridProgressRepository extends ProgressRepository {
   HybridProgressRepository(super.dbHelper, this._remote);
 
   @override
-  Future<void> upsert(int userId, int level, {bool? completed}) async {
+  Future<void> upsert(
+    int userId,
+    int level, {
+    bool? completed,
+    int movesLeft = 0,
+  }) async {
     await super.upsert(userId, level, completed: completed);
     if (completed == true) {
       try {
-        await _remote.upsert(userId, level, completed: completed);
+        await _remote.upsert(
+          userId,
+          level,
+          completed: completed,
+          movesLeft: movesLeft,
+        );
       } catch (_) {}
+    }
+  }
+
+  /// Writes locally, then calls the server so the authoritative coin
+  /// reward and new balance can be surfaced in the win modal.
+  @override
+  Future<LevelCompletionResult?> completeLevel(
+    int userId,
+    int level, {
+    required int movesLeft,
+  }) async {
+    await super.upsert(userId, level, completed: true);
+    try {
+      return await _remote.upsert(
+        userId,
+        level,
+        completed: true,
+        movesLeft: movesLeft,
+      );
+    } catch (_) {
+      return null;
     }
   }
 }

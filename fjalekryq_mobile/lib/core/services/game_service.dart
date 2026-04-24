@@ -6,6 +6,7 @@ import '../models/puzzle.dart';
 import '../database/repositories/game_state_repository.dart';
 import '../database/repositories/progress_repository.dart';
 import '../database/models/game_state_model.dart';
+import '../network/remote_progress_repository.dart';
 
 /// Cell color in Wordle style.
 enum CellColor { green, yellow, grey }
@@ -670,9 +671,23 @@ class GameService extends ChangeNotifier {
     _prefs.remove('wordle7_solve_cooldown_end');
   }
 
-  /// Save level completion progress to database.
-  Future<void> saveProgress(int level, {bool completed = true}) async {
-    await _progressRepo.upsert(_userId, level, completed: completed);
+  /// Save level completion progress. On completion, forwards [movesLeft]
+  /// to the server and returns the coin reward it grants so the UI can
+  /// show the authoritative amount.
+  Future<LevelCompletionResult?> saveProgress(
+    int level, {
+    bool completed = true,
+    int movesLeft = 0,
+  }) async {
+    if (completed) {
+      return _progressRepo.completeLevel(
+        _userId,
+        level,
+        movesLeft: movesLeft,
+      );
+    }
+    await _progressRepo.upsert(_userId, level, completed: false);
+    return null;
   }
 
   /// Get the highest completed level from database.

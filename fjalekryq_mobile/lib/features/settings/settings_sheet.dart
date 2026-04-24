@@ -1,3 +1,4 @@
+import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -11,6 +12,7 @@ import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../game/game_screen.dart';
 import '../legal/privacy_policy_screen.dart';
+import 'about_screen.dart';
 
 const int _nicknameCost = 100;
 const int _nicknameMinLength = 6;
@@ -123,6 +125,22 @@ class _SettingsSheetState extends State<SettingsSheet> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const GameScreen()),
+    );
+  }
+
+  Future<void> _openPrivacyPreferences() async {
+    HapticFeedback.selectionClick();
+    // Re-request ATT on iOS so users can change their mind from
+    // settings. On Android this is a no-op (the plugin reports
+    // "authorized"), and we fall through to the privacy policy so the
+    // user still has something to act on.
+    try {
+      await AppTrackingTransparency.requestTrackingAuthorization();
+    } catch (_) {}
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
     );
   }
 
@@ -341,42 +359,21 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      // ── Sound ──────────────────────────────────────
-                      _buildSectionLabel('Zëri'),
+                      // ── Preferences ────────────────────────────────
+                      _buildSectionLabel('Preferencat'),
                       const SizedBox(height: 10),
                       _SettingToggle(
-                        icon: Icons.music_note,
-                        label: 'Muzika',
-                        value: settings.musicEnabled,
-                        onChanged: (_) => settings.toggleMusic(),
-                      ),
-                      const SizedBox(height: 6),
-                      _SettingToggle(
-                        icon: Icons.volume_up,
-                        label: 'Efektet e zërit',
-                        value: settings.soundEnabled,
-                        onChanged: (_) => settings.toggleSound(),
+                        icon: Icons.volume_up_rounded,
+                        label: 'Tingulli',
+                        value: settings.audioEnabled,
+                        onChanged: (_) => settings.toggleAudio(),
                       ),
 
                       const SizedBox(height: 16),
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      // ── Notifications ──────────────────────────────
-                      _buildSectionLabel('Njoftimet'),
-                      const SizedBox(height: 10),
-                      _SettingToggle(
-                        icon: Icons.notifications,
-                        label: 'Njoftimet',
-                        value: settings.notificationsEnabled,
-                        onChanged: (_) => settings.toggleNotifications(),
-                      ),
-
-                      const SizedBox(height: 16),
-                      _buildDivider(),
-                      const SizedBox(height: 16),
-
-                      // ── Help ───────────────────────────────────────
+                      // ── Help & About ───────────────────────────────
                       _buildSectionLabel('Ndihmë'),
                       const SizedBox(height: 10),
                       _buildLegalRow(
@@ -384,27 +381,18 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         label: 'Si të luash',
                         onTap: _openTutorial,
                       ),
-
-                      const SizedBox(height: 16),
-                      _buildDivider(),
-                      const SizedBox(height: 16),
-
-                      // ── Follow us ──────────────────────────────────
-                      _buildSectionLabel('Na ndiqni'),
-                      const SizedBox(height: 10),
-                      _buildLegalRow(
-                        icon: Icons.camera_alt_outlined,
-                        label: 'Instagram',
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                        },
-                      ),
                       const SizedBox(height: 8),
                       _buildLegalRow(
-                        icon: Icons.music_note_outlined,
-                        label: 'TikTok',
+                        icon: Icons.info_outline_rounded,
+                        label: 'Rreth lojës',
                         onTap: () {
                           HapticFeedback.selectionClick();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const AboutScreen(),
+                            ),
+                          );
                         },
                       ),
 
@@ -412,16 +400,30 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       _buildDivider(),
                       const SizedBox(height: 16),
 
-                      // ── Legal ──────────────────────────────────────
-                      _buildSectionLabel('Ligjore'),
+                      // ── Privacy ────────────────────────────────────
+                      // Both Apple (ATT) and Google (UMP) require a
+                      // settings-accessible way to review and change
+                      // privacy choices at any time.
+                      _buildSectionLabel('Privatësia'),
                       const SizedBox(height: 10),
                       _buildLegalRow(
                         icon: Icons.privacy_tip_outlined,
                         label: 'Politika e Privatësisë',
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
-                        ),
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PrivacyPolicyScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _buildLegalRow(
+                        icon: Icons.shield_outlined,
+                        label: 'Preferencat e Privatësisë',
+                        onTap: _openPrivacyPreferences,
                       ),
 
                       const SizedBox(height: 32),

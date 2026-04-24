@@ -66,6 +66,21 @@ class AdService extends ChangeNotifier {
     return true;
   }
 
+  /// Restore previously purchased non-consumables (Remove Ads). Required
+  /// by Apple for any app with IAP — must be callable without requiring
+  /// a new purchase. In dev: returns the current local state after a
+  /// short delay so the UI can show a spinner. In prod: wire this into
+  /// the `in_app_purchase` plugin's `restorePurchases` flow.
+  Future<bool> restorePurchases() async {
+    if (AppConfig.isDev) {
+      await Future.delayed(const Duration(milliseconds: 600));
+      return removeAds;
+    }
+    // TODO (prod): call InAppPurchase.instance.restorePurchases(), then
+    // reconcile the results with [_removeAdsKey] here.
+    return removeAds;
+  }
+
   // ── Banner Ad ─────────────────────────────────────────────────────────────
 
   BannerAd? _bannerAd;
@@ -186,6 +201,30 @@ class AdService extends ChangeNotifier {
     _interstitialAd?.dispose();
     _interstitialAd = null;
     _interstitialReady = false;
+  }
+
+  /// Fire a rewarded ad on the same cadence as the interstitial (every
+  /// N level completions) so the rewarded-ad path is exercised in the
+  /// same natural test loop. Call this *after* [showInterstitialIfDue]
+  /// in the level-transition flow — it reads the counter the
+  /// interstitial just updated, so both trigger on the same clear
+  /// without double-incrementing.
+  ///
+  /// Uses [AdType.bonusCoins] so the normal daily-limit cap still
+  /// applies. [onReward] is invoked on a successful watch; a small
+  /// bonus (e.g. 10 coins) is the usual reward, but callers pick.
+  Future<bool> showRewardedIfDue({
+    required Future<void> Function() onReward,
+    void Function()? onOffline,
+  }) async {
+    if (removeAds) return false;
+    final count = _prefs.getInt(_levelCompletionCountKey) ?? 0;
+    if (count == 0 || count % _interstitialEveryN != 0) return false;
+    return showRewardedAd(
+      adType: AdType.bonusCoins,
+      onReward: onReward,
+      onOffline: onOffline,
+    );
   }
 
   // ── Rewarded Ad ────────────────────────────────────────────────────────────
