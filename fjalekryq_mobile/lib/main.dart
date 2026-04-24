@@ -36,7 +36,6 @@ import 'core/network/hybrid_daily_puzzle_repository.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
-import 'shared/widgets/app_loading_view.dart';
 import 'shared/widgets/lojralogjike_splash.dart';
 
 late final Future<_AppServices> _initFuture;
@@ -300,13 +299,13 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
       builder: s != null
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
-      home: !_brandSplashDone
+      // Keep the LojraLogjike brand splash visible until the app is fully
+      // ready — no secondary Fjalekryq-branded loading view in between.
+      home: (!_brandSplashDone || s == null)
           ? const LojraLogjikeSplash()
-          : s == null
-              ? const AppLoadingView()
-              : (s.prefs.getBool(_onboardingDoneKey) ?? false)
-                  ? const HomeScreen()
-                  : const OnboardingScreen(),
+          : (s.prefs.getBool(_onboardingDoneKey) ?? false)
+              ? const HomeScreen()
+              : const OnboardingScreen(),
     );
   }
 }

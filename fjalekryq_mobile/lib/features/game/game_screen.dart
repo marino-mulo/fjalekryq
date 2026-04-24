@@ -112,6 +112,11 @@ class _GameScreenState extends State<GameScreen> {
   // 5-moves warning (shown once per game session)
   bool _fiveMovesWarningShown = false;
   bool _showFiveMovesBanner = false;
+  // Snapshot of move / hint counters captured when the five-moves banner
+  // first appears, so we can auto-dismiss it as soon as the player makes
+  // progress (a swap or a hint) instead of forcing them to close it.
+  int _fiveMovesSnapshotSwaps = 0;
+  int _fiveMovesSnapshotHints = 0;
   // Prevents double fail-modal triggers
   bool _showingFailModal = false;
   // Counts fails on the same level — unlocks Special Offer after 2+
@@ -166,6 +171,19 @@ class _GameScreenState extends State<GameScreen> {
       _fiveMovesWarningShown = true;
       Future.microtask(() {
         if (mounted) _showFiveMovesOffer();
+      });
+    }
+
+    // Auto-dismiss the 5-moves banner as soon as the player acts —
+    // swapping a tile or taking a hint counts as "moved on", so the
+    // banner shouldn't keep hovering after the decision is made.
+    if (_showFiveMovesBanner &&
+        (_game.totalSwapCount != _fiveMovesSnapshotSwaps ||
+         _game.hintCount      != _fiveMovesSnapshotHints)) {
+      Future.microtask(() {
+        if (mounted && _showFiveMovesBanner) {
+          setState(() => _showFiveMovesBanner = false);
+        }
       });
     }
 
@@ -455,21 +473,6 @@ class _GameScreenState extends State<GameScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      // Banner ad pinned to the very bottom — lives OUTSIDE the body so it
-      // can never squeeze or overlap the puzzle area above it.
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Consumer<AdService>(
-          builder: (_, ads, __) {
-            if (!ads.bannerReady) return const SizedBox(height: 0);
-            return SizedBox(
-              width: ads.bannerAd!.size.width.toDouble(),
-              height: ads.bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: ads.bannerAd!),
-            );
-          },
-        ),
-      ),
       body: AppBackground(
         child: Stack(
         children: [
@@ -566,6 +569,17 @@ class _GameScreenState extends State<GameScreen> {
                 // cluster stays in place regardless of board size. Skipped
                 // while the loading overlay uses Expanded() already.
                 if (!_isLoading) const Spacer(),
+
+                // Reserve bottom space so the floating banner ad doesn't
+                // cover the control cluster. Height matches the live ad
+                // size and collapses to zero when no ad is ready.
+                Consumer<AdService>(
+                  builder: (_, ads, __) => SizedBox(
+                    height: ads.bannerReady
+                        ? ads.bannerAd!.size.height.toDouble() + 16
+                        : 0,
+                  ),
+                ),
               ],
             ),
           ),
@@ -580,6 +594,50 @@ class _GameScreenState extends State<GameScreen> {
                   ? _finishTutorial
                   : () => _setTutorialPhase(_tutorialPhase + 1),
             ),
+
+          // Floating banner ad — sticks to the bottom of the puzzle page
+          // with a soft shadow + rounded pill so it reads as a chip, not
+          // as a layout component. Overlays content without reserving a
+          // separate scaffold slot.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Consumer<AdService>(
+              builder: (_, ads, __) {
+                if (!ads.bannerReady) return const SizedBox.shrink();
+                final adW = ads.bannerAd!.size.width.toDouble();
+                final adH = ads.bannerAd!.size.height.toDouble();
+                return SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: Center(
+                      child: Container(
+                        width: adW,
+                        height: adH,
+                        decoration: BoxDecoration(
+                          color: AppColors.background,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: AdWidget(ad: ads.bannerAd!),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
         ],
       ),
       ),
@@ -645,102 +703,98 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   // ── Five-moves warning inline banner ──
+  //
+  // Shares the exact visual recipe as the fail-screen revive banner and
+  // the win-screen ×2-coins banner: purple-accent pill, bolt icon, white
+  // label, and a single pill badge on the right. The badge swaps between
+  // "pay 30 coins" when the player can afford and "watch an ad" otherwise.
   Widget _buildFiveMovesBanner() {
+    final coinService = context.read<CoinService>();
+    final canAfford   = coinService.canAfford(50);
+
+    final VoidCallback onTap = canAfford
+        ? () {
+            setState(() => _showFiveMovesBanner = false);
+            _buyExtraMovesInGame();
+          }
+        : () async {
+            if (_loadingAd) return;
+            setState(() => _showFiveMovesBanner = false);
+            await _watchAdForExtraMoves();
+          };
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF97316).withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFF97316).withValues(alpha: 0.38)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+          decoration: BoxDecoration(
+            color: AppColors.purpleAccent.withValues(alpha: 0.14),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AppColors.purpleAccent.withValues(alpha: 0.38),
             ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.warning_amber_rounded, color: Color(0xFFFB923C), size: 17),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Text(
-                    'Vetëm 5 lëvizje të mbetura!',
-                    style: AppFonts.nunito(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFFFB923C),
-                    ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.videocam_rounded,
+                  color: Color(0xFFC084FC), size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Vetëm 5 lëvizje të mbetura!',
+                  style: AppFonts.nunito(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFFE9D5FF),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () => setState(() => _showFiveMovesBanner = false),
-                  child: const Icon(Icons.close, color: Colors.white38, size: 16),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.purpleAccent.withValues(alpha: 0.28),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: AppColors.purpleAccent.withValues(alpha: 0.55),
+                  ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: _loadingAd ? null : () async {
-                      setState(() => _showFiveMovesBanner = false);
-                      await _watchAdForExtraMoves();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 7),
-                      decoration: BoxDecoration(
-                        color: AppColors.purpleAccent.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.purpleAccent.withValues(alpha: 0.35)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                child: canAfford
+                    ? Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.videocam_rounded, color: Color(0xFFC084FC), size: 15),
-                          const SizedBox(width: 5),
-                          Text('Shiko · +5', style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w800)),
+                          const CoinIcon(size: 12),
+                          const SizedBox(width: 4),
+                          Text(
+                            '50',
+                            style: AppFonts.nunito(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFFE9D5FF),
+                            ),
+                          ),
                         ],
+                      )
+                    : Text(
+                        'Shiko · +5',
+                        style: AppFonts.nunito(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFFE9D5FF),
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() => _showFiveMovesBanner = false);
-                      _buyExtraMovesInGame();
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(vertical: 7),
-                      decoration: BoxDecoration(
-                        color: AppColors.gold.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.gold.withValues(alpha: 0.3)),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const CoinIcon(size: 13),
-                          const SizedBox(width: 5),
-                          Text('30 monedha', style: AppFonts.nunito(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.gold)),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -876,39 +930,37 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildInfoRow() {
     final swapsRemaining = _game.swapsRemaining;
     final isWarning = swapsRemaining <= 10 && swapsRemaining > 5;
-    final isDanger = swapsRemaining <= 5;
+    final isDanger  = swapsRemaining <= 5;
+
+    final Color color = isDanger
+        ? const Color(0xFFFCA5A5)
+        : isWarning
+            ? const Color(0xFFFCD34D)
+            : Colors.white;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
       child: Row(
+        // Full-row, centered: "<n> lëvizje të mbetura" on a single line
+        // so the moves counter reads as a clear, balanced status line
+        // rather than a small block tucked to the right.
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Spacer(),
-
-          // Moves remaining
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$swapsRemaining',
-                style: AppFonts.nunito(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w900,
-                  color: isDanger
-                      ? const Color(0xFFFCA5A5)
-                      : isWarning
-                          ? const Color(0xFFFCD34D)
-                          : Colors.white,
-                ),
-              ),
-              Text(
-                'lëvizje të mbetura',
-                style: AppFonts.quicksand(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white.withValues(alpha: 0.45),
-                ),
-              ),
-            ],
+          Text(
+            '$swapsRemaining ',
+            style: AppFonts.nunito(
+              fontSize: 18,
+              fontWeight: FontWeight.w900,
+              color: color,
+            ),
+          ),
+          Text(
+            'lëvizje të mbetura',
+            style: AppFonts.nunito(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: color.withValues(alpha: 0.85),
+            ),
           ),
         ],
       ),
@@ -1048,13 +1100,13 @@ class _GameScreenState extends State<GameScreen> {
   // ── Coins: buy 5 extra moves mid-game ───────────────────
   void _buyExtraMovesInGame() {
     final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(30)) {
+    if (!coinService.canAfford(50)) {
       HapticFeedback.heavyImpact();
       _audio.play(Sfx.error);
       _openShop();
       return;
     }
-    coinService.spend(30);
+    coinService.spend(50);
     _game.addExtraMoves(5);
     _audio.play(Sfx.coin);
     HapticFeedback.mediumImpact();
@@ -1063,13 +1115,13 @@ class _GameScreenState extends State<GameScreen> {
   // ── Coins: buy 5 moves after loss ───────────────────────
   void _buyMovesAfterFail() {
     final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(30)) {
+    if (!coinService.canAfford(50)) {
       HapticFeedback.heavyImpact();
       _audio.play(Sfx.error);
       _openShop();
       return;
     }
-    coinService.spend(30);
+    coinService.spend(50);
     _game.continueGame();
     _audio.play(Sfx.coin);
     HapticFeedback.mediumImpact();
@@ -1081,7 +1133,11 @@ class _GameScreenState extends State<GameScreen> {
 
   // ── 5-moves warning banner ───────────────────────────────
   void _showFiveMovesOffer() {
-    setState(() => _showFiveMovesBanner = true);
+    setState(() {
+      _showFiveMovesBanner = true;
+      _fiveMovesSnapshotSwaps = _game.totalSwapCount;
+      _fiveMovesSnapshotHints = _game.hintCount;
+    });
   }
 
   // ── Win modal ────────────────────────────────────────────

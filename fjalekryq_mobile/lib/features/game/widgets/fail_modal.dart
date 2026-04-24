@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 import '../../../core/services/ad_service.dart';
 import '../../../core/services/coin_service.dart';
 import '../../../shared/constants/theme.dart';
-import '../../../shared/widgets/coin_badge.dart';
-import '../../../shared/widgets/shiko_button.dart';
 
 /// Inline "puzzle failed" panel shown below the game board.
 ///
-/// Replaces the previous full-screen modal so the puzzle stays visible and
-/// the player never leaves the game page on failure. Offers two revive
-/// paths (ad or coins) plus a restart action.
+/// Layout:
+///   • red "Lëvizjet Mbaruan!" title with a warning icon (no container)
+///   • one revive banner styled like the win-screen "x2 monedha" banner —
+///     coins variant when the player can afford, ad variant otherwise
+///   • secondary glass "Fillo nga Fillimi" button with a restart icon
 class InlineFailPanel extends StatefulWidget {
   final AdService adService;
   final CoinService coinService;
@@ -32,6 +32,9 @@ class InlineFailPanel extends StatefulWidget {
 }
 
 class _InlineFailPanelState extends State<InlineFailPanel> {
+  static const int _coinCost = 50;
+  static const Color _failRed = Color(0xFFEF4444);
+
   bool _loadingAd = false;
   int _adRemaining = 5;
 
@@ -48,110 +51,192 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final canAfford30 = widget.coinService.canAfford(30);
-    final canWatchAd = _adRemaining > 0;
+    final canAffordCoins = widget.coinService.canAfford(_coinCost);
+    final canWatchAd     = _adRemaining > 0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Red title + warning icon. No background, no border — just
+          // the text, matching the "quiet message in the middle" brief.
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.warning_amber_rounded,
+                  color: _failRed, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Lëvizjet Mbaruan!',
+                style: AppFonts.nunito(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                  color: _failRed,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // Exactly one revive banner — coins preferred, ad as fallback.
+          if (canAffordCoins)
+            _coinReviveBanner()
+          else if (canWatchAd)
+            _adReviveBanner(),
+
+          if (canAffordCoins || canWatchAd) const SizedBox(height: 12),
+
+          _restartButton(),
+        ],
+      ),
+    );
+  }
+
+  // ── Coin revive banner — same purple shape as the win-screen x2 banner ──
+
+  Widget _coinReviveBanner() {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.mediumImpact();
+        widget.onBuyMoves();
+      },
       child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
         decoration: BoxDecoration(
-          color: const Color(0xFFE53935).withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(18),
+          color: AppColors.purpleAccent.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color(0xFFE53935).withValues(alpha: 0.42),
-            width: 1.5,
+            color: AppColors.purpleAccent.withValues(alpha: 0.38),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.35),
-              blurRadius: 22,
-              offset: const Offset(0, 6),
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+        child: Row(
           children: [
-            Row(
-              children: [
-                const Icon(Icons.warning_amber_rounded,
-                    color: Color(0xFFFCA5A5), size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Lëvizjet Mbaruan!',
+            const Icon(Icons.videocam_rounded,
+                color: Color(0xFFC084FC), size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Vazhdo lojën · +5 lëvizje',
+                style: AppFonts.nunito(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFFE9D5FF),
+                ),
+              ),
+            ),
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.purpleAccent.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.purpleAccent.withValues(alpha: 0.55),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const CoinIcon(size: 12),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$_coinCost',
                     style: AppFonts.nunito(
-                      fontSize: 17,
+                      fontSize: 12,
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFFFCA5A5),
+                      color: const Color(0xFFE9D5FF),
                     ),
                   ),
-                ),
-                Text(
-                  'Vazhdo ose fillo sërish',
-                  style: AppFonts.quicksand(
-                    fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.6),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            if (canWatchAd) ...[
-              _buildWatchAdTile(),
-              const SizedBox(height: 8),
-            ],
-            _buildBuyMovesTile(canAfford30),
-            const SizedBox(height: 10),
-            _buildRestartButton(),
           ],
         ),
       ),
     );
   }
 
-  // ── Watch ad (primary continue) ──────────────────────────────────────────
+  // ── Ad revive banner — same shape, purple variant ────────────────────────
 
-  Widget _buildWatchAdTile() {
+  Widget _adReviveBanner() {
     return GestureDetector(
       onTap: _loadingAd
           ? null
           : () async {
+              HapticFeedback.mediumImpact();
               setState(() => _loadingAd = true);
               await widget.onWatchAd();
               if (mounted) setState(() => _loadingAd = false);
             },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
         decoration: BoxDecoration(
-          color: AppColors.purpleAccent.withValues(alpha: 0.18),
-          borderRadius: BorderRadius.circular(12),
+          color: AppColors.purpleAccent.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: AppColors.purpleAccent.withValues(alpha: 0.45),
+            color: AppColors.purpleAccent.withValues(alpha: 0.38),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           children: [
             const Icon(Icons.videocam_rounded,
-                color: Color(0xFFE040FB), size: 18),
-            const SizedBox(width: 10),
+                color: Color(0xFFC084FC), size: 18),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Vazhdo · Shiko Reklamë +5 Lëvizje',
+                'Vazhdo lojën · +5 lëvizje',
                 style: AppFonts.nunito(
                   fontSize: 13,
                   fontWeight: FontWeight.w900,
-                  color: Colors.white,
+                  color: const Color(0xFFE9D5FF),
                 ),
               ),
             ),
-            ShikoButton(
-              size: ShikoSize.small,
-              loading: _loadingAd,
-              badge: '+5',
-              onTap: null,
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.purpleAccent.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: AppColors.purpleAccent.withValues(alpha: 0.55),
+                ),
+              ),
+              child: _loadingAd
+                  ? const SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFFE9D5FF),
+                      ),
+                    )
+                  : Text(
+                      'Shiko · +5',
+                      style: AppFonts.nunito(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                        color: const Color(0xFFE9D5FF),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -159,79 +244,9 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
     );
   }
 
-  // ── Buy moves (coins continue) ───────────────────────────────────────────
+  // ── Secondary: restart (glass style, with refresh icon) ──────────────────
 
-  Widget _buildBuyMovesTile(bool canAfford) {
-    return GestureDetector(
-      onTap: canAfford
-          ? () {
-              HapticFeedback.selectionClick();
-              widget.onBuyMoves();
-            }
-          : null,
-      child: Opacity(
-        opacity: canAfford ? 1.0 : 0.45,
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            color: AppColors.gold.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: AppColors.gold.withValues(alpha: 0.38),
-            ),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.monetization_on_rounded,
-                  color: Color(0xFFFDD835), size: 18),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  'Bli 5 Lëvizje',
-                  style: AppFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.gold.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: AppColors.gold.withValues(alpha: 0.5),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const CoinIcon(size: 12),
-                    const SizedBox(width: 4),
-                    Text(
-                      '30',
-                      style: AppFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFFFDD835),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ── Restart ──────────────────────────────────────────────────────────────
-
-  Widget _buildRestartButton() {
+  Widget _restartButton() {
     return GestureDetector(
       onTap: () {
         HapticFeedback.mediumImpact();
@@ -239,23 +254,27 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
       },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
-          borderRadius: BorderRadius.circular(14),
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.22),
+            width: 1.5,
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.refresh_rounded,
-                color: Color(0xFFC62828), size: 18),
+            Icon(Icons.refresh_rounded,
+                color: Colors.white.withValues(alpha: 0.85), size: 18),
             const SizedBox(width: 8),
             Text(
               'Fillo nga Fillimi',
               style: AppFonts.nunito(
                 fontSize: 14,
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFFC62828),
+                fontWeight: FontWeight.w800,
+                color: Colors.white.withValues(alpha: 0.85),
               ),
             ),
           ],
