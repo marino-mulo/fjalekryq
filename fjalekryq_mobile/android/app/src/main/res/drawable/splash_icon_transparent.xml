@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transparent placeholder used to suppress the Android 12+ system
+     splash icon. The Flutter LojraLogjikeSplash is the brand splash;
+     the system splash should just be the dark background. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+       android:shape="rectangle">
+    <solid android:color="@android:color/transparent" />
+</shape>

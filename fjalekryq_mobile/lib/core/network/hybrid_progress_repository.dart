@@ -18,16 +18,16 @@ class HybridProgressRepository extends ProgressRepository {
     int userId,
     int level, {
     bool? completed,
-    int movesLeft = 0,
+    int? movesLeft,
   }) async {
-    await super.upsert(userId, level, completed: completed);
+    await super.upsert(userId, level, completed: completed, movesLeft: movesLeft);
     if (completed == true) {
       try {
         await _remote.upsert(
           userId,
           level,
           completed: completed,
-          movesLeft: movesLeft,
+          movesLeft: movesLeft ?? 0,
         );
       } catch (_) {}
     }

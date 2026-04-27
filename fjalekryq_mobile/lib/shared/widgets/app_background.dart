@@ -23,10 +23,17 @@ class AppBackground extends StatelessWidget {
   /// top of the corner decorations. Used by home / onboarding / splash.
   final bool showAnimatedTiles;
 
+  /// When false, the two decorative "solved puzzle" mini-grids in the
+  /// top-left / bottom-right corners are skipped. Set this on the
+  /// publisher splash so the LojraLogjike branding stands alone, with
+  /// no Fjalekryq-themed crossword decoration leaking through.
+  final bool showCornerPuzzles;
+
   const AppBackground({
     super.key,
     required this.child,
     this.showAnimatedTiles = false,
+    this.showCornerPuzzles = true,
   });
 
   @override
@@ -75,31 +82,33 @@ class AppBackground extends StatelessWidget {
         ),
 
         // 3a. Top-left decorative solved puzzle, tilted -70° (diagonal).
-        const Positioned(
-          top: 80,
-          left: -110,
-          child: IgnorePointer(
-            child: _CornerPuzzle(
-              grid: _topLeftGrid,
-              rotationDegrees: -70,
-              opacity: 0.07,
+        if (showCornerPuzzles)
+          const Positioned(
+            top: 80,
+            left: -110,
+            child: IgnorePointer(
+              child: _CornerPuzzle(
+                grid: _topLeftGrid,
+                rotationDegrees: -70,
+                opacity: 0.07,
+              ),
             ),
           ),
-        ),
 
         // 3b. Bottom-right decorative solved puzzle, tilted -70° (diagonal).
         // Pushed further down so it peeks in from the bottom corner again.
-        const Positioned(
-          bottom: -40,
-          right: -110,
-          child: IgnorePointer(
-            child: _CornerPuzzle(
-              grid: _bottomRightGrid,
-              rotationDegrees: -70,
-              opacity: 0.07,
+        if (showCornerPuzzles)
+          const Positioned(
+            bottom: -40,
+            right: -110,
+            child: IgnorePointer(
+              child: _CornerPuzzle(
+                grid: _bottomRightGrid,
+                rotationDegrees: -70,
+                opacity: 0.07,
+              ),
             ),
           ),
-        ),
 
         // 4. Optional animated tiles (shared across home/onboarding).
         if (showAnimatedTiles) const BackgroundTiles(animate: true),

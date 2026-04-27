@@ -7,7 +7,12 @@ import '../config/app_config.dart';
 import '../database/repositories/ad_reward_repository.dart';
 import 'connectivity_service.dart';
 
-/// Ad reward types used for daily limit tracking.
+/// Ad reward types.
+///
+/// Only [bonusCoins] (the "Monedha Falas" / Free Coins reward in the
+/// shop) has a daily cap. Every other rewarded-ad surface is unlimited
+/// — users can watch as many hint / solve / continue / double / level-
+/// bonus ads as they want without being throttled.
 class AdType {
   static const String dailyDouble = 'daily_double';
   static const String freeSolve = 'free_solve';
@@ -15,16 +20,15 @@ class AdType {
   static const String bonusCoins = 'bonus_coins';
   static const String continueAfterLoss = 'continue_loss';
   static const String doubleWinCoins = 'double_win';
+  /// Rewarded ad fired on the level-transition cadence. Separate from
+  /// [bonusCoins] so it doesn't draw down the shop's daily budget.
+  static const String levelBonus = 'level_bonus';
 }
 
-/// Daily limits per ad type.
+/// Daily limits per ad type. Types omitted from this map are
+/// **unlimited** — see the gating logic in [AdService.showRewardedAd].
 const Map<String, int> adDailyLimits = {
-  AdType.dailyDouble: 5,
-  AdType.freeSolve: 5,
-  AdType.freeHint: 10,
   AdType.bonusCoins: 5,
-  AdType.continueAfterLoss: 5,
-  AdType.doubleWinCoins: 5,
 };
 
 const String _removeAdsKey = 'fjalekryq_remove_ads';
@@ -210,9 +214,10 @@ class AdService extends ChangeNotifier {
   /// interstitial just updated, so both trigger on the same clear
   /// without double-incrementing.
   ///
-  /// Uses [AdType.bonusCoins] so the normal daily-limit cap still
-  /// applies. [onReward] is invoked on a successful watch; a small
-  /// bonus (e.g. 10 coins) is the usual reward, but callers pick.
+  /// Uses [AdType.levelBonus] (no daily cap) so this trigger never
+  /// eats into the shop's "Free Coins" 5/day budget. [onReward] is
+  /// invoked on a successful watch; a small bonus (e.g. 10 coins) is
+  /// the usual reward, but callers pick.
   Future<bool> showRewardedIfDue({
     required Future<void> Function() onReward,
     void Function()? onOffline,
@@ -221,7 +226,7 @@ class AdService extends ChangeNotifier {
     final count = _prefs.getInt(_levelCompletionCountKey) ?? 0;
     if (count == 0 || count % _interstitialEveryN != 0) return false;
     return showRewardedAd(
-      adType: AdType.bonusCoins,
+      adType: AdType.levelBonus,
       onReward: onReward,
       onOffline: onOffline,
     );
@@ -240,9 +245,15 @@ class AdService extends ChangeNotifier {
     required Future<void> Function() onReward,
     void Function()? onOffline,
   }) async {
-    final limit = adDailyLimits[adType] ?? 3;
-    final claimedToday = await _adRewardRepo.claimedTodayCount(_userId, adType);
-    if (claimedToday >= limit) return false;
+    // Only ad types listed in [adDailyLimits] are throttled — every
+    // other surface is unlimited. Today only [AdType.bonusCoins] is
+    // capped (the shop's "Free Coins" 5/day reward).
+    final limit = adDailyLimits[adType];
+    if (limit != null) {
+      final claimedToday =
+          await _adRewardRepo.claimedTodayCount(_userId, adType);
+      if (claimedToday >= limit) return false;
+    }
 
     final bool rewarded;
     if (AppConfig.isDev) {
@@ -265,8 +276,11 @@ class AdService extends ChangeNotifier {
   }
 
   /// Whether the user can still watch an ad of this type today.
+  /// Always true for unlimited ad types (those without an entry in
+  /// [adDailyLimits]).
   Future<bool> canWatch(String adType) async {
-    final limit = adDailyLimits[adType] ?? 3;
+    final limit = adDailyLimits[adType];
+    if (limit == null) return true;
     final claimedToday = await _adRewardRepo.claimedTodayCount(_userId, adType);
     return claimedToday < limit;
   }
@@ -276,9 +290,12 @@ class AdService extends ChangeNotifier {
     return _adRewardRepo.claimedTodayCount(_userId, adType);
   }
 
-  /// Remaining watches for this ad type today.
+  /// Remaining watches for this ad type today. Returns a large sentinel
+  /// (`1 << 30`) for unlimited ad types so callers that compare against
+  /// it ("if remaining > 0") naturally allow the watch.
   Future<int> remainingToday(String adType) async {
-    final limit = adDailyLimits[adType] ?? 3;
+    final limit = adDailyLimits[adType];
+    if (limit == null) return 1 << 30;
     final claimedToday = await _adRewardRepo.claimedTodayCount(_userId, adType);
     return (limit - claimedToday).clamp(0, limit);
   }

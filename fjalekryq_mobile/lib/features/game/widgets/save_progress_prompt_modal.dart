@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../shared/constants/theme.dart';
-import '../../../shared/widgets/coin_badge.dart';
 
 class SaveProgressPromptModal extends StatefulWidget {
   final Future<void> Function() onSaveWithGoogle;

@@ -14,11 +14,17 @@ class _DiffConfig {
   const _DiffConfig(this.sizes, this.minWords, this.minLetters, this.attempts, this.featuredLen);
 }
 
+// Kept in sync with FjalekryqApi/Puzzle/PuzzleGenerator.cs so offline
+// generation produces the same tier feel as the server. Tuned so most
+// placed words are 4–5 letters and Medium doesn't overshoot into what
+// should be a Hard-tier grid.
 const Map<Difficulty, _DiffConfig> _diffConfigs = {
-  Difficulty.easy:   _DiffConfig([5, 6, 7],   5,  15, 800,  6),
-  Difficulty.medium: _DiffConfig([6, 7, 8],   7,  22, 1000, 7),
-  Difficulty.hard:   _DiffConfig([7, 8, 9],   10, 35, 1200, 8),
-  Difficulty.expert: _DiffConfig([8, 9, 10],  12, 45, 1500, 9),
+  // MinLetters targets ≈ smallest_size² / 2 so density holds even when
+  // the RNG picks the lower end of the size range.
+  Difficulty.easy:   _DiffConfig([5, 6],   5, 14,  800, 5),
+  Difficulty.medium: _DiffConfig([6, 7],   6, 20, 1000, 6),
+  Difficulty.hard:   _DiffConfig([8, 9],   7, 28, 1200, 7),
+  Difficulty.expert: _DiffConfig([9, 10],  8, 40, 1500, 8),
 };
 
 /// Generates Wordle7 (crossword) puzzles using backtracking word placement.
@@ -80,13 +86,72 @@ class PuzzleGenerator {
       throw StateError("Failed to generate puzzle for difficulty '$difficulty'");
     }
 
+    // Strip any all-empty edge rows/columns so the rendered board has no
+    // dead margin around the puzzle. The placement loop centres the
+    // featured word but smaller crossing words can leave the bottom or
+    // right edge unused — without this, an 8×8 puzzle keeps showing as a
+    // 9×9 grid with a blank ring.
+    final trimmed = _trimToContent(result.grid, result.words);
     return Wordle7Puzzle(
-      gridSize: usedSize,
-      solution: result.grid,
-      words: result.words,
+      gridSize: trimmed.size,
+      solution: trimmed.grid,
+      words:    trimmed.words,
       swapLimit: result.swapLimit,
-      hash: _computeHash(result.grid),
+      hash: _computeHash(trimmed.grid),
     );
+  }
+
+  /// Crop empty rows/columns from each edge of [grid] and shift every
+  /// [WordEntry]'s coordinates by the same amount. The result is padded
+  /// back to a square (the renderer assumes square boards) using the
+  /// larger of the trimmed height / width.
+  static _TrimmedPuzzle _trimToContent(
+    List<List<String>> grid,
+    List<WordEntry> words,
+  ) {
+    final size = grid.length;
+    int minR = size, minC = size, maxR = -1, maxC = -1;
+    for (int r = 0; r < size; r++) {
+      for (int c = 0; c < size; c++) {
+        if (grid[r][c] != 'X') {
+          if (r < minR) minR = r;
+          if (c < minC) minC = c;
+          if (r > maxR) maxR = r;
+          if (c > maxC) maxC = c;
+        }
+      }
+    }
+    if (maxR < 0) {
+      // Empty grid — shouldn't happen, but stay safe.
+      return _TrimmedPuzzle(grid, words, size);
+    }
+
+    final h = maxR - minR + 1;
+    final w = maxC - minC + 1;
+    final newSize = max(h, w);
+
+    // Centre the cropped rectangle in the new square so any padding is
+    // split evenly across both sides instead of dumped on one edge.
+    final offR = (newSize - h) ~/ 2;
+    final offC = (newSize - w) ~/ 2;
+
+    final newGrid = List.generate(newSize, (_) => List.filled(newSize, 'X'));
+    for (int r = 0; r < h; r++) {
+      for (int c = 0; c < w; c++) {
+        newGrid[r + offR][c + offC] = grid[minR + r][minC + c];
+      }
+    }
+
+    final newWords = words
+        .map((w) => WordEntry(
+              word: w.word,
+              row: w.row - minR + offR,
+              col: w.col - minC + offC,
+              direction: w.direction,
+            ))
+        .toList();
+
+    return _TrimmedPuzzle(newGrid, newWords, newSize);
   }
 
   static String _computeHash(List<List<String>> solution) {
@@ -115,7 +180,6 @@ class PuzzleGenerator {
 
     List<List<String>>? bestGrid;
     List<WordEntry>? bestWords;
-    int bestScore = 0;
 
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
       _shuffle(pool, rng);
@@ -141,8 +205,15 @@ class PuzzleGenerator {
       wordSet.add(first);
       placed.add(_PlacedWord(first, r, c, 'horizontal'));
 
-      // Try to add remaining words — multiple passes
-      var remaining = pool.where((w) => !wordSet.contains(w)).toList();
+      // Try to add remaining words — multiple passes.
+      // Keep only short words (≤ 5 letters) for the fill so the puzzle
+      // reads as "one big featured word + lots of 4–5 letter crossings".
+      // Without this filter the pool's 6/7/8-letter words land too
+      // often and a Hard board ends up with 4 long words instead of
+      // the intended single feature.
+      var remaining = pool
+          .where((w) => !wordSet.contains(w) && w.length <= 5)
+          .toList();
 
       for (int pass = 0; pass < 3; pass++) {
         _shuffle(remaining, rng);
@@ -187,14 +258,12 @@ class PuzzleGenerator {
                 ))
             .toList();
 
-        final score = nWords * 10 + nLetters;
-        if (score > bestScore) {
-          bestScore = score;
-          bestGrid = grid;
-          bestWords = finalWords;
-
-          if (nWords >= minWords + 4) break;
-        }
+        // First-valid-wins: matches PuzzleGenerator.cs. Saves a lot of
+        // CPU vs. best-of-N on mobile and keeps client + server output
+        // behaviourally equivalent.
+        bestGrid = grid;
+        bestWords = finalWords;
+        break;
       }
     }
 
@@ -211,12 +280,14 @@ class PuzzleGenerator {
   }
 
   static int _computeSwapLimit(int filledCells, Difficulty difficulty) {
-    final base = (filledCells * 0.65).ceil();
+    // 0.50 keeps puzzles tight-but-solvable. Kept in sync with
+    // FjalekryqApi/Puzzle/PuzzleGenerator.cs.
+    final base = (filledCells * 0.50).ceil();
     switch (difficulty) {
-      case Difficulty.easy:   return base + 5;
-      case Difficulty.medium: return base + 7;
-      case Difficulty.hard:   return base + 10;
-      case Difficulty.expert: return base + 12;
+      case Difficulty.easy:   return base + 3;
+      case Difficulty.medium: return base + 5;
+      case Difficulty.hard:   return base + 8;
+      case Difficulty.expert: return base + 10;
     }
   }
 
@@ -500,4 +571,11 @@ class _PuzzleResult {
   final List<WordEntry> words;
   final int swapLimit;
   const _PuzzleResult(this.grid, this.words, this.swapLimit);
+}
+
+class _TrimmedPuzzle {
+  final List<List<String>> grid;
+  final List<WordEntry> words;
+  final int size;
+  const _TrimmedPuzzle(this.grid, this.words, this.size);
 }

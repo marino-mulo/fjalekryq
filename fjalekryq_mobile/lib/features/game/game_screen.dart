@@ -20,7 +20,6 @@ import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_finger.dart';
-import '../tutorial/tutorial_overlay.dart';
 import '../shop/shop_screen.dart';
 import 'widgets/game_board.dart';
 import 'widgets/win_modal.dart';
@@ -79,7 +78,10 @@ class _GameScreenState extends State<GameScreen> {
 
   // Tutorial state
   bool _isTutorial = false;
-  int _tutorialPhase = 0; // 0=off, 1-9
+  // 0 = off, 1 = swap (interactive on highlighted cells),
+  // 2 = hint (Ndihmë button), 3 = solve (Zgjidh button).
+  // No modals — every step is a banner + animated finger.
+  int _tutorialPhase = 0;
   List<({int row, int col})> _tutorialHighlightCells = [];
 
   // Completion state
@@ -143,14 +145,19 @@ class _GameScreenState extends State<GameScreen> {
   void _onGameChanged() {
     if (!mounted) return;
 
-    // Auto-advance tutorial phases
+    // Auto-advance tutorial phases. Each step is a banner with a pointing
+    // finger; we move forward as soon as the player performs the action
+    // the banner describes. Phase 3 → finish ends the tutorial directly,
+    // no completion modal.
     if (_isTutorial) {
-      if (_tutorialPhase == 2 && _game.totalSwapCount > 0) {
+      if (_tutorialPhase == 1 && _game.totalSwapCount > 0) {
+        _setTutorialPhase(2);
+      } else if (_tutorialPhase == 2 && _game.hintCount > 0) {
         _setTutorialPhase(3);
-      } else if (_tutorialPhase == 5 && _game.hintCount > 0) {
-        _setTutorialPhase(6);
-      } else if (_tutorialPhase == 8 && _game.solveWordCooldown) {
-        _setTutorialPhase(9);
+      } else if (_tutorialPhase == 3 && _game.solveWordCooldown) {
+        Future.microtask(() {
+          if (mounted && _isTutorial) _finishTutorial();
+        });
       }
     }
 
@@ -286,7 +293,9 @@ class _GameScreenState extends State<GameScreen> {
   void _setTutorialPhase(int phase) {
     setState(() {
       _tutorialPhase = phase;
-      if (phase == 2) {
+      // Only the swap step highlights cells — hint/solve point at the
+      // bottom-row buttons instead, so the board stays unhighlighted.
+      if (phase == 1) {
         _tutorialHighlightCells = [(row: 0, col: 3), (row: 1, col: 0)];
       } else {
         _tutorialHighlightCells = [];
@@ -360,11 +369,10 @@ class _GameScreenState extends State<GameScreen> {
     HapticFeedback.mediumImpact();
     final coinService = context.read<CoinService>();
     if (!_isTutorial) {
-      if (!coinService.canAfford(hintCost)) {
-        // No coins — watch a rewarded ad for a free hint instead
-        await _watchAdForFreeHint();
-        return;
-      }
+      // No coins → button is disabled (no watch-ad fallback). The
+      // bottom-controls builder also dims/disables the button visually
+      // so this is just defensive.
+      if (!coinService.canAfford(hintCost)) return;
       coinService.spend(hintCost);
     }
     _audio.play(Sfx.hint);
@@ -517,7 +525,7 @@ class _GameScreenState extends State<GameScreen> {
                     builder: (context, _) => GameBoard(
                       game: _game,
                       tutorialHighlight: _tutorialHighlightCells,
-                      disableSwap: _isTutorial && (_tutorialPhase == 5 || _tutorialPhase == 8),
+                      disableSwap: _isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 3),
                     ),
                   )
                 else
@@ -572,17 +580,17 @@ class _GameScreenState extends State<GameScreen> {
                     _buildFiveMovesBanner(),
                   if (_insufficientType != null)
                     _buildInlineInsufficientBanner(),
+                  if (_isTutorial && _tutorialPhase == 1)
+                    _buildTutorialInstruction(
+                      'Shkëmbe shkronjat e shënuara për të bërë 1 lëvizje',
+                    ),
                   if (_isTutorial && _tutorialPhase == 2)
                     _buildTutorialInstruction(
-                      'Kliko shkronjat për të bërë 1 lëvizje',
+                      'Kliko butonin Ndihmë — vendos 1 shkronjë pa hequr lëvizje',
                     ),
-                  if (_isTutorial && _tutorialPhase == 5)
+                  if (_isTutorial && _tutorialPhase == 3)
                     _buildTutorialInstruction(
-                      'Kliko Ndihmën — shkronjat, ruaj lëvizjet!',
-                    ),
-                  if (_isTutorial && _tutorialPhase == 8)
-                    _buildTutorialInstruction(
-                      'Kliko Zgjidh — zgjidh fjalën, ruaj lëvizjet!',
+                      'Kliko butonin Zgjidh — zgjidh një fjalë të plotë',
                     ),
                 ],
 
@@ -604,17 +612,6 @@ class _GameScreenState extends State<GameScreen> {
               ],
             ),
           ),
-
-          // Tutorial overlays (blocking modals). Phase 9 is the final
-          // "tutorial completed" modal — its CTA finishes the tutorial
-          // and pops back to home rather than advancing a step.
-          if (_isTutorial && [1, 3, 4, 6, 7, 9].contains(_tutorialPhase))
-            TutorialOverlay(
-              phase: _tutorialPhase,
-              onNext: _tutorialPhase == 9
-                  ? _finishTutorial
-                  : () => _setTutorialPhase(_tutorialPhase + 1),
-            ),
 
           // Floating banner ad — sticks to the bottom of the puzzle page
           // with a soft shadow + rounded pill so it reads as a chip, not
@@ -669,28 +666,19 @@ class _GameScreenState extends State<GameScreen> {
   //  Inline banner (above buttons in column)
   // ══════════════════════════════════════
 
-  /// Banner + animated pointing finger used for every interactive tutorial
-  /// step. The finger makes it unambiguous which element the player should
-  /// tap next.
+  /// Tutorial banner — text only. The pointing finger lives on the board
+  /// (highlighted cells during the swap step) or above the bottom-row
+  /// buttons (Ndihmë / Zgjidh steps), never inside the banner itself.
   Widget _buildTutorialInstruction(String text) {
     return _buildInlineBanner(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const TutorialFinger(direction: FingerDirection.down, size: 22),
-          const SizedBox(width: 10),
-          Flexible(
-            child: Text(
-              text,
-              textAlign: TextAlign.center,
-              style: AppFonts.quicksand(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.gold,
-              ),
-            ),
-          ),
-        ],
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: AppFonts.quicksand(
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.gold,
+        ),
       ),
       bgColor: AppColors.gold.withValues(alpha: 0.14),
       borderColor: AppColors.gold.withValues(alpha: 0.4),
@@ -1023,30 +1011,6 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  Future<void> _watchAdForFreeHint() async {
-    final adService = context.read<AdService>();
-    setState(() => _loadingAd = true);
-
-    final success = await adService.showRewardedAd(
-      adType: AdType.freeHint,
-      onReward: () async {
-        _audio.play(Sfx.hint);
-        _game.hint();
-      },
-      onOffline: () {
-        if (mounted) showOfflineSnack(context);
-      },
-    );
-
-    if (mounted) {
-      setState(() {
-        _loadingAd = false;
-        // If daily limit hit, fall back to the regular insufficient coins banner
-        if (!success) _showInsufficientCoins('hint');
-      });
-    }
-  }
-
   Future<void> _watchAdToDoubleWinCoins() async {
     final adService = context.read<AdService>();
     final coinService = context.read<CoinService>();
@@ -1267,8 +1231,8 @@ class _GameScreenState extends State<GameScreen> {
     final canAffordHintNow = _isTutorial || coinService.canAfford(hintCost);
     final canAffordSolveNow = _isTutorial || coinService.canAfford(solveCost);
 
-    final pointSolve = _isTutorial && _tutorialPhase == 8;
-    final pointHint = _isTutorial && _tutorialPhase == 5;
+    final pointSolve = _isTutorial && _tutorialPhase == 3;
+    final pointHint = _isTutorial && _tutorialPhase == 2;
 
     Widget withFinger({required bool show, required Widget child}) {
       return Column(
@@ -1299,13 +1263,13 @@ class _GameScreenState extends State<GameScreen> {
               child: withFinger(
                 show: pointSolve,
                 child: _controlButton(
-                  icon: Icons.check_circle_outline,
+                  icon: Icons.lightbulb_outline,
                   label: _isTutorial ? 'Zgjidh' : 'Zgjidh · $solveCost',
                   enabled: _game.canSolveWord &&
-                      !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 5)),
+                      !(_isTutorial && (_tutorialPhase == 1 || _tutorialPhase == 2)),
                   cooling: _game.solveWordCooldown,
                   cooldownRemaining: _game.solveWordCooldownRemaining,
-                  pulsing: _isTutorial && _tutorialPhase == 8,
+                  pulsing: _isTutorial && _tutorialPhase == 3,
                   onTap: _onSolveWord,
                   showWatchBadge: !_isTutorial && !canAffordSolveNow,
                   isSolve: true,
@@ -1318,15 +1282,20 @@ class _GameScreenState extends State<GameScreen> {
               child: withFinger(
                 show: pointHint,
                 child: _controlButton(
-                  icon: Icons.lightbulb_outline,
+                  icon: Icons.swap_horiz_rounded,
                   label: _isTutorial ? 'Ndihmë' : 'Ndihmë · $hintCost',
+                  // Disable when the player can't pay — the watch-ad
+                  // fallback was removed (it didn't reliably fire), so
+                  // the button has no work to do without coins.
                   enabled: _game.canHint &&
-                      !(_isTutorial && (_tutorialPhase == 2 || _tutorialPhase == 8)),
+                      canAffordHintNow &&
+                      !(_isTutorial && (_tutorialPhase == 1 || _tutorialPhase == 3)),
                   cooling: _game.hintCooldown,
                   cooldownRemaining: _game.hintCooldownRemaining,
-                  pulsing: _isTutorial && _tutorialPhase == 5,
+                  pulsing: _isTutorial && _tutorialPhase == 2,
                   onTap: _onHint,
-                  showWatchBadge: !_isTutorial && !canAffordHintNow,
+                  // No "Shiko" badge on hint — the ad path is gone.
+                  showWatchBadge: false,
                   noCoins: !_isTutorial && !canAffordHintNow,
                 ),
               ),

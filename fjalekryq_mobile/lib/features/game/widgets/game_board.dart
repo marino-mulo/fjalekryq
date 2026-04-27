@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/services/game_service.dart';
 import '../../../core/services/audio_service.dart';
 import '../../../shared/constants/theme.dart';
+import '../../tutorial/tutorial_finger.dart';
 
 /// Cell size lookup to keep total board fitting the screen width.
 const _cellSizeMap = {5: 64.0, 6: 56.0, 7: 50.0, 8: 44.0, 9: 38.0, 10: 34.0, 11: 31.0, 12: 28.0, 13: 26.0};
@@ -199,6 +200,21 @@ class _GameBoardState extends State<GameBoard>
                         game.selectCell(r, c);
                       },
                     ),
+              // Tutorial: animated pointing finger floating just above each
+              // highlighted cell. Painted on top of the cells so it stays
+              // visible regardless of cell colour and tracks the cell's
+              // pixel position automatically.
+              for (final hl in widget.tutorialHighlight)
+                Positioned(
+                  left: _cellX(hl.col) + (_cellSize - 28) / 2,
+                  top: _cellY(hl.row) - 30,
+                  child: const IgnorePointer(
+                    child: TutorialFinger(
+                      direction: FingerDirection.down,
+                      size: 28,
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

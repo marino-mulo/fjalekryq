@@ -1,4 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Pre-API 31 launch screen: gradient background + centered LL
+     monogram, mirroring the Flutter LojraLogjikeSplash. On API 31+
+     this file is replaced by the SplashScreen API config in
+     values-v31/styles.xml. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="@color/splash_bg" />
+    <item android:drawable="@drawable/splash_gradient" />
+    <item
+        android:drawable="@drawable/splash_logo_ll"
+        android:gravity="center"
+        android:width="120dp"
+        android:height="120dp" />
 </layer-list>

@@ -32,10 +32,7 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-  late AnimationController _logoController;
-  late Animation<double> _logoScale;
   late AnimationController _pulseController;
-  bool _ready = false;
 
   @override
   void initState() {
@@ -56,15 +53,6 @@ class _HomeScreenState extends State<HomeScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
 
-    // Logo float animation
-    _logoController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2800),
-    );
-    _logoScale = Tween(begin: 1.0, end: 1.03).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeInOut),
-    );
-
     // Pulse for daily reward
     _pulseController = AnimationController(
       vsync: this,
@@ -74,25 +62,19 @@ class _HomeScreenState extends State<HomeScreen>
     // Defer ALL heavy work well after the first frame renders
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      setState(() => _ready = true);
       _fadeController.forward();
     });
-    // Delay animations and music further to let the UI settle
+    // Delay animations further to let the UI settle. Background music
+    // has been removed from the app — only SFX remain.
     Future.delayed(const Duration(milliseconds: 500), () {
       if (!mounted) return;
-      _logoController.repeat(reverse: true);
       _pulseController.repeat(reverse: true);
-    });
-    Future.delayed(const Duration(milliseconds: 1000), () {
-      if (!mounted) return;
-      context.read<AudioService>().startMusic();
     });
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
-    _logoController.dispose();
     _pulseController.dispose();
     super.dispose();
   }
@@ -211,18 +193,8 @@ class _HomeScreenState extends State<HomeScreen>
 
                         const Spacer(flex: 4),
 
-                        // Logo + subtitle
-                        AnimatedBuilder(
-                          animation: _logoScale,
-                          builder: (context, child) => Transform.scale(
-                            scale: _logoScale.value,
-                            child: Transform.translate(
-                              offset: Offset(0, -7 * (_logoScale.value - 1) / 0.03),
-                              child: child,
-                            ),
-                          ),
-                          child: _buildLogoSection(),
-                        ),
+                        // Logo + subtitle (static — no breathing/scale).
+                        _buildLogoSection(),
 
                         const Spacer(flex: 3),
 
@@ -264,7 +236,14 @@ class _HomeScreenState extends State<HomeScreen>
               pulseController: _pulseController,
             ),
             const Spacer(),
-            // Settings — right
+            // Shop — sits immediately left of settings so the right
+            // cluster reads as a tidy pair of utility actions.
+            _HeaderButton(
+              icon: Icons.storefront_rounded,
+              onTap: _openShop,
+            ),
+            const SizedBox(width: 10),
+            // Settings — right edge
             _HeaderButton(
               icon: Icons.settings,
               onTap: _openSettings,
@@ -288,27 +267,41 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          _HomeCard(
-            accent: const Color(0xFF60A5FA),
-            icon: Icons.today_rounded,
-            label: 'SFIDA DITORE',
-            title: dateLabel,
-            buttonLabel: streak > 0 ? 'Vazhdo' : 'Luaj',
-            badge: streak > 0 ? '🔥 $streak' : null,
-            onTap: _openDailyPuzzle,
-          ),
-          const SizedBox(height: 12),
-          _HomeCard(
-            accent: AppColors.purpleAccent,
-            icon: Icons.emoji_events_rounded,
-            label: 'RENDITJA',
-            title: 'Tabelë Kryesore',
-            buttonLabel: 'Shiko',
-            onTap: _openLeaderboard,
-          ),
-        ],
+      // IntrinsicHeight forces both cards to match the taller one's
+      // height. Without it, `CrossAxisAlignment.stretch` on a Row whose
+      // parent (the main Column) has unbounded height fails the layout
+      // pass with a `RenderBox was not laid out` assertion.
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _HomeCard(
+                accent: const Color(0xFF60A5FA),
+                icon: Icons.today_rounded,
+                label: 'SFIDA DITORE',
+                title: dateLabel,
+                buttonLabel: streak > 0 ? 'Vazhdo' : 'Luaj',
+                badge: streak > 0 ? '🔥 $streak' : null,
+                onTap: _openDailyPuzzle,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _HomeCard(
+                accent: AppColors.purpleAccent,
+                icon: Icons.emoji_events_rounded,
+                label: 'RENDITJA',
+                // No title for the leaderboard card — the label alone is
+                // enough, and "Tabelë Kryesore" was redundant alongside
+                // the trophy icon.
+                title: null,
+                buttonLabel: 'Shiko',
+                onTap: _openLeaderboard,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -400,7 +393,10 @@ class _HomeCard extends StatelessWidget {
   final Color accent;
   final IconData icon;
   final String label;
-  final String title;
+  /// Optional secondary line under [label] (e.g. today's date for the
+  /// daily card). Pass `null` to omit it — the leaderboard card uses
+  /// this so the trophy icon + label stand on their own.
+  final String? title;
   final String buttonLabel;
   final String? badge;
   final VoidCallback onTap;
@@ -417,11 +413,14 @@ class _HomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Vertical layout — icon + headline at top, CTA pinned at the
+    // bottom via Spacer so the two cards present a consistent button
+    // baseline even when one card has no subtitle. The outer Row uses
+    // IntrinsicHeight so this fills the matched card height.
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(20),
@@ -438,55 +437,28 @@ class _HomeCard extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Top row: icon on the left, optional streak badge on the right
             Row(
               children: [
-                // Accent-tinted icon tile
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   decoration: BoxDecoration(
                     color: accent.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: accent.withValues(alpha: 0.45),
                     ),
                   ),
-                  child: Icon(icon, color: accent, size: 22),
+                  child: Icon(icon, color: accent, size: 20),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: AppFonts.nunito(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 1.4,
-                          color: Colors.white.withValues(alpha: 0.55),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        title,
-                        style: AppFonts.nunito(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
+                const Spacer(),
                 if (badge != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 4),
+                        horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(20),
@@ -497,7 +469,7 @@ class _HomeCard extends StatelessWidget {
                     child: Text(
                       badge!,
                       style: AppFonts.nunito(
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w800,
                         color: Colors.white,
                       ),
@@ -506,13 +478,44 @@ class _HomeCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Full-width CTA
+            // The big label (e.g. "SFIDA DITORE", "RENDITJA") — this is
+            // now the dominant headline of the card.
+            Text(
+              label,
+              style: AppFonts.nunito(
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.6,
+                color: Colors.white,
+              ).copyWith(height: 1.1),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (title != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                title!,
+                style: AppFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.6),
+                  letterSpacing: 0.4,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+            // Spacer pushes the CTA to the bottom of the card so both
+            // cards' buttons share a baseline even when one card has no
+            // subtitle.
+            const Spacer(),
+            const SizedBox(height: 12),
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 11),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
                 color: accent.withValues(alpha: 0.22),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: accent.withValues(alpha: 0.5),
                 ),
@@ -521,7 +524,7 @@ class _HomeCard extends StatelessWidget {
                 child: Text(
                   buttonLabel,
                   style: AppFonts.nunito(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w900,
                     color: Colors.white,
                     letterSpacing: 0.6,

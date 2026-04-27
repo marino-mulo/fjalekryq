@@ -44,6 +44,25 @@ class UserGeneratedLevelRepository {
     }
   }
 
+  /// Return cached puzzles for [userId] whose level falls within
+  /// `[fromLevel, toLevel]` inclusive. Used by the offline generator's
+  /// word-exclusion lookback (same behaviour as the server's
+  /// `IUserGeneratedLevelRepository.ListRangeAsync`).
+  Future<List<UserGeneratedLevelModel>> listRange(
+    int userId,
+    int fromLevel,
+    int toLevel,
+  ) async {
+    if (toLevel < fromLevel) return const [];
+    final db = await dbHelper.database;
+    final rows = await db.query(
+      _table,
+      where: 'user_id = ? AND level BETWEEN ? AND ?',
+      whereArgs: [userId, fromLevel, toLevel],
+    );
+    return rows.map(UserGeneratedLevelModel.fromMap).toList();
+  }
+
   Future<void> deleteByUserAndLevel(int userId, int level) async {
     final db = await dbHelper.database;
     await db.delete(

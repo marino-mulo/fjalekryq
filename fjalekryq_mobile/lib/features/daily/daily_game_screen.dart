@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/puzzle.dart';
-import '../../core/models/level_config.dart';
 import '../../core/services/game_service.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
@@ -75,6 +75,19 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   bool _failedToday = false;
   Wordle7Puzzle? _todayPuzzle;
 
+  // ── Save throttling ─────────────────────────────────────────────
+  // Each game listener fire used to POST the entire grid to
+  // /api/daily/progress. A flurry of taps would queue 5+ concurrent
+  // requests; the server serialised them, took 50–80s each, and
+  // Kestrel started raising BadHttpRequestException as the client
+  // dropped connections. We now coalesce: one in-flight save at a
+  // time, plus a debounce so quick successive changes batch into a
+  // single POST with the latest state.
+  Timer?  _saveDebounce;
+  bool    _saveInFlight    = false;
+  bool    _savePending     = false;
+  static const _saveDebounceMs = 500;
+
   String get _todayDateStr {
     final now = DateTime.now();
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
@@ -98,6 +111,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
   @override
   void dispose() {
+    _saveDebounce?.cancel();
     _game.removeListener(_onGameChanged);
     _game.dispose();
     super.dispose();
@@ -120,17 +134,53 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       _prefs.setBool(_failKey, true);
     }
 
-    // Save grid state after every change (for resume)
+    // Save grid state after every change (for resume) — but debounce
+    // so a burst of taps coalesces into a single POST.
     if (!_game.gameWon && !_isCompleted && !_isLoading) {
-      _dailyService.saveGridState(
+      _scheduleSave();
+    }
+
+    setState(() {});
+  }
+
+  /// Debounced + serialised save. The first call after a quiet period
+  /// fires after [_saveDebounceMs]; while a save is in flight, any new
+  /// change just sets [_savePending] so we run exactly one more save
+  /// after it completes (with the latest grid state).
+  void _scheduleSave() {
+    _saveDebounce?.cancel();
+    _saveDebounce = Timer(
+      const Duration(milliseconds: _saveDebounceMs),
+      _runSave,
+    );
+  }
+
+  Future<void> _runSave() async {
+    if (!mounted) return;
+    if (_saveInFlight) {
+      _savePending = true;
+      return;
+    }
+    _saveInFlight = true;
+    try {
+      await _dailyService.saveGridState(
         _game.grid,
         _game.swapCount,
         _game.hintCount,
         _game.totalSwapCount,
       );
+    } catch (_) {
+      // Network blip — local copy is already up to date via the
+      // hybrid repo's local-first write.
+    } finally {
+      _saveInFlight = false;
+      if (_savePending && mounted) {
+        _savePending = false;
+        // Run trailing save so the server ends up with the latest
+        // state, but don't block the UI.
+        unawaited(_runSave());
+      }
     }
-
-    setState(() {});
   }
 
   void _initializeDaily() async {

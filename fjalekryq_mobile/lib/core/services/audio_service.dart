@@ -30,26 +30,13 @@ const _sfxFiles = {
   Sfx.dailyClaim: 'audio/sfx/daily_claim.wav',
 };
 
-const _bgMusicFile = 'audio/music/bg_music.wav';
-
 /// Set this to true once you replace the placeholder .wav files with real audio.
 /// While false, ALL audio playback is skipped to avoid main-thread jank
 /// caused by audioplayers trying to decode empty placeholder files.
 ///
-/// Replace the placeholder .wav files in assets/audio/ with real audio:
-///   sfx/tap.wav        — cell tap / select (~50ms click)
-///   sfx/swap.wav       — two cells swapping (~150ms whoosh)
-///   sfx/hint.wav       — hint activated (~300ms chime)
-///   sfx/solve.wav      — solve word (~500ms magic sparkle)
-///   sfx/win.wav        — puzzle complete (~1.5s victory fanfare)
-///   sfx/lose.wav       — out of swaps (~800ms sad trombone)
-///   sfx/coin.wav       — coins earned (~200ms cha-ching)
-///   sfx/error.wav      — insufficient coins (~200ms buzz)
-///   sfx/button.wav     — UI button press (~80ms pop)
-///   sfx/level_select.wav — level node tap (~100ms click)
-///   sfx/star.wav       — star awarded (~300ms twinkle)
-///   sfx/daily_claim.wav — daily reward claimed (~500ms reward jingle)
-///   music/bg_music.wav — background loop (30-60s ambient track, will loop)
+/// Background music has been removed from the app — only short SFX
+/// remain. The settings sheet exposes a single "Zëri" (sound) toggle
+/// that controls these effects.
 const bool _audioReady = true;
 
 class AudioService {
@@ -58,22 +45,7 @@ class AudioService {
   // SFX pool — created lazily on first use
   final Map<Sfx, AudioPlayer> _sfxPlayers = {};
 
-  // Background music player — created lazily
-  AudioPlayer? _musicPlayer;
-  bool _musicStarted = false;
-
-  AudioService(this._settings) {
-    _settings.addListener(_onSettingsChanged);
-  }
-
-  AudioPlayer _getMusicPlayer() {
-    if (_musicPlayer == null) {
-      _musicPlayer = AudioPlayer();
-      _musicPlayer!.setReleaseMode(ReleaseMode.loop);
-      _musicPlayer!.setVolume(0.3);
-    }
-    return _musicPlayer!;
-  }
+  AudioService(this._settings);
 
   AudioPlayer _getSfxPlayer(Sfx sfx) {
     return _sfxPlayers.putIfAbsent(sfx, () => AudioPlayer());
@@ -91,50 +63,10 @@ class AudioService {
     player.play(AssetSource(file));
   }
 
-  /// Start background music (if music is enabled).
-  void startMusic() {
-    if (!_audioReady) return;  // Skip while using placeholder files
-    if (!_settings.musicEnabled) return;
-    if (_musicStarted) return;
-    _musicStarted = true;
-    _getMusicPlayer().play(AssetSource(_bgMusicFile));
-  }
-
-  /// Stop background music.
-  void stopMusic() {
-    _musicStarted = false;
-    _musicPlayer?.stop();
-  }
-
-  /// Pause music (e.g. when app goes to background).
-  void pauseMusic() {
-    if (_musicStarted) {
-      _musicPlayer?.pause();
-    }
-  }
-
-  /// Resume music (e.g. when app comes to foreground).
-  void resumeMusic() {
-    if (_musicStarted && _settings.musicEnabled) {
-      _musicPlayer?.resume();
-    }
-  }
-
-  void _onSettingsChanged() {
-    if (!_audioReady) return;
-    if (_settings.musicEnabled && _musicStarted) {
-      _musicPlayer?.resume();
-    } else if (!_settings.musicEnabled) {
-      _musicPlayer?.pause();
-    }
-  }
-
   /// Clean up all players.
   void dispose() {
-    _settings.removeListener(_onSettingsChanged);
     for (final player in _sfxPlayers.values) {
       player.dispose();
     }
-    _musicPlayer?.dispose();
   }
 }

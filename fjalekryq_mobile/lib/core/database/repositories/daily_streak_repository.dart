@@ -24,7 +24,13 @@ class DailyStreakRepository extends BaseRepository<DailyStreakModel> {
   }
 
   /// Get existing streak or create a new one for the user.
-  Future<DailyStreakModel> getOrCreate(int userId) async {
+  Future<DailyStreakModel> getOrCreate(int userId) => _readOrCreateLocal(userId);
+
+  /// Direct SQLite read-or-create — bypasses any subclass override.
+  /// Used by [updateStreak] and [setFrozenUntil] to avoid virtual-dispatch
+  /// recursion when a hybrid subclass's `getOrCreate` triggers a
+  /// write-through that calls back into `super.updateStreak`.
+  Future<DailyStreakModel> _readOrCreateLocal(int userId) async {
     final existing = await getByUser(userId);
     if (existing != null) return existing;
 
@@ -41,7 +47,7 @@ class DailyStreakRepository extends BaseRepository<DailyStreakModel> {
     required int bestStreak,
     required String lastSolvedDate,
   }) async {
-    final streak = await getOrCreate(userId);
+    final streak = await _readOrCreateLocal(userId);
     streak.currentStreak = currentStreak;
     streak.bestStreak = bestStreak;
     streak.lastSolvedDate = lastSolvedDate;
@@ -50,7 +56,7 @@ class DailyStreakRepository extends BaseRepository<DailyStreakModel> {
 
   /// Set the frozen-until date for streak protection.
   Future<void> setFrozenUntil(int userId, String date) async {
-    final streak = await getOrCreate(userId);
+    final streak = await _readOrCreateLocal(userId);
     streak.frozenUntil = date;
     await update(streak.id!, streak);
   }

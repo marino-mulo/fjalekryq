@@ -21,6 +21,8 @@ import 'core/database/repositories/user_generated_level_repository.dart';
 import 'core/database/repositories/achievement_repository.dart';
 import 'core/database/repositories/ad_reward_repository.dart';
 import 'core/services/coin_service.dart';
+import 'core/services/consent_service.dart';
+import 'core/services/crash_reporter.dart';
 import 'core/services/settings_service.dart';
 import 'core/services/audio_service.dart';
 import 'core/services/ad_service.dart';
@@ -30,7 +32,6 @@ import 'core/services/daily_puzzle_service.dart';
 import 'core/services/sync_service.dart';
 import 'core/network/remote_auth_repository.dart';
 import 'core/network/remote_coins_repository.dart';
-import 'core/network/remote_level_repository.dart';
 import 'core/network/remote_progress_repository.dart';
 import 'core/network/remote_streak_repository.dart';
 import 'core/network/remote_daily_puzzle_repository.dart';
@@ -40,6 +41,7 @@ import 'core/network/hybrid_daily_puzzle_repository.dart';
 import 'features/home/home_screen.dart';
 import 'features/onboarding/onboarding_screen.dart';
 import 'shared/constants/theme.dart';
+import 'shared/widgets/app_loading_view.dart';
 import 'shared/widgets/lojralogjike_splash.dart';
 
 late final Future<_AppServices> _initFuture;
@@ -49,8 +51,17 @@ const _onboardingDoneKey = 'fjalekryq_onboarding_done';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Prevent GoogleFonts from making network requests — use bundled fallback
-  GoogleFonts.config.allowRuntimeFetching = false;
+  // Wire global error handlers FIRST so any subsequent crash during
+  // boot still gets recorded. No-op without a configured backend.
+  await CrashReporter.init();
+
+  // Allow GoogleFonts to fetch on first launch and cache to disk. The
+  // previous `false` setting required the .ttf files in `assets/fonts/`
+  // but that directory was never populated, so every text style fell
+  // back to the platform default. Flipping this on lets Nunito and
+  // Quicksand load from the network on first run; subsequent launches
+  // hit the on-device cache.
+  GoogleFonts.config.allowRuntimeFetching = true;
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
@@ -72,7 +83,12 @@ void main() async {
     }
   }
 
-  // Initialize AdMob SDK after ATT decision (so consent state is known).
+  // Gather UMP consent (EEA/UK GDPR) BEFORE AdMob init. Required by
+  // Google's Consent Mode v2 policy — without it, Europe-served ads
+  // can be suspended. Returns immediately (no UI) for non-EEA users.
+  await ConsentService.gather();
+
+  // Initialize AdMob SDK after ATT + UMP decisions are known.
   await MobileAds.instance.initialize();
 
   _initFuture = _initializeApp();
@@ -159,7 +175,6 @@ Future<_AppServices> _initializeApp() async {
     adService: AdService(adRewardRepo, userId, prefs),
     dailyPuzzleService: dailyPuzzleService,
     puzzleStore: LevelPuzzleStore(
-      RemoteLevelRepository(),
       userGeneratedLevelRepo,
       userId,
     ),
@@ -284,11 +299,16 @@ class FjalekryqApp extends StatefulWidget {
 
 class _FjalekryqAppState extends State<FjalekryqApp> {
   _AppServices? _services;
-  // Controls the first-launch brand splash. Flips to true after
-  // [_brandSplashDuration] so the loading view can take over.
-  bool _brandSplashDone = false;
 
-  static const _brandSplashDuration = Duration(milliseconds: 1800);
+  // Two-stage boot:
+  //   1. LojraLogjike publisher splash (fixed [_publisherSplashDuration])
+  //   2. Fjalekryq loading view (until services ready, min [_loadingMinDuration])
+  //   3. Home / onboarding
+  bool _publisherSplashDone = false;
+  bool _loadingMinElapsed = false;
+
+  static const _publisherSplashDuration = Duration(milliseconds: 1800);
+  static const _loadingMinDuration = Duration(milliseconds: 900);
 
   @override
   void initState() {
@@ -296,8 +316,15 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
     _initFuture.then((s) {
       if (mounted) setState(() => _services = s);
     });
-    Future.delayed(_brandSplashDuration, () {
-      if (mounted) setState(() => _brandSplashDone = true);
+    Future.delayed(_publisherSplashDuration, () {
+      if (!mounted) return;
+      setState(() => _publisherSplashDone = true);
+      // Start the loading-view minimum timer only AFTER the publisher
+      // splash hands off, so the Fjalekryq mark is always seen for at
+      // least [_loadingMinDuration].
+      Future.delayed(_loadingMinDuration, () {
+        if (mounted) setState(() => _loadingMinElapsed = true);
+      });
     });
   }
 
@@ -324,13 +351,14 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
       builder: s != null
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
-      // Keep the LojraLogjike brand splash visible until the app is fully
-      // ready — no secondary Fjalekryq-branded loading view in between.
-      home: (!_brandSplashDone || s == null)
+      // LojraLogjike publisher splash → Fjalekryq loading view → home.
+      home: !_publisherSplashDone
           ? const LojraLogjikeSplash()
-          : (s.prefs.getBool(_onboardingDoneKey) ?? false)
-              ? const HomeScreen()
-              : const OnboardingScreen(),
+          : (s == null || !_loadingMinElapsed)
+              ? const AppLoadingView()
+              : (s.prefs.getBool(_onboardingDoneKey) ?? false)
+                  ? const HomeScreen()
+                  : const OnboardingScreen(),
     );
   }
 }

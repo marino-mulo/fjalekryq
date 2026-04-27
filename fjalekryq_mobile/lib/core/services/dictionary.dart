@@ -17,7 +17,7 @@ class Wordle7Dictionary {
   ];
 
   static const List<String> _words4 = [
-    'xARKA','ARRË','BAZË','DETI','HËNA','FIKU',
+    'ARKA','ARRË','BAZË','DETI','HËNA','FIKU',
     'BOTA','BUKË','CIPË','BABI','BLEJ','LUGA','MIKU',
     'DERË','DIKU','DITË','DJEP','DORË',
     'EMËR','EPIK','FARË','FUND','FURI',
@@ -86,22 +86,24 @@ class Wordle7Dictionary {
   static late final List<String> _mediumPool;
   static late final List<String> _hardPool;
   static late final List<String> _expertPool;
-  static late final List<String> _fullPool;
-  static late final Set<String> _allWordsSet;
 
   static bool _initialized = false;
 
   static void _ensureInitialized() {
     if (_initialized) return;
+    // Every pool — including Hard and Expert — must include 4- and
+    // 5-letter words. The PuzzleGenerator places ONE featured big word
+    // (from `getWordsByLength(featuredLen)`) and then fills the rest of
+    // the grid by drawing from the pool filtered to `length <= 5`. If
+    // the pool has no short words, that fill step finds nothing and
+    // the board collapses into a row of long words — the exact "4 big
+    // words on Hard" bug we hit before. So short words live in every
+    // pool; what changes per difficulty is which longer words are
+    // *also* available as additional crossings or as the feature.
     _easyPool   = [..._words3, ..._words4, ..._words5, ..._words6];
     _mediumPool = [..._words3, ..._words4, ..._words5, ..._words6, ..._words7];
     _hardPool   = [..._words4, ..._words5, ..._words6, ..._words7, ..._words8];
     _expertPool = [..._words5, ..._words6, ..._words7, ..._words8, ..._words9];
-    _fullPool = [
-      ..._words3, ..._words4, ..._words5, ..._words6,
-      ..._words7, ..._words8, ..._words9,
-    ];
-    _allWordsSet = _fullPool.toSet();
     _initialized = true;
   }
 
@@ -129,11 +131,5 @@ class Wordle7Dictionary {
       case 9:  return List<String>.from(_words9);
       default: return [];
     }
-  }
-
-  /// Check if a word is in the dictionary.
-  static bool isValidWord(String word) {
-    _ensureInitialized();
-    return _allWordsSet.contains(word);
   }
 }

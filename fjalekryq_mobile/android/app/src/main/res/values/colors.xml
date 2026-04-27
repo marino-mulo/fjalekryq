@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#07152F</color>
-    <color name="splash_bg">#07152F</color>
+    <!-- Adaptive launcher icon background — matches the deep navy used
+         in the AppBackground gradient. -->
+    <color name="ic_launcher_background">#0C1F4A</color>
+
+    <!-- System splash background. Android 12+ requires a single solid
+         colour; we pick the top stop of the AppBackground gradient
+         (#0C1F4A) so the system splash blends into the Flutter
+         LojraLogjikeSplash with no jarring colour shift. -->
+    <color name="splash_bg">#0C1F4A</color>
 </resources>

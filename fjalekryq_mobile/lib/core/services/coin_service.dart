@@ -16,7 +16,6 @@ class CoinService extends ChangeNotifier {
   int _coins = 0;
   String? _lastDailyClaim;
   int _streakDay = 0;
-  int? _recordId;
 
   CoinService(this._repo, this._userId);
 
@@ -28,7 +27,6 @@ class CoinService extends ChangeNotifier {
     _coins = model.balance;
     _lastDailyClaim = model.lastDailyClaim;
     _streakDay = model.streakDay;
-    _recordId = model.id;
     notifyListeners();
   }
 

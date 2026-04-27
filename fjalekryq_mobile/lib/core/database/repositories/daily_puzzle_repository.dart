@@ -11,7 +11,14 @@ class DailyPuzzleRepository extends BaseRepository<DailyPuzzleModel> {
   Map<String, dynamic> toMap(DailyPuzzleModel model) => model.toMap();
 
   /// Get a daily puzzle for a specific user and date.
-  Future<DailyPuzzleModel?> getByUserAndDate(int userId, String date) async {
+  Future<DailyPuzzleModel?> getByUserAndDate(int userId, String date) =>
+      _readRow(userId, date);
+
+  /// Direct SQLite lookup — bypasses any subclass override.
+  /// Used by [upsert] to avoid virtual-dispatch recursion when a
+  /// hybrid subclass calls `super.upsert` as a write-through from
+  /// its overridden `getByUserAndDate`.
+  Future<DailyPuzzleModel?> _readRow(int userId, String date) async {
     final db = await dbHelper.database;
     final rows = await db.query(
       'daily_puzzle',
@@ -34,7 +41,7 @@ class DailyPuzzleRepository extends BaseRepository<DailyPuzzleModel> {
     int? hintCount,
     int? totalSwapCount,
   }) async {
-    final existing = await getByUserAndDate(userId, date);
+    final existing = await _readRow(userId, date);
     if (existing != null) {
       if (puzzleJson != null) existing.puzzleJson = puzzleJson;
       if (gridJson != null) existing.gridJson = gridJson;

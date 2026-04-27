@@ -11,7 +11,10 @@ import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../game/game_screen.dart';
+import '../../core/services/consent_service.dart';
+import '../legal/delete_data_screen.dart';
 import '../legal/privacy_policy_screen.dart';
+import '../legal/terms_of_service_screen.dart';
 import 'about_screen.dart';
 
 const int _nicknameCost = 100;
@@ -131,11 +134,15 @@ class _SettingsSheetState extends State<SettingsSheet> {
   Future<void> _openPrivacyPreferences() async {
     HapticFeedback.selectionClick();
     // Re-request ATT on iOS so users can change their mind from
-    // settings. On Android this is a no-op (the plugin reports
-    // "authorized"), and we fall through to the privacy policy so the
-    // user still has something to act on.
+    // settings. On Android this is a no-op.
     try {
       await AppTrackingTransparency.requestTrackingAuthorization();
+    } catch (_) {}
+    // Re-show the UMP consent form (EEA/UK users). Required by
+    // Google's UMP policy: users must be able to revisit choices.
+    // No-op for non-EEA users.
+    try {
+      await ConsentService.reshow();
     } catch (_) {}
     if (!mounted) return;
     Navigator.push(
@@ -364,7 +371,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
                       const SizedBox(height: 10),
                       _SettingToggle(
                         icon: Icons.volume_up_rounded,
-                        label: 'Tingulli',
+                        label: 'Zëri',
                         value: settings.audioEnabled,
                         onChanged: (_) => settings.toggleAudio(),
                       ),
@@ -424,6 +431,34 @@ class _SettingsSheetState extends State<SettingsSheet> {
                         icon: Icons.shield_outlined,
                         label: 'Preferencat e Privatësisë',
                         onTap: _openPrivacyPreferences,
+                      ),
+                      const SizedBox(height: 8),
+                      _buildLegalRow(
+                        icon: Icons.description_outlined,
+                        label: 'Kushtet e Përdorimit',
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TermsOfServiceScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _buildLegalRow(
+                        icon: Icons.delete_forever_outlined,
+                        label: 'Fshi të dhënat e mia',
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const DeleteDataScreen(),
+                            ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 32),

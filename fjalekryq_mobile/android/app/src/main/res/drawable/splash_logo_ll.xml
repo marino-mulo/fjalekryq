@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Gold "LL" monogram for the LojraLogjike publisher splash. Two
+     interlocking Ls expressed as stroked paths, sized for the Android
+     12+ splash icon viewport (108dp). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Left/upper L -->
+    <path
+        android:strokeColor="#FBBF24"
+        android:strokeWidth="13"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M30,24 L30,67 L60,67" />
+
+    <!-- Right/lower L (interlocking) -->
+    <path
+        android:strokeColor="#FBBF24"
+        android:strokeWidth="13"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M54,41 L54,84 L84,84" />
+</vector>
