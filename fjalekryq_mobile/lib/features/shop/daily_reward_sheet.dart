@@ -5,6 +5,7 @@ import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/ad_service.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/animated_icon_fx.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 
@@ -49,7 +50,12 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
           // Header
           Row(
             children: [
-              const Icon(Icons.card_giftcard, color: AppColors.gold, size: 20),
+              const AnimatedIconFx(
+                Icons.card_giftcard,
+                style: IconFxStyle.bounceIn,
+                color: AppColors.gold,
+                size: 20,
+              ),
               const SizedBox(width: 8),
               const Text(
                 'Bonus Ditor',
@@ -139,7 +145,12 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.monetization_on, color: AppColors.gold, size: 28),
+          const AnimatedIconFx(
+            Icons.monetization_on,
+            style: IconFxStyle.spinPop,
+            color: AppColors.gold,
+            size: 28,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -202,7 +213,12 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.check_circle, color: AppColors.greenAccent, size: 18),
+              const AnimatedIconFx(
+                Icons.check_circle,
+                style: IconFxStyle.bounceIn,
+                color: AppColors.greenAccent,
+                size: 18,
+              ),
               const SizedBox(width: 8),
               Text(
                 _doubled
