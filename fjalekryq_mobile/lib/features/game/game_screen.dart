@@ -129,8 +129,15 @@ class _GameScreenState extends State<GameScreen> {
     _game.addListener(_onGameChanged);
 
     _adServiceRef = context.read<AdService>();
-    _adServiceRef.loadBanner();
-    _adServiceRef.preloadInterstitial();
+    // Skip ad loads when this launch will land on the tutorial — first-run
+    // players shouldn't see ads before they've completed a real level.
+    final willBeTutorial = ((_prefs.getInt(_levelKey) ?? 1) == 1 &&
+            !(_prefs.getBool(_tutorialKey) ?? false)) ||
+        (_prefs.getBool('fjalekryq_force_tutorial') ?? false);
+    if (!willBeTutorial) {
+      _adServiceRef.loadBanner();
+      _adServiceRef.preloadInterstitial();
+    }
 
     _initializeGame();
   }
@@ -610,7 +617,7 @@ class _GameScreenState extends State<GameScreen> {
                 // size and collapses to zero when no ad is ready.
                 Consumer<AdService>(
                   builder: (_, ads, __) => SizedBox(
-                    height: ads.bannerReady
+                    height: (!_isTutorial && ads.bannerReady)
                         ? ads.bannerAd!.size.height.toDouble() + 16
                         : 0,
                   ),
@@ -629,7 +636,11 @@ class _GameScreenState extends State<GameScreen> {
             bottom: 0,
             child: Consumer<AdService>(
               builder: (_, ads, __) {
-                if (!ads.bannerReady) return const SizedBox.shrink();
+                // No ads in the tutorial — keeps the first-run flow clean
+                // and avoids teaching ad placement before the game itself.
+                if (_isTutorial || !ads.bannerReady) {
+                  return const SizedBox.shrink();
+                }
                 final adW = ads.bannerAd!.size.width.toDouble();
                 final adH = ads.bannerAd!.size.height.toDouble();
                 return SafeArea(
@@ -892,39 +903,45 @@ class _GameScreenState extends State<GameScreen> {
 
   Widget _buildHeader(CoinService coinService) {
     final levelLabel = _isTutorial
-        ? 'TUTORIAL'
+        ? 'SI TË LUASH'
         : 'NIVELI ${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}';
     return AppTopBar(
       title: levelLabel,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CoinBadge(
-            amount: coinService.coins,
-            onTap: () => _openShop(),
-          ),
-          const SizedBox(width: 6),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              _openShop();
-            },
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4B400).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFFF4B400).withValues(alpha: 0.3),
-                  width: 1.5,
+      // Hide coins + shop in the tutorial — the player isn't earning yet
+      // and we don't want to teach the shop affordance before they've
+      // played a real level.
+      trailing: _isTutorial
+          ? null
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CoinBadge(
+                  amount: coinService.coins,
+                  onTap: () => _openShop(),
                 ),
-              ),
-              child: const Icon(Icons.shopping_cart, color: Color(0xFFFFD86B), size: 18),
+                const SizedBox(width: 6),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    _openShop();
+                  },
+                  child: Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF4B400).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: const Color(0xFFF4B400).withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: const Icon(Icons.storefront_rounded,
+                        color: Color(0xFFFFD86B), size: 18),
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
