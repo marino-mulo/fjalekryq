@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../core/services/ad_service.dart';
 import '../../../core/services/coin_service.dart';
 import '../../../shared/constants/theme.dart';
+import '../../../shared/widgets/animated_icon_fx.dart';
 
 /// Inline "puzzle failed" panel shown below the game board.
 ///
@@ -65,8 +66,12 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.warning_amber_rounded,
-                  color: _failRed, size: 22),
+              const AnimatedIconFx(
+                Icons.warning_amber_rounded,
+                style: IconFxStyle.shake,
+                color: _failRed,
+                size: 22,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Lëvizjet Mbaruan!',
@@ -121,8 +126,12 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.videocam_rounded,
-                color: Color(0xFFC084FC), size: 18),
+            const AnimatedIconFx(
+              Icons.videocam_rounded,
+              style: IconFxStyle.pulse,
+              color: Color(0xFFC084FC),
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -197,8 +206,12 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.videocam_rounded,
-                color: Color(0xFFC084FC), size: 18),
+            const AnimatedIconFx(
+              Icons.videocam_rounded,
+              style: IconFxStyle.pulse,
+              color: Color(0xFFC084FC),
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

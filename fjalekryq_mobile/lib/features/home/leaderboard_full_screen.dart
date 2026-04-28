@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../shared/constants/theme.dart';
+import '../../shared/widgets/animated_icon_fx.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
@@ -260,8 +261,16 @@ class _LeaderboardFullScreenState extends State<LeaderboardFullScreen>
       mainAxisSize: MainAxisSize.min,
       children: [
         // Crown
-        Icon(Icons.workspace_premium_rounded,
-            color: crownColor, size: isFirst ? 28 : 22),
+        isFirst
+            ? AnimatedIconFx(
+                Icons.workspace_premium_rounded,
+                style: IconFxStyle.shimmer,
+                color: crownColor,
+                size: 28,
+                shimmerColor: Colors.white,
+              )
+            : Icon(Icons.workspace_premium_rounded,
+                color: crownColor, size: 22),
         const SizedBox(height: 6),
 
         // Avatar

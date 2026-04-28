@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../shared/constants/theme.dart';
+import '../../../shared/widgets/animated_icon_fx.dart';
 
 enum _AdLoading { none, doubleCoins }
 
@@ -379,8 +380,12 @@ class _WinModalState extends State<WinModal>
         ),
         child: Row(
           children: [
-            const Icon(Icons.videocam_rounded,
-                color: Color(0xFFC084FC), size: 18),
+            const AnimatedIconFx(
+              Icons.videocam_rounded,
+              style: IconFxStyle.pulse,
+              color: Color(0xFFC084FC),
+              size: 18,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

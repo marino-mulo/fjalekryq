@@ -8,6 +8,7 @@ import '../../core/models/level_config.dart';
 import '../../core/services/game_service.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
+import '../../shared/widgets/animated_icon_fx.dart';
 import '../../core/services/ad_service.dart';
 import '../../core/services/level_puzzle_store.dart';
 import '../../core/database/repositories/game_state_repository.dart';
@@ -559,7 +560,12 @@ class _GameScreenState extends State<GameScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.lightbulb_outline, color: Color(0xFFFFD86B), size: 15),
+                          const AnimatedIconFx(
+                            Icons.lightbulb_outline,
+                            style: IconFxStyle.pulse,
+                            color: Color(0xFFFFD86B),
+                            size: 15,
+                          ),
                           const SizedBox(width: 8),
                           Flexible(
                             child: Text(

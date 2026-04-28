@@ -8,6 +8,7 @@ import '../../core/models/puzzle.dart';
 import '../../core/services/game_service.dart';
 import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
+import '../../shared/widgets/animated_icon_fx.dart';
 import '../../core/services/ad_service.dart';
 import '../../core/services/daily_puzzle_service.dart';
 import '../../core/services/connectivity_service.dart';
@@ -475,7 +476,12 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.lightbulb_outline, color: Color(0xFFFFD86B), size: 15),
+                            const AnimatedIconFx(
+                              Icons.lightbulb_outline,
+                              style: IconFxStyle.pulse,
+                              color: Color(0xFFFFD86B),
+                              size: 15,
+                            ),
                             const SizedBox(width: 8),
                             Flexible(
                               child: Text(
@@ -791,7 +797,12 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.check_circle, color: Color(0xFF4ADE80), size: 22),
+                  const AnimatedIconFx(
+                    Icons.check_circle,
+                    style: IconFxStyle.bounceIn,
+                    color: Color(0xFF4ADE80),
+                    size: 22,
+                  ),
                   const SizedBox(width: 10),
                   Text(
                     'E zgjidhur per sot!',
@@ -1039,7 +1050,12 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4), width: 1.5),
                       ),
-                      child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF6B35), size: 20),
+                      child: const AnimatedIconFx(
+                        Icons.local_fire_department_rounded,
+                        style: IconFxStyle.flicker,
+                        color: Color(0xFFFF6B35),
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
