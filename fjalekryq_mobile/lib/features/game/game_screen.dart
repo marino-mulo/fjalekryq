@@ -355,10 +355,6 @@ class _GameScreenState extends State<GameScreen> {
         }
       });
 
-      // Evict the cached puzzle so the next playthrough re-fetches a
-      // fresh one from the server.
-      context.read<LevelPuzzleStore>().evict(playingLevel);
-
       // Advance progress on first clear. No upper cap — the server
       // generates every level on demand.
       if (isFirstClear) {
