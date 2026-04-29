@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/services/coin_service.dart';
+import '../../core/services/level_puzzle_store.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_button.dart';
@@ -112,6 +113,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   }
 
   void _navigateHome() {
+    // Warm level 1 in the background so the very first tap into the game
+    // is instant. Fire-and-forget — navigation doesn't wait for it.
+    context.read<LevelPuzzleStore>().generate(1).ignore();
+
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
