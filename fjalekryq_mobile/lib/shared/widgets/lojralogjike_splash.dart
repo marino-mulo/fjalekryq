@@ -52,13 +52,8 @@ class _LojraLogjikeSplashState extends State<LojraLogjikeSplash>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Studio monogram — interlocked "LL" in gold, distinct
-                  // from the purple Fjalekryq shield so the two brands
-                  // never get confused.
-                  const _LLMonogram(size: 110),
-                  const SizedBox(height: 28),
-
-                  // Wordmark.
+                  // Wordmark — shown first so the brand name reads before
+                  // the monogram resolves.
                   Text(
                     'LojraLogjike',
                     style: AppFonts.nunito(
@@ -80,7 +75,12 @@ class _LojraLogjikeSplashState extends State<LojraLogjikeSplash>
                       ],
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 28),
+
+                  // Studio monogram — interlocked "LL" in gold, below the
+                  // wordmark.
+                  const _LLMonogram(size: 110),
+                  const SizedBox(height: 20),
 
                   // Tagline.
                   Container(

@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
 import '../constants/theme.dart';
 
-/// The app's brand mark — the Fjalekryq shield logo (mini crossword on a
-/// gold-bordered shield with the wordmark banner). Rendered from the
-/// shipped PNG asset so it stays pixel-identical to the launcher icon
-/// across the publisher splash, onboarding, home header, and loading
-/// view.
+/// The app's brand mark: a purple rounded tile containing a small
+/// crossword-style 3×3 grid with letters in some cells.
 ///
-/// Set [animated] = true on splash / loading screens — a soft glow pulse
-/// + subtle scale breathe makes the mark feel alive while content loads,
-/// without the previous "solve sweep" which clashed with the new logo's
-/// fixed letters.
+/// Set [animated] = true on splash / loading screens — letters light up
+/// in sequence (a "solve sweep") which reads as crossword-themed motion.
 class PuzzleLogo extends StatefulWidget {
   final double size;
   final bool animated;
@@ -24,6 +19,36 @@ class PuzzleLogo extends StatefulWidget {
   @override
   State<PuzzleLogo> createState() => _PuzzleLogoState();
 }
+
+/// One cell in the mini crossword. Either a letter cell ([letter] != null)
+/// or a "blocker" cell (filled black-square — the empty squares of a
+/// crossword grid).
+class _Cell {
+  final String? letter;
+  final int row;
+  final int col;
+  const _Cell(this.row, this.col, [this.letter]);
+}
+
+// 3×3 mini-crossword:
+//
+//   [F][J][A]
+//   [ ][L][ ]
+//   [ ][Ë][ ]
+//
+// Top row spells "FJA" (start of "FJALË" — Albanian for "word"); the
+// centre column reads "JLË" — a real-looking crossword intersection.
+const _cells = <_Cell>[
+  _Cell(0, 0, 'F'),
+  _Cell(0, 1, 'J'),
+  _Cell(0, 2, 'A'),
+  _Cell(1, 0),
+  _Cell(1, 1, 'L'),
+  _Cell(1, 2),
+  _Cell(2, 0),
+  _Cell(2, 1, 'Ë'),
+  _Cell(2, 2),
+];
 
 class _PuzzleLogoState extends State<PuzzleLogo>
     with SingleTickerProviderStateMixin {
@@ -47,12 +72,10 @@ class _PuzzleLogoState extends State<PuzzleLogo>
   }
 
   void _startAnim() {
-    // ~1.8s breathe cycle — slow enough to read as ambient motion, fast
-    // enough that a 2–3s loading view still gets a full pulse.
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
-    )..repeat(reverse: true);
+      duration: const Duration(milliseconds: 2000),
+    )..repeat();
   }
 
   @override
@@ -63,53 +86,139 @@ class _PuzzleLogoState extends State<PuzzleLogo>
 
   @override
   Widget build(BuildContext context) {
-    if (_ctrl == null) return _buildLogo(t: 0);
+    if (_ctrl == null) return _buildTile(progress: -1);
 
     return AnimatedBuilder(
       animation: _ctrl!,
-      builder: (_, __) => _buildLogo(t: _ctrl!.value),
+      builder: (_, __) => _buildTile(progress: _ctrl!.value),
     );
   }
 
-  /// [t] in [0, 1] — drives a gentle glow + scale breathe when animated.
-  Widget _buildLogo({required double t}) {
-    // Ease the linear controller value into a smoother triangle so the
-    // pulse turnaround at 0/1 doesn't feel mechanical.
-    final eased = Curves.easeInOut.transform(t);
+  Widget _buildTile({required double progress}) {
+    final radius = widget.size * 0.22;
+    final border = (widget.size * 0.023).clamp(1.5, 3.0);
+    final blur = widget.size * 0.36;
+    final spread = widget.size * 0.023;
+    final innerPad = widget.size * 0.12;
 
-    // Subtle scale breathe (0.96 → 1.0) — barely visible but adds life.
-    final scale = 0.96 + 0.04 * eased;
-
-    // Glow strength matches the breathe so the mark feels like one
-    // organism rather than two stacked effects.
-    final glowAlpha = 0.18 + 0.32 * eased;
-    final glowBlur = widget.size * (0.18 + 0.18 * eased);
-
-    return SizedBox(
+    return Container(
       width: widget.size,
       height: widget.size,
-      child: Center(
-        child: Transform.scale(
-          scale: scale,
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.gold.withValues(alpha: glowAlpha),
-                  blurRadius: glowBlur,
-                  spreadRadius: widget.size * 0.02,
-                ),
-              ],
-            ),
-            child: Image.asset(
-              'assets/images/logo.png',
-              width: widget.size,
-              height: widget.size,
-              fit: BoxFit.contain,
-              filterQuality: FilterQuality.high,
-            ),
+      decoration: BoxDecoration(
+        color: AppColors.purpleAccent.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(
+          color: AppColors.purpleAccent.withValues(alpha: 0.45),
+          width: border,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.purpleAccent.withValues(alpha: 0.3),
+            blurRadius: blur,
+            spreadRadius: spread,
           ),
+        ],
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(innerPad),
+        child: _buildGrid(progress: progress),
+      ),
+    );
+  }
+
+  Widget _buildGrid({required double progress}) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final side = constraints.biggest.shortestSide;
+        final cellSize = side / 3;
+        final gap = cellSize * 0.06;
+
+        final letterCells = _cells.where((c) => c.letter != null).toList();
+        final litIndex = progress < 0
+            ? -1
+            : (progress * letterCells.length).floor() % letterCells.length;
+        final litCell = litIndex < 0 ? null : letterCells[litIndex];
+
+        final stepSize = 1.0 / letterCells.length;
+        final localT = progress < 0
+            ? 0.0
+            : ((progress - litIndex * stepSize) / stepSize).clamp(0.0, 1.0);
+        final pulse = localT < 0.5 ? localT * 2 : (1 - localT) * 2;
+
+        return SizedBox(
+          width: side,
+          height: side,
+          child: Stack(
+            children: [
+              for (final c in _cells)
+                Positioned(
+                  left: c.col * cellSize + gap,
+                  top: c.row * cellSize + gap,
+                  width: cellSize - gap * 2,
+                  height: cellSize - gap * 2,
+                  child: _buildCell(
+                    c,
+                    side: cellSize - gap * 2,
+                    highlight: litCell == c ? pulse : 0.0,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCell(_Cell c, {required double side, required double highlight}) {
+    if (c.letter == null) {
+      return Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1B1240).withValues(alpha: 0.55),
+          borderRadius: BorderRadius.circular(side * 0.18),
+        ),
+      );
+    }
+
+    final base = AppColors.purpleAccent.withValues(alpha: 0.32);
+    final hot = AppColors.gold.withValues(alpha: 0.85);
+    final fill = Color.lerp(base, hot, highlight)!;
+    final letterColor = Color.lerp(
+      const Color(0xFFEDE7FF),
+      const Color(0xFFFFF6D6),
+      highlight,
+    )!;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 120),
+      decoration: BoxDecoration(
+        color: fill,
+        borderRadius: BorderRadius.circular(side * 0.18),
+        border: Border.all(
+          color: Color.lerp(
+            AppColors.purpleAccent.withValues(alpha: 0.6),
+            AppColors.gold,
+            highlight,
+          )!,
+          width: 1.2,
+        ),
+        boxShadow: highlight > 0
+            ? [
+                BoxShadow(
+                  color: AppColors.gold.withValues(alpha: 0.45 * highlight),
+                  blurRadius: side * 0.35 * highlight,
+                ),
+              ]
+            : null,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        c.letter!,
+        style: TextStyle(
+          fontFamily: 'Nunito',
+          fontWeight: FontWeight.w900,
+          fontSize: side * 0.62,
+          color: letterColor,
+          height: 1.0,
         ),
       ),
     );
