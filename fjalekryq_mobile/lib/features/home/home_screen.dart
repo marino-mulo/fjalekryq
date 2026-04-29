@@ -115,11 +115,14 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _openDailyReward() {
     HapticFeedback.selectionClick();
-    showModalBottomSheet(
+    showDialog(
       context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const DailyRewardSheet(),
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (_) => const Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 40),
+        child: DailyRewardSheet(),
+      ),
     );
   }
 

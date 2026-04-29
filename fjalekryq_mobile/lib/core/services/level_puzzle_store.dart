@@ -94,17 +94,6 @@ class LevelPuzzleStore {
     return puzzle;
   }
 
-  /// Evict the cached puzzle for a cleared level. Called after a win so
-  /// the next playthrough redraws a fresh puzzle (word-exclusion keeps
-  /// the new one from repeating recent words).
-  Future<void> evict(int level) async {
-    _memCache.remove(level);
-    _inflight.remove(level);
-    try {
-      await _cacheRepo.deleteByUserAndLevel(_userId, level);
-    } catch (_) {}
-  }
-
   // ── Resolution pipeline ───────────────────────────────────────────────────
 
   /// Returns the cached puzzle for [level] if present, otherwise
