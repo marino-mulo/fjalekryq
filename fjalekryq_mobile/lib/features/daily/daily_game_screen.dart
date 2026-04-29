@@ -958,7 +958,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     required bool cooling,
     required int cooldownRemaining,
     required VoidCallback onTap,
-    bool showWatchBadge = false,
     bool isSolve = false,
   }) {
     final baseColor = isSolve
@@ -1040,12 +1039,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
             ),
           ),
           // Watch badge (glass style, top-right)
-          if (showWatchBadge)
-            Positioned(
-              top: -7,
-              right: -5,
-              child: ShikoButton(size: ShikoSize.small),
-            ),
+
         ],
     );
   }

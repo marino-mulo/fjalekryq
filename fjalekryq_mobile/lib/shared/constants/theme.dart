@@ -165,30 +165,3 @@ BoxDecoration purpleGlassDecoration({bool expanded = false}) {
     ],
   );
 }
-
-/// Coin icon widget matching web SVG.
-class CoinIcon extends StatelessWidget {
-  final double size;
-  const CoinIcon({super.key, this.size = 14});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: const BoxDecoration(
-        color: AppColors.gold,
-        shape: BoxShape.circle,
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '\$',
-        style: AppFonts.nunito(
-          fontSize: size * 0.5,
-          fontWeight: FontWeight.w900,
-          color: AppColors.goldDark,
-        ),
-      ),
-    );
-  }
-}

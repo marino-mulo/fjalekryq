@@ -17,7 +17,6 @@ import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/offline_view.dart';
-import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_finger.dart';
 import 'widgets/game_board.dart';
 import 'widgets/win_modal.dart';
@@ -1000,7 +999,6 @@ class _GameScreenState extends State<GameScreen> {
     required int cooldownRemaining,
     required bool pulsing,
     required VoidCallback onTap,
-    bool showWatchBadge = false,
     bool isSolve = false,
   }) {
     final baseColor = isSolve
@@ -1086,13 +1084,7 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-          // Watch badge (glass style, top-right)
-          if (showWatchBadge)
-            Positioned(
-              top: -7,
-              right: -5,
-              child: ShikoButton(size: ShikoSize.small),
-            ),
+
         ],
       ),
     );
