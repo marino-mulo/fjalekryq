@@ -29,6 +29,7 @@ class AdType {
 /// **unlimited** — see the gating logic in [AdService.showRewardedAd].
 const Map<String, int> adDailyLimits = {
   AdType.bonusCoins: 5,
+  AdType.dailyDouble: 1,
 };
 
 const String _removeAdsKey = 'fjalekryq_remove_ads';

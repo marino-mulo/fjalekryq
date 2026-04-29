@@ -9,7 +9,7 @@ import '../../shared/widgets/animated_icon_fx.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 
-/// Bottom sheet for daily login reward claiming.
+/// Modal dialog for daily login reward claiming.
 class DailyRewardSheet extends StatefulWidget {
   const DailyRewardSheet({super.key});
 
@@ -29,24 +29,14 @@ class _DailyRewardSheetState extends State<DailyRewardSheet> {
     final currentDay = coinService.currentStreakDay;
 
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.circular(20),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Handle
-          Container(
-            width: 40, height: 4,
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-          const SizedBox(height: 16),
-
           // Header
           Row(
             children: [
