@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/services/ad_service.dart';
-import '../../../core/services/coin_service.dart';
 import '../../../shared/constants/theme.dart';
 import '../../../shared/widgets/animated_icon_fx.dart';
 
@@ -9,22 +8,17 @@ import '../../../shared/widgets/animated_icon_fx.dart';
 ///
 /// Layout:
 ///   • red "Lëvizjet Mbaruan!" title with a warning icon (no container)
-///   • one revive banner styled like the win-screen "x2 monedha" banner —
-///     coins variant when the player can afford, ad variant otherwise
+///   • ad revive banner
 ///   • secondary glass "Fillo nga Fillimi" button with a restart icon
 class InlineFailPanel extends StatefulWidget {
   final AdService adService;
-  final CoinService coinService;
   final Future<void> Function() onWatchAd;
-  final VoidCallback onBuyMoves;
   final VoidCallback onRestart;
 
   const InlineFailPanel({
     super.key,
     required this.adService,
-    required this.coinService,
     required this.onWatchAd,
-    required this.onBuyMoves,
     required this.onRestart,
   });
 
@@ -33,7 +27,6 @@ class InlineFailPanel extends StatefulWidget {
 }
 
 class _InlineFailPanelState extends State<InlineFailPanel> {
-  static const int _coinCost = 50;
   static const Color _failRed = Color(0xFFEF4444);
 
   bool _loadingAd = false;
@@ -52,8 +45,7 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
 
   @override
   Widget build(BuildContext context) {
-    final canAffordCoins = widget.coinService.canAfford(_coinCost);
-    final canWatchAd     = _adRemaining > 0;
+    final canWatchAd = _adRemaining > 0;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 8),
@@ -85,92 +77,13 @@ class _InlineFailPanelState extends State<InlineFailPanel> {
           ),
           const SizedBox(height: 16),
 
-          // Exactly one revive banner — coins preferred, ad as fallback.
-          if (canAffordCoins)
-            _coinReviveBanner()
-          else if (canWatchAd)
-            _adReviveBanner(),
+          // Ad revive banner.
+          if (canWatchAd) _adReviveBanner(),
 
-          if (canAffordCoins || canWatchAd) const SizedBox(height: 12),
+          if (canWatchAd) const SizedBox(height: 12),
 
           _restartButton(),
         ],
-      ),
-    );
-  }
-
-  // ── Coin revive banner — same purple shape as the win-screen x2 banner ──
-
-  Widget _coinReviveBanner() {
-    return GestureDetector(
-      onTap: () {
-        HapticFeedback.mediumImpact();
-        widget.onBuyMoves();
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        decoration: BoxDecoration(
-          color: AppColors.purpleAccent.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: AppColors.purpleAccent.withValues(alpha: 0.38),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const AnimatedIconFx(
-              Icons.videocam_rounded,
-              style: IconFxStyle.pulse,
-              color: Color(0xFFC084FC),
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Vazhdo lojën · +5 lëvizje',
-                style: AppFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFFE9D5FF),
-                ),
-              ),
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.purpleAccent.withValues(alpha: 0.28),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.purpleAccent.withValues(alpha: 0.55),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CoinIcon(size: 12),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$_coinCost',
-                    style: AppFonts.nunito(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFFE9D5FF),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

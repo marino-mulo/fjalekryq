@@ -12,7 +12,6 @@ import 'core/config/app_config.dart';
 
 import 'core/database/database_helper.dart';
 import 'core/database/repositories/user_repository.dart';
-import 'core/database/repositories/coins_repository.dart';
 import 'core/database/repositories/settings_repository.dart';
 import 'core/database/repositories/progress_repository.dart';
 import 'core/database/repositories/game_state_repository.dart';
@@ -20,7 +19,6 @@ import 'core/database/repositories/notification_repository.dart';
 import 'core/database/repositories/user_generated_level_repository.dart';
 import 'core/database/repositories/achievement_repository.dart';
 import 'core/database/repositories/ad_reward_repository.dart';
-import 'core/services/coin_service.dart';
 import 'core/services/consent_service.dart';
 import 'core/services/crash_reporter.dart';
 import 'core/services/settings_service.dart';
@@ -31,7 +29,6 @@ import 'core/services/level_puzzle_store.dart';
 import 'core/services/daily_puzzle_service.dart';
 import 'core/services/sync_service.dart';
 import 'core/network/remote_auth_repository.dart';
-import 'core/network/remote_coins_repository.dart';
 import 'core/network/remote_progress_repository.dart';
 import 'core/network/remote_streak_repository.dart';
 import 'core/network/remote_daily_puzzle_repository.dart';
@@ -51,16 +48,8 @@ const _onboardingDoneKey = 'fjalekryq_onboarding_done';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Wire global error handlers FIRST so any subsequent crash during
-  // boot still gets recorded. No-op without a configured backend.
   await CrashReporter.init();
 
-  // Allow GoogleFonts to fetch on first launch and cache to disk. The
-  // previous `false` setting required the .ttf files in `assets/fonts/`
-  // but that directory was never populated, so every text style fell
-  // back to the platform default. Flipping this on lets Nunito and
-  // Quicksand load from the network on first run; subsequent launches
-  // hit the on-device cache.
   GoogleFonts.config.allowRuntimeFetching = true;
 
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -72,23 +61,15 @@ void main() async {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  // iOS 14+: request App Tracking Transparency permission before AdMob init.
-  // On Android the package is a no-op (returns TrackingStatus.authorized).
   if (Platform.isIOS) {
     final status = await AppTrackingTransparency.trackingAuthorizationStatus;
     if (status == TrackingStatus.notDetermined) {
-      // Small delay so the ATT dialog appears after the app is fully visible.
       await Future.delayed(const Duration(milliseconds: 200));
       await AppTrackingTransparency.requestTrackingAuthorization();
     }
   }
 
-  // Gather UMP consent (EEA/UK GDPR) BEFORE AdMob init. Required by
-  // Google's Consent Mode v2 policy — without it, Europe-served ads
-  // can be suspended. Returns immediately (no UI) for non-EEA users.
   await ConsentService.gather();
-
-  // Initialize AdMob SDK after ATT + UMP decisions are known.
   await MobileAds.instance.initialize();
 
   _initFuture = _initializeApp();
@@ -103,11 +84,7 @@ Future<_AppServices> _initializeApp() async {
   await dbHelper.database;
 
   final userRepo = UserRepository(dbHelper);
-  final coinsRepo = CoinsRepository(dbHelper);
   final settingsRepo = SettingsRepository(dbHelper);
-  // Hybrid repos: write-through to the server so the leaderboard and
-  // cross-device progress stay populated. Reads stay local for speed;
-  // the remote sync is best-effort and silently retried on next write.
   final progressRepo = HybridProgressRepository(dbHelper, RemoteProgressRepository());
   final gameStateRepo = GameStateRepository(dbHelper);
   final userGeneratedLevelRepo = UserGeneratedLevelRepository(dbHelper);
@@ -120,64 +97,38 @@ Future<_AppServices> _initializeApp() async {
   final localUser = await userRepo.getOrCreateLocalUser();
   final userId = localUser.id!;
 
-  final coinService = CoinService(coinsRepo, userId);
   final settingsService = SettingsService(settingsRepo, userId);
   final dailyPuzzleService = DailyPuzzleService(dailyPuzzleRepo, dailyStreakRepo, userId);
 
-  // Local-only work must finish before we hand the UI over.
   await Future.wait([
-    coinService.init(),
     settingsService.init(),
-    _migrateFromSharedPrefs(prefs, coinsRepo, settingsRepo, progressRepo, userId),
+    _migrateFromSharedPrefs(prefs, settingsRepo, progressRepo, userId),
   ]);
 
-  // Remote-touching work gets a hard cap so the splash can never hang
-  // when the API is flaky (timeouts + TCP resets can otherwise stack up
-  // to tens of seconds). Whatever hasn't finished keeps running in the
-  // background; the UI starts from local cache and syncs on the fly.
   try {
     await Future.wait([
       dailyPuzzleService.init(),
-      // Guests are first-class API citizens — if no session exists yet,
-      // create one in the background so every protected endpoint
-      // (leaderboard, coins, progress, daily puzzle…) works out of the
-      // box. Silent failure is fine: the UI already has offline paths.
       RemoteAuthRepository().ensureSession().then<void>((_) {}),
     ]).timeout(const Duration(seconds: 6));
-  } catch (_) {
-    // API is unreachable / crashing. Continue booting — the app is
-    // fully usable from the local SQLite cache. Any pending remote
-    // calls keep running; they'll just settle later.
-  }
+  } catch (_) {}
 
-  // Once auth is settled, reconcile anything that was written locally
-  // while offline (level completions, coin balance) with the server.
-  // Runs in the background — the UI doesn't wait on it. A listener
-  // fires the same sync whenever connectivity flips back online.
   final syncService = SyncService(
-    userId:          userId,
-    progressRepo:    progressRepo,
-    remoteProgress:  RemoteProgressRepository(),
-    remoteCoins:     RemoteCoinsRepository(),
-    coinService:     coinService,
-    connectivity:    ConnectivityService.instance,
+    userId:         userId,
+    progressRepo:   progressRepo,
+    remoteProgress: RemoteProgressRepository(),
+    connectivity:   ConnectivityService.instance,
   )..start();
   unawaited(syncService.syncAll());
 
-  // Don't block startup with font loading — let it happen lazily
   return _AppServices(
     prefs: prefs,
     dbHelper: dbHelper,
     userId: userId,
-    coinService: coinService,
     settingsService: settingsService,
     audioService: AudioService(settingsService),
     adService: AdService(adRewardRepo, userId, prefs),
     dailyPuzzleService: dailyPuzzleService,
-    puzzleStore: LevelPuzzleStore(
-      userGeneratedLevelRepo,
-      userId,
-    ),
+    puzzleStore: LevelPuzzleStore(userGeneratedLevelRepo, userId),
     progressRepo: progressRepo,
     gameStateRepo: gameStateRepo,
     userRepo: userRepo,
@@ -185,7 +136,6 @@ Future<_AppServices> _initializeApp() async {
     notificationRepo: notificationRepo,
     achievementRepo: achievementRepo,
     adRewardRepo: adRewardRepo,
-    coinsRepo: coinsRepo,
   );
 }
 
@@ -193,7 +143,6 @@ class _AppServices {
   final SharedPreferences prefs;
   final DatabaseHelper dbHelper;
   final int userId;
-  final CoinService coinService;
   final SettingsService settingsService;
   final AudioService audioService;
   final AdService adService;
@@ -206,13 +155,11 @@ class _AppServices {
   final NotificationRepository notificationRepo;
   final AchievementRepository achievementRepo;
   final AdRewardRepository adRewardRepo;
-  final CoinsRepository coinsRepo;
 
   const _AppServices({
     required this.prefs,
     required this.dbHelper,
     required this.userId,
-    required this.coinService,
     required this.settingsService,
     required this.audioService,
     required this.adService,
@@ -225,11 +172,9 @@ class _AppServices {
     required this.notificationRepo,
     required this.achievementRepo,
     required this.adRewardRepo,
-    required this.coinsRepo,
   });
 
   List<SingleChildWidget> get providers => [
-    ChangeNotifierProvider.value(value: coinService),
     ChangeNotifierProvider.value(value: settingsService),
     ChangeNotifierProvider.value(value: adService),
     ChangeNotifierProvider.value(value: dailyPuzzleService),
@@ -253,22 +198,12 @@ class _AppServices {
 
 Future<void> _migrateFromSharedPrefs(
   SharedPreferences prefs,
-  CoinsRepository coinsRepo,
   SettingsRepository settingsRepo,
   ProgressRepository progressRepo,
   int userId,
 ) async {
   const migrationKey = 'fjalekryq_sqlite_migrated';
   if (prefs.getBool(migrationKey) == true) return;
-
-  final oldCoins = prefs.getInt('fjalekryq_coins');
-  if (oldCoins != null) {
-    final coins = await coinsRepo.getOrCreate(userId);
-    coins.balance = oldCoins;
-    coins.lastDailyClaim = prefs.getString('fjalekryq_last_login');
-    coins.streakDay = prefs.getInt('fjalekryq_login_streak') ?? 0;
-    await coinsRepo.update(coins.id!, coins);
-  }
 
   final hasMusicPref = prefs.containsKey('fjalekryq_music');
   if (hasMusicPref) {
@@ -300,10 +235,6 @@ class FjalekryqApp extends StatefulWidget {
 class _FjalekryqAppState extends State<FjalekryqApp> {
   _AppServices? _services;
 
-  // Two-stage boot:
-  //   1. LojraLogjike publisher splash (fixed [_publisherSplashDuration])
-  //   2. Fjalekryq loading view (until services ready, min [_loadingMinDuration])
-  //   3. Home / onboarding
   bool _publisherSplashDone = false;
   bool _loadingMinElapsed = false;
 
@@ -319,9 +250,6 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
     Future.delayed(_publisherSplashDuration, () {
       if (!mounted) return;
       setState(() => _publisherSplashDone = true);
-      // Start the loading-view minimum timer only AFTER the publisher
-      // splash hands off, so the Fjalekryq mark is always seen for at
-      // least [_loadingMinDuration].
       Future.delayed(_loadingMinDuration, () {
         if (mounted) setState(() => _loadingMinElapsed = true);
       });
@@ -332,9 +260,6 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
   Widget build(BuildContext context) {
     final s = _services;
 
-    // ONE MaterialApp — never recreated.
-    // `builder` injects providers above the Navigator so bottom sheets see them.
-    // `home` swaps brand splash → loading view → home as state advances.
     return MaterialApp(
       debugShowCheckedModeBanner: AppConfig.showDebugBanner,
       theme: ThemeData(
@@ -351,7 +276,6 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
       builder: s != null
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
-      // LojraLogjike publisher splash → Fjalekryq loading view → home.
       home: !_publisherSplashDone
           ? const LojraLogjikeSplash()
           : (s == null || !_loadingMinElapsed)
@@ -392,4 +316,3 @@ class _SlideUpTransitionBuilder extends PageTransitionsBuilder {
     );
   }
 }
-

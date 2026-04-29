@@ -11,7 +11,7 @@ import '../config/app_config.dart';
 ///   invalidated (20 = active, 10 = soft-deleted)
 class DatabaseHelper {
   static String get _databaseName => AppConfig.databaseName;
-  static const _databaseVersion = 4;
+  static const _databaseVersion = 5;
 
   static const int statusActive = 20;
   static const int statusDeleted = 10;
@@ -78,22 +78,6 @@ class DatabaseHelper {
     ''');
     batch.execute(
       'CREATE INDEX idx_progress_user ON progress(user_id, level) WHERE invalidated = $statusActive',
-    );
-
-    // ── 4. coins ────────────────────────────────────────────
-    batch.execute('''
-      CREATE TABLE coins (
-        id              INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id         INTEGER NOT NULL,
-        balance         INTEGER NOT NULL DEFAULT 100,
-        last_daily_claim TEXT,
-        streak_day      INTEGER NOT NULL DEFAULT 0,
-        $_auditColumns,
-        FOREIGN KEY (user_id) REFERENCES users(id)
-      )
-    ''');
-    batch.execute(
-      'CREATE UNIQUE INDEX idx_coins_user ON coins(user_id) WHERE invalidated = $statusActive',
     );
 
     // ── 5. settings ─────────────────────────────────────────
@@ -330,6 +314,9 @@ class DatabaseHelper {
     if (oldVersion < 4) {
       await _upgradeTo4(db);
     }
+    if (oldVersion < 5) {
+      await db.execute('DROP TABLE IF EXISTS coins');
+    }
   }
 
   /// Server-driven levels migration.
@@ -347,7 +334,6 @@ class DatabaseHelper {
       // user_progress → progress, user_daily_progress → daily_puzzle).
       const remapTables = [
         'users',
-        'coins',
         'daily_streak',
         'progress',
         'daily_puzzle',

@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../shared/constants/theme.dart';
-import '../../../shared/widgets/animated_icon_fx.dart';
-
-enum _AdLoading { none, doubleCoins }
 
 class WinModal extends StatefulWidget {
   final String praise;
-  final int coinsEarned;
-  final bool winCoinsDoubled;
   final bool isTutorial;
   final int nextLevelNumber;
   final List<List<String>>? solvedGrid;
-  final Future<void> Function() onDoubleCoins;
   final VoidCallback onNextLevel;
   final VoidCallback onGoHome;
   final VoidCallback? onSaveProgress;
@@ -20,12 +14,9 @@ class WinModal extends StatefulWidget {
   const WinModal({
     super.key,
     required this.praise,
-    required this.coinsEarned,
-    required this.winCoinsDoubled,
     required this.isTutorial,
     required this.nextLevelNumber,
     this.solvedGrid,
-    required this.onDoubleCoins,
     required this.onNextLevel,
     required this.onGoHome,
     this.onSaveProgress,
@@ -37,16 +28,12 @@ class WinModal extends StatefulWidget {
 
 class _WinModalState extends State<WinModal>
     with TickerProviderStateMixin {
-  _AdLoading _adLoading = _AdLoading.none;
-  bool _doubled = false;
-
   late final AnimationController _entryCtrl;
   late final AnimationController _pulseCtrl;
 
   @override
   void initState() {
     super.initState();
-    _doubled = widget.winCoinsDoubled;
     _entryCtrl = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 900),
@@ -64,18 +51,6 @@ class _WinModalState extends State<WinModal>
     super.dispose();
   }
 
-  Future<void> _watchDoubleCoinsAd() async {
-    if (_adLoading != _AdLoading.none) return;
-    setState(() => _adLoading = _AdLoading.doubleCoins);
-    await widget.onDoubleCoins();
-    if (mounted) {
-      setState(() {
-        _adLoading = _AdLoading.none;
-        _doubled = true;
-      });
-    }
-  }
-
   Animation<double> _staggered(double start, double end) {
     return CurvedAnimation(
       parent: _entryCtrl,
@@ -85,10 +60,7 @@ class _WinModalState extends State<WinModal>
 
   @override
   Widget build(BuildContext context) {
-    final showDoubleAd =
-        !widget.isTutorial && widget.coinsEarned > 0 && !_doubled;
     final size = MediaQuery.of(context).size;
-    final coins = _doubled ? widget.coinsEarned * 2 : widget.coinsEarned;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -168,20 +140,11 @@ class _WinModalState extends State<WinModal>
 
                     const SizedBox(height: 20),
 
-                    // Plain praise + coins row (NOT a banner)
+                    // Plain praise row
                     _animatedChild(
                       anim: _staggered(0.3, 0.8),
-                      child: _buildPraiseRow(coins),
+                      child: _buildPraiseRow(),
                     ),
-
-                    // Watch-ad banner
-                    if (showDoubleAd) ...[
-                      const SizedBox(height: 14),
-                      _animatedChild(
-                        anim: _staggered(0.4, 0.9),
-                        child: _buildDoubleCoinsBanner(),
-                      ),
-                    ],
 
                     // Save progress
                     if (widget.onSaveProgress != null) ...[
