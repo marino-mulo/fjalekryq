@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/models/user_model.dart';
 import '../../core/database/repositories/user_repository.dart';
-import '../../core/services/coin_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
@@ -17,7 +16,6 @@ import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import 'about_screen.dart';
 
-const int _nicknameCost = 100;
 const int _nicknameMinLength = 6;
 const int _nicknameMaxLength = 12;
 
@@ -103,13 +101,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
       return;
     }
 
-    final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(_nicknameCost)) {
-      setState(() => _nameError = 'Duhen $_nicknameCost monedha për ndryshim');
-      return;
-    }
-
-    coinService.spend(_nicknameCost);
     await userRepo.updateNickname(_user!.id!, name);
     setState(() {
       _user!.username = name;
@@ -164,8 +155,6 @@ class _SettingsSheetState extends State<SettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsService>();
-    final coins = context.watch<CoinService>().coins;
-    final canAffordNickname = coins >= _nicknameCost;
     final avatar = _parseAvatar(_user?.avatar);
     final isGuest = _user?.username.startsWith('guest_') ?? true;
 
@@ -245,101 +234,35 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                           if (!_editingName) ...[
                             const SizedBox(width: 10),
-                            Opacity(
-                              opacity: canAffordNickname ? 1.0 : 0.45,
-                              child: GestureDetector(
-                                onTap: canAffordNickname
-                                    ? () {
-                                        HapticFeedback.selectionClick();
-                                        _nameController.text = _user?.username ?? '';
-                                        setState(() {
-                                          _editingName = true;
-                                          _nameError = null;
-                                        });
-                                      }
-                                    : () {
-                                        HapticFeedback.selectionClick();
-                                      },
-                                child: Stack(
-                                  clipBehavior: Clip.none,
+                            GestureDetector(
+                              onTap: () {
+                                HapticFeedback.selectionClick();
+                                _nameController.text = _user?.username ?? '';
+                                setState(() {
+                                  _editingName = true;
+                                  _nameError = null;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                                  borderRadius: BorderRadius.circular(50),
+                                  border: Border.all(
+                                    color: AppColors.purpleAccent.withValues(alpha: 0.5),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                      decoration: BoxDecoration(
-                                        color: canAffordNickname
-                                            ? AppColors.purpleAccent.withValues(alpha: 0.18)
-                                            : Colors.white.withValues(alpha: 0.05),
-                                        borderRadius: BorderRadius.circular(50),
-                                        border: Border.all(
-                                          color: canAffordNickname
-                                              ? AppColors.purpleAccent.withValues(alpha: 0.5)
-                                              : Colors.white.withValues(alpha: 0.12),
-                                          width: 1.5,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(
-                                            canAffordNickname
-                                                ? Icons.edit_rounded
-                                                : Icons.lock_rounded,
-                                            size: 12,
-                                            color: Colors.white,
-                                          ),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            'Ndrysho emrin',
-                                            style: AppFonts.nunito(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Positioned(
-                                      top: -8,
-                                      right: -6,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                                        decoration: BoxDecoration(
-                                          color: canAffordNickname
-                                              ? AppColors.gold
-                                              : const Color(0xFF6B6B6B),
-                                          borderRadius: BorderRadius.circular(50),
-                                          boxShadow: canAffordNickname
-                                              ? [
-                                                  BoxShadow(
-                                                    color: AppColors.gold.withValues(alpha: 0.4),
-                                                    blurRadius: 6,
-                                                  ),
-                                                ]
-                                              : null,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              Icons.monetization_on_rounded,
-                                              size: 9,
-                                              color: canAffordNickname
-                                                  ? const Color(0xFF7A3F00)
-                                                  : Colors.white.withValues(alpha: 0.7),
-                                            ),
-                                            const SizedBox(width: 2),
-                                            Text(
-                                              '$_nicknameCost',
-                                              style: AppFonts.nunito(
-                                                fontSize: 9,
-                                                fontWeight: FontWeight.w900,
-                                                color: canAffordNickname
-                                                    ? const Color(0xFF7A3F00)
-                                                    : Colors.white.withValues(alpha: 0.85),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                                    const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
+                                    const SizedBox(width: 5),
+                                    Text(
+                                      'Ndrysho emrin',
+                                      style: AppFonts.nunito(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w900,
                                       ),
                                     ),
                                   ],

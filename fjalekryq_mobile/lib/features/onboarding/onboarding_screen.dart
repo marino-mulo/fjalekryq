@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/services/coin_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_button.dart';
@@ -14,7 +13,7 @@ const _onboardingDoneKey = 'fjalekryq_onboarding_done';
 const _accountTypeKey = 'fjalekryq_account_type'; // 'google' | 'guest'
 const _guestUsernameKey = 'fjalekryq_guest_username';
 
-/// Shown once on first launch. Player chooses Google (+100 coins) or Guest.
+/// Shown once on first launch. Player chooses Google or Guest.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -80,12 +79,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
 
     if (!mounted) return;
     final prefs = context.read<SharedPreferences>();
-    final coins = context.read<CoinService>();
 
     await prefs.setString(_accountTypeKey, 'google');
     await prefs.setBool(_onboardingDoneKey, true);
-    // Award 100 coins for account creation
-    coins.add(100);
 
     if (!mounted) return;
     setState(() => _loadingGoogle = false);
@@ -169,35 +165,6 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                         ),
 
                         const Spacer(flex: 2),
-
-                        // +100 coins badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.gold.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(50),
-                            border: Border.all(
-                              color: AppColors.gold.withValues(alpha: 0.4),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const CoinIcon(size: 14),
-                              const SizedBox(width: 6),
-                              Text(
-                                '+100 monedha për regjistrim',
-                                style: AppFonts.nunito(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppColors.gold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
 
                         // Continue with Google button
                         _buildGoogleButton(),
@@ -369,29 +336,12 @@ class SaveProgressPrompt extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Krijo llogari me Google dhe mos humb nivelet e luajtura. Merr edhe +100 monedha falas!',
+              'Krijo llogari me Google dhe mos humb nivelet e luajtura.',
               textAlign: TextAlign.center,
               style: AppFonts.quicksand(
                 fontSize: 13,
                 color: Colors.white.withValues(alpha: 0.6),
               ),
-            ),
-            const SizedBox(height: 18),
-            // Coins bonus row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CoinIcon(size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  '+100 monedha bonus',
-                  style: AppFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: 18),
             // Save with Google button

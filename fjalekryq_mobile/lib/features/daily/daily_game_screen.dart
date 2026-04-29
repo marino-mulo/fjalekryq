@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/puzzle.dart';
 import '../../core/services/game_service.dart';
-import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/widgets/animated_icon_fx.dart';
 import '../../core/services/ad_service.dart';
@@ -20,9 +19,7 @@ import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/offline_view.dart';
-import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/shiko_button.dart';
-import '../shop/shop_screen.dart';
 import '../game/widgets/game_board.dart';
 
 
@@ -51,7 +48,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   // Completion state
   bool _isCompleted = false;
   String _completedPraise = 'Bravo!';
-  int _coinsEarned = 0;
 
   // Loading state
   bool _isLoading = true;
@@ -63,9 +59,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   // network and no cached puzzle we render an offline placeholder instead
   // of an empty board.
   bool _isOffline = false;
-
-  // Insufficient coins banner
-  String? _insufficientType; // 'hint' | 'solve' | null
 
   // Ad state
   bool _loadingAd = false;
@@ -300,8 +293,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
     _isCompleted = true;
     _completedPraise = _praises[DateTime.now().millisecond % _praises.length];
-    // Daily puzzle awards no coins — only the streak is updated.
-    _coinsEarned = 0;
 
     // Wait for markSolved to update currentStreak before rebuilding so the
     // completion view shows the correct (already-incremented) streak value.
@@ -313,37 +304,14 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
   void _onHint() {
     HapticFeedback.mediumImpact();
-    final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(hintCost)) {
-      HapticFeedback.heavyImpact();
-      _audio.play(Sfx.error);
-      _showInsufficientCoins('hint');
-      return;
-    }
-    coinService.spend(hintCost);
     _audio.play(Sfx.hint);
     _game.hint();
   }
 
   void _onSolveWord() {
     HapticFeedback.mediumImpact();
-    final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(solveCost)) {
-      HapticFeedback.heavyImpact();
-      _audio.play(Sfx.error);
-      _showInsufficientCoins('solve');
-      return;
-    }
-    coinService.spend(solveCost);
     _audio.play(Sfx.solve);
     _game.solveWord();
-  }
-
-  void _showInsufficientCoins(String type) {
-    setState(() => _insufficientType = type);
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _insufficientType = null);
-    });
   }
 
   String get _todayDateLabel {
@@ -355,7 +323,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     final adService = context.read<AdService>();
     setState(() => _loadingAd = true);
 
-    final success = await adService.showRewardedAd(
+    await adService.showRewardedAd(
       adType: AdType.freeSolve,
       onReward: () async {
         _audio.play(Sfx.solve);
@@ -366,12 +334,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
       },
     );
 
-    if (mounted) {
-      setState(() {
-        _loadingAd = false;
-        if (success) _insufficientType = null;
-      });
-    }
+    if (mounted) setState(() => _loadingAd = false);
   }
 
   void _watchAdToRestart() async {
@@ -402,21 +365,12 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     }
   }
 
-  void _openShop() {
-    HapticFeedback.selectionClick();
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const ShopScreen()),
-    );
-  }
-
   // ══════════════════════════════════════
   //  BUILD
   // ══════════════════════════════════════
 
   @override
   Widget build(BuildContext context) {
-    final coinService = context.watch<CoinService>();
     final bottomPad = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
@@ -428,7 +382,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(coinService),
+                _buildHeader(),
                 const SizedBox(height: 12),
 
                 if (_isOffline)
@@ -466,40 +420,37 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
                   // Bottom controls (solve/hint)
                   if (!_isCompleted && !_game.gameLost && !_isLoading)
-                    _buildBottomControls(coinService),
+                    _buildBottomControls(),
 
-                  // Banners
-                  if (!_isCompleted && !_game.gameLost && !_isLoading) ...[
+                  // Hint banner
+                  if (!_isCompleted && !_game.gameLost && !_isLoading && _game.hintMessage.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    if (_game.hintMessage.isNotEmpty && _insufficientType == null)
-                      _buildInlineBanner(
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const AnimatedIconFx(
-                              Icons.lightbulb_outline,
-                              style: IconFxStyle.pulse,
-                              color: Color(0xFFFFD86B),
-                              size: 15,
-                            ),
-                            const SizedBox(width: 8),
-                            Flexible(
-                              child: Text(
-                                _game.hintMessage,
-                                style: AppFonts.quicksand(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFFFFD86B),
-                                ),
+                    _buildInlineBanner(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AnimatedIconFx(
+                            Icons.lightbulb_outline,
+                            style: IconFxStyle.pulse,
+                            color: Color(0xFFFFD86B),
+                            size: 15,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              _game.hintMessage,
+                              style: AppFonts.quicksand(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFFFFD86B),
                               ),
                             ),
-                          ],
-                        ),
-                        bgColor: const Color(0xFFC9B458).withValues(alpha: 0.2),
-                        borderColor: const Color(0xFFFFBA27).withValues(alpha: 0.4),
+                          ),
+                        ],
                       ),
-                    if (_insufficientType != null)
-                      _buildInlineInsufficientBanner(),
+                      bgColor: const Color(0xFFC9B458).withValues(alpha: 0.2),
+                      borderColor: const Color(0xFFFFBA27).withValues(alpha: 0.4),
+                    ),
                   ],
 
                   // Completion section
@@ -551,114 +502,12 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     );
   }
 
-  // -- Insufficient coins inline banner --
-  Widget _buildInlineInsufficientBanner() {
-    final isSolve = _insufficientType == 'solve';
-    final cost = _insufficientType == 'hint' ? hintCost : solveCost;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        decoration: BoxDecoration(
-          color: const Color(0xFF60A5FA).withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.35)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const CoinIcon(size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                isSolve
-                    ? 'Ju nuk keni $cost monedha \u00b7 shiko nje reklame dhe zgjidh falas'
-                    : 'Ju nuk keni $cost monedha',
-                style: AppFonts.quicksand(
-                  color: const Color(0xFFBAE0FD),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            if (isSolve) ...[
-              const SizedBox(width: 8),
-              ShikoButton(
-                size: ShikoSize.small,
-                loading: _loadingAd,
-                onTap: _watchAdForFreeSolve,
-              ),
-            ],
-            const SizedBox(width: 6),
-            GestureDetector(
-              onTap: _openShop,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF60A5FA).withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.5)),
-                ),
-                child: Text(
-                  'Bli tani',
-                  style: AppFonts.nunito(
-                    color: const Color(0xFFBAE0FD),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ══════════════════════════════════════
   //  Header (glass top strip)
   // ══════════════════════════════════════
 
-  Widget _buildHeader(CoinService coinService) {
-    return AppTopBar(
-      title: 'FJALËKRYQI I DITËS',
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CoinBadge(
-            amount: coinService.coins,
-            onTap: () => _openShop(),
-          ),
-          const SizedBox(width: 6),
-          GestureDetector(
-            onTap: () {
-              HapticFeedback.selectionClick();
-              _openShop();
-            },
-            child: Container(
-              width: 34,
-              height: 34,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF4B400).withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: const Color(0xFFF4B400).withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-              ),
-              child: const Icon(Icons.shopping_cart, color: Color(0xFFFFD86B), size: 18),
-            ),
-          ),
-        ],
-      ),
-    );
+  Widget _buildHeader() {
+    return const AppTopBar(title: 'FJALËKRYQI I DITËS');
   }
 
   // ══════════════════════════════════════
@@ -910,38 +759,15 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
               ),
             ),
 
-            // -- Win summary: praise + coins --
+            // -- Win summary: praise --
             const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  _completedPraise,
-                  style: AppFonts.nunito(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF4ADE80),
-                  ),
-                ),
-                if (_coinsEarned > 0) ...[
-                  const SizedBox(width: 10),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '+$_coinsEarned',
-                        style: AppFonts.nunito(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFFF4B400),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const CoinIcon(size: 14),
-                    ],
-                  ),
-                ],
-              ],
+            Text(
+              _completedPraise,
+              style: AppFonts.nunito(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF4ADE80),
+              ),
             ),
 
             // -- Streak text --
@@ -1090,41 +916,33 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   //  Bottom controls (Solve + Hint)
   // ══════════════════════════════════════
 
-  Widget _buildBottomControls(CoinService coinService) {
-    final canAffordHintNow = coinService.canAfford(hintCost);
-    final canAffordSolveNow = coinService.canAfford(solveCost);
-
+  Widget _buildBottomControls() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 0),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 430),
         child: Row(
           children: [
-            // Solve button (green glass)
             Expanded(
               child: _controlButton(
                 icon: Icons.check_circle_outline,
-                label: 'Zgjidh \u00b7 $solveCost',
+                label: 'Zgjidh',
                 enabled: _game.canSolveWord,
                 cooling: _game.solveWordCooldown,
                 cooldownRemaining: _game.solveWordCooldownRemaining,
                 onTap: _onSolveWord,
-                showWatchBadge: !canAffordSolveNow,
                 isSolve: true,
               ),
             ),
             const SizedBox(width: 10),
-            // Hint button (yellow glass)
             Expanded(
               child: _controlButton(
                 icon: Icons.lightbulb_outline,
-                label: 'Ndihme \u00b7 $hintCost',
+                label: 'Ndihmë',
                 enabled: _game.canHint,
                 cooling: _game.hintCooldown,
                 cooldownRemaining: _game.hintCooldownRemaining,
                 onTap: _onHint,
-                showWatchBadge: false,
-                noCoins: !canAffordHintNow,
               ),
             ),
           ],
@@ -1142,18 +960,14 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     required VoidCallback onTap,
     bool showWatchBadge = false,
     bool isSolve = false,
-    bool noCoins = false,
   }) {
     final baseColor = isSolve
         ? const Color(0xFF6AAA64)
         : const Color(0xFFC9B458);
 
     final isDisabled = !enabled && !cooling;
-    final effectiveOpacity = noCoins ? 0.55 : 1.0;
 
-    return Opacity(
-      opacity: effectiveOpacity,
-      child: Stack(
+    return Stack(
         clipBehavior: Clip.none,
         children: [
           GestureDetector(
@@ -1197,8 +1011,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(width: 2),
-                        const CoinIcon(size: 11),
                       ],
                     ),
                   ),
@@ -1235,7 +1047,6 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
               child: ShikoButton(size: ShikoSize.small),
             ),
         ],
-      ),
     );
   }
 }

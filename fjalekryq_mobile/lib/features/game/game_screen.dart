@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/models/puzzle.dart';
 import '../../core/models/level_config.dart';
 import '../../core/services/game_service.dart';
-import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../shared/widgets/animated_icon_fx.dart';
 import '../../core/services/ad_service.dart';
@@ -17,11 +16,9 @@ import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
-import '../../shared/widgets/coin_badge.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../../shared/widgets/shiko_button.dart';
 import '../tutorial/tutorial_finger.dart';
-import '../shop/shop_screen.dart';
 import 'widgets/game_board.dart';
 import 'widgets/win_modal.dart';
 import 'widgets/fail_modal.dart';
@@ -88,17 +85,12 @@ class _GameScreenState extends State<GameScreen> {
   // Completion state
   bool _isCompleted = false;
   String _completedPraise = 'Bravo!';
-  int _coinsEarned = 0;
 
   // Loading state
   bool _isLoading = false;
 
-  // Insufficient coins banner
-  String? _insufficientType; // 'hint' | 'solve' | null
-
   // Ad state
   bool _loadingAd = false;
-  bool _winCoinsDoubled = false;
   bool _continuedAfterLoss = false;
 
   // Stored so we can call disposeBanner() safely in dispose()
@@ -159,8 +151,6 @@ class _GameScreenState extends State<GameScreen> {
     // no completion modal.
     if (_isTutorial) {
       if (_tutorialPhase == 1 && _game.totalSwapCount > 0) {
-        _setTutorialPhase(2);
-      } else if (_tutorialPhase == 2 && _game.hintCount > 0) {
         _setTutorialPhase(3);
       } else if (_tutorialPhase == 3 && _game.solveWordCooldown) {
         Future.microtask(() {
@@ -245,7 +235,6 @@ class _GameScreenState extends State<GameScreen> {
   void _loadPuzzle() {
     setState(() => _isLoading = true);
     _isCompleted = false;
-    _winCoinsDoubled = false;
     _continuedAfterLoss = false;
     _loadingAd = false;
     _fiveMovesWarningShown = false;
@@ -315,52 +304,21 @@ class _GameScreenState extends State<GameScreen> {
     if (_isCompleted) return;
     HapticFeedback.heavyImpact();
     _audio.play(Sfx.win);
-    final coinService = context.read<CoinService>();
     _tutorialPhase = 0;
     _tutorialHighlightCells = [];
     _isCompleted = true;
     _completedPraise = _praises[DateTime.now().millisecond % _praises.length];
 
-    if (_isTutorial) {
-      _coinsEarned = 0;
-    } else {
+    if (!_isTutorial) {
       final playingLevel = _prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1;
       final progress = _prefs.getInt(_levelKey) ?? 1;
       final movesLeft = _game.swapsRemaining;
 
-      // Clear in-progress flag — level complete
       _prefs.remove('fjalekryq_in_progress_$playingLevel');
 
-      // Server is authoritative for the coin reward now (tiered off
-      // movesLeft). Apply the local fallback immediately so the win
-      // modal never shows 0 while the network call is in-flight, then
-      // reconcile when the response arrives.
+      _game.saveProgress(playingLevel, completed: true, movesLeft: movesLeft);
+
       final isFirstClear = playingLevel >= progress;
-      if (isFirstClear) {
-        _coinsEarned = movesLeft >= 5 ? 30 : (movesLeft == 4 ? 25 : 20);
-        Future.delayed(const Duration(milliseconds: 800), () => _audio.play(Sfx.coin));
-      } else {
-        _coinsEarned = 0;
-      }
-
-      _game
-          .saveProgress(playingLevel, completed: true, movesLeft: movesLeft)
-          .then((result) {
-        if (!mounted || result == null) return;
-        // Trust the server's balance absolutely — it already accounts for
-        // the coin reward, so we must not `add()` on top of it.
-        coinService.setBalance(result.newBalance);
-        if (isFirstClear && result.coinsAwarded != _coinsEarned) {
-          setState(() => _coinsEarned = result.coinsAwarded);
-        }
-      });
-
-      // Evict the cached puzzle so the next playthrough re-fetches a
-      // fresh one from the server.
-      context.read<LevelPuzzleStore>().evict(playingLevel);
-
-      // Advance progress on first clear. No upper cap — the server
-      // generates every level on demand.
       if (isFirstClear) {
         _prefs.setInt(_levelKey, playingLevel + 1);
       }
@@ -375,39 +333,14 @@ class _GameScreenState extends State<GameScreen> {
 
   void _onHint() async {
     HapticFeedback.mediumImpact();
-    final coinService = context.read<CoinService>();
-    if (!_isTutorial) {
-      // No coins → button is disabled (no watch-ad fallback). The
-      // bottom-controls builder also dims/disables the button visually
-      // so this is just defensive.
-      if (!coinService.canAfford(hintCost)) return;
-      coinService.spend(hintCost);
-    }
     _audio.play(Sfx.hint);
     _game.hint();
   }
 
   void _onSolveWord() {
     HapticFeedback.mediumImpact();
-    final coinService = context.read<CoinService>();
-    if (!_isTutorial) {
-      if (!coinService.canAfford(solveCost)) {
-        HapticFeedback.heavyImpact();
-        _audio.play(Sfx.error);
-        _showInsufficientCoins('solve');
-        return;
-      }
-      coinService.spend(solveCost);
-    }
     _audio.play(Sfx.solve);
     _game.solveWord();
-  }
-
-  void _showInsufficientCoins(String type) {
-    setState(() => _insufficientType = type);
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) setState(() => _insufficientType = null);
-    });
   }
 
   void _nextLevel() async {
@@ -419,21 +352,8 @@ class _GameScreenState extends State<GameScreen> {
       _game.setTutorialMode(false);
       _loadPuzzle();
     } else {
-      // Show interstitial at the natural break between levels (every 3 completions).
-      // The loading spinner is already visible behind the interstitial.
       final adService = context.read<AdService>();
-      final coinService = context.read<CoinService>();
       await adService.showInterstitialIfDue();
-      if (!mounted) return;
-      // Exercise the rewarded-ad path on the same 3-level cadence as
-      // the interstitial — grants a small bonus so the reward callback
-      // is visibly verified in test.
-      await adService.showRewardedIfDue(
-        onReward: () async {
-          coinService.add(10);
-          _audio.play(Sfx.coin);
-        },
-      );
       if (!mounted) return;
       final progress = _prefs.getInt(_levelKey) ?? 1;
       _prefs.setInt(_playingLevelKey, progress);
@@ -444,7 +364,6 @@ class _GameScreenState extends State<GameScreen> {
   void _restartLevel() {
     setState(() {
       _isCompleted = false;
-      _winCoinsDoubled = false;
       _continuedAfterLoss = false;
       _loadingAd = false;
       _fiveMovesWarningShown = false;
@@ -506,8 +425,6 @@ class _GameScreenState extends State<GameScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final coinService = context.watch<CoinService>();
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppBackground(
@@ -517,7 +434,7 @@ class _GameScreenState extends State<GameScreen> {
           SafeArea(
             child: Column(
               children: [
-                _buildHeader(coinService),
+                _buildHeader(),
                 // Extra breathing room below the header so the board and
                 // info row sit lower on the screen (header stays in place).
                 const SizedBox(height: 40),
@@ -543,9 +460,7 @@ class _GameScreenState extends State<GameScreen> {
                 if (_game.gameLost && !_isCompleted && !_isLoading)
                   InlineFailPanel(
                     adService: context.read<AdService>(),
-                    coinService: context.read<CoinService>(),
                     onWatchAd: _watchAdToContinue,
-                    onBuyMoves: _buyMovesAfterFail,
                     onRestart: () {
                       setState(() => _showingFailModal = false);
                       _restartLevel();
@@ -557,12 +472,12 @@ class _GameScreenState extends State<GameScreen> {
                   const SizedBox(height: 12),
 
                 if (!_isCompleted && !_game.gameLost && !_isLoading)
-                  _buildBottomControls(coinService),
+                  _buildBottomControls(),
 
-                // Banners (hints / insufficient coins / tutorial tips)
+                // Banners (hints / tutorial tips)
                 if (!_isCompleted && !_game.gameLost && !_isLoading) ...[
                   const SizedBox(height: 8),
-                  if (_game.hintMessage.isNotEmpty && !_isTutorial && _insufficientType == null)
+                  if (_game.hintMessage.isNotEmpty && !_isTutorial)
                     _buildInlineBanner(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -591,15 +506,9 @@ class _GameScreenState extends State<GameScreen> {
                     ),
                   if (_showFiveMovesBanner)
                     _buildFiveMovesBanner(),
-                  if (_insufficientType != null)
-                    _buildInlineInsufficientBanner(),
                   if (_isTutorial && _tutorialPhase == 1)
                     _buildTutorialInstruction(
                       'Shkëmbe shkronjat e shënuara për të bërë 1 lëvizje',
-                    ),
-                  if (_isTutorial && _tutorialPhase == 2)
-                    _buildTutorialInstruction(
-                      'Kliko butonin Ndihmë — vendos 1 shkronjë pa hequr lëvizje',
                     ),
                   if (_isTutorial && _tutorialPhase == 3)
                     _buildTutorialInstruction(
@@ -735,24 +644,14 @@ class _GameScreenState extends State<GameScreen> {
   // label, and a single pill badge on the right. The badge swaps between
   // "pay 30 coins" when the player can afford and "watch an ad" otherwise.
   Widget _buildFiveMovesBanner() {
-    final coinService = context.read<CoinService>();
-    final canAfford   = coinService.canAfford(50);
-
-    final VoidCallback onTap = canAfford
-        ? () {
-            setState(() => _showFiveMovesBanner = false);
-            _buyExtraMovesInGame();
-          }
-        : () async {
-            if (_loadingAd) return;
-            setState(() => _showFiveMovesBanner = false);
-            await _watchAdForExtraMoves();
-          };
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: GestureDetector(
-        onTap: onTap,
+        onTap: () async {
+          if (_loadingAd) return;
+          setState(() => _showFiveMovesBanner = false);
+          await _watchAdForExtraMoves();
+        },
         child: Container(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
           decoration: BoxDecoration(
@@ -794,30 +693,14 @@ class _GameScreenState extends State<GameScreen> {
                     color: AppColors.purpleAccent.withValues(alpha: 0.55),
                   ),
                 ),
-                child: canAfford
-                    ? Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const CoinIcon(size: 12),
-                          const SizedBox(width: 4),
-                          Text(
-                            '50',
-                            style: AppFonts.nunito(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w900,
-                              color: const Color(0xFFE9D5FF),
-                            ),
-                          ),
-                        ],
-                      )
-                    : Text(
-                        'Shiko · +5',
-                        style: AppFonts.nunito(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFFE9D5FF),
-                        ),
-                      ),
+                child: Text(
+                'Shiko · +5',
+                style: AppFonts.nunito(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFFE9D5FF),
+                ),
+              ),
               ),
             ],
           ),
@@ -827,132 +710,15 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   // ── Insufficient coins inline banner ──
-  Widget _buildInlineInsufficientBanner() {
-    final isSolve = _insufficientType == 'solve';
-    final cost = _insufficientType == 'hint' ? hintCost : solveCost;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
-        decoration: BoxDecoration(
-          color: const Color(0xFF60A5FA).withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.35)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const CoinIcon(size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                isSolve
-                    ? 'Ju nuk keni $cost monedha · shiko një reklamë dhe zgjidh falas'
-                    : 'Ju nuk keni $cost monedha',
-                style: AppFonts.quicksand(
-                  color: const Color(0xFFBAE0FD),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            if (isSolve) ...[
-              const SizedBox(width: 8),
-              ShikoButton(
-                size: ShikoSize.small,
-                loading: _loadingAd,
-                onTap: _watchAdForFreeSolve,
-              ),
-            ],
-            const SizedBox(width: 6),
-            GestureDetector(
-              onTap: _openShop,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF60A5FA).withValues(alpha: 0.25),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFF60A5FA).withValues(alpha: 0.5)),
-                ),
-                child: Text(
-                  'Bli tani',
-                  style: AppFonts.nunito(
-                    color: const Color(0xFFBAE0FD),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ══════════════════════════════════════
   //  Header (glass top strip)
   // ══════════════════════════════════════
 
-  Widget _buildHeader(CoinService coinService) {
+  Widget _buildHeader() {
     final levelLabel = _isTutorial
         ? 'SI TË LUASH'
-        : 'NIVELI ${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}';
-    return AppTopBar(
-      title: levelLabel,
-      // Hide coins + shop in the tutorial — the player isn't earning yet
-      // and we don't want to teach the shop affordance before they've
-      // played a real level.
-      trailing: _isTutorial
-          ? null
-          : Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CoinBadge(
-                  amount: coinService.coins,
-                  onTap: () => _openShop(),
-                ),
-                const SizedBox(width: 6),
-                GestureDetector(
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    _openShop();
-                  },
-                  child: Container(
-                    width: 34,
-                    height: 34,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF4B400).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: const Color(0xFFF4B400).withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: const Icon(Icons.storefront_rounded,
-                        color: Color(0xFFFFD86B), size: 18),
-                  ),
-                ),
-              ],
-            ),
-    );
-  }
-
-  void _openShop() {
-    HapticFeedback.selectionClick();
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ShopScreen(specialOffer: _failCount >= 2),
-      ),
-    );
+        : 'NIVELI \${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}';
+    return AppTopBar(title: levelLabel);
   }
 
   // ══════════════════════════════════════
@@ -995,7 +761,6 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
         ],
-      ),
     );
   }
 
@@ -1026,37 +791,7 @@ class _GameScreenState extends State<GameScreen> {
       },
     );
 
-    if (mounted) {
-      setState(() {
-        _loadingAd = false;
-        if (success) _insufficientType = null;
-      });
-    }
-  }
-
-  Future<void> _watchAdToDoubleWinCoins() async {
-    final adService = context.read<AdService>();
-    final coinService = context.read<CoinService>();
-
-    setState(() => _loadingAd = true);
-
-    final success = await adService.showRewardedAd(
-      adType: AdType.doubleWinCoins,
-      onReward: () async {
-        coinService.add(_coinsEarned);
-        _audio.play(Sfx.coin);
-      },
-      onOffline: () {
-        if (mounted) showOfflineSnack(context);
-      },
-    );
-
-    if (mounted) {
-      setState(() {
-        _loadingAd = false;
-        if (success) _winCoinsDoubled = true;
-      });
-    }
+    if (mounted) setState(() => _loadingAd = false);
   }
 
   Future<void> _watchAdToContinue() async {
@@ -1105,40 +840,6 @@ class _GameScreenState extends State<GameScreen> {
     if (mounted) setState(() => _loadingAd = false);
   }
 
-  // ── Coins: buy 5 extra moves mid-game ───────────────────
-  void _buyExtraMovesInGame() {
-    final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(50)) {
-      HapticFeedback.heavyImpact();
-      _audio.play(Sfx.error);
-      _openShop();
-      return;
-    }
-    coinService.spend(50);
-    _game.addExtraMoves(5);
-    _audio.play(Sfx.coin);
-    HapticFeedback.mediumImpact();
-  }
-
-  // ── Coins: buy 5 moves after loss ───────────────────────
-  void _buyMovesAfterFail() {
-    final coinService = context.read<CoinService>();
-    if (!coinService.canAfford(50)) {
-      HapticFeedback.heavyImpact();
-      _audio.play(Sfx.error);
-      _openShop();
-      return;
-    }
-    coinService.spend(50);
-    _game.continueGame();
-    _audio.play(Sfx.coin);
-    HapticFeedback.mediumImpact();
-    setState(() {
-      _continuedAfterLoss = true;
-      _showingFailModal = false;
-    });
-  }
-
   // ── 5-moves warning banner ───────────────────────────────
   void _showFiveMovesOffer() {
     setState(() {
@@ -1157,14 +858,9 @@ class _GameScreenState extends State<GameScreen> {
       transitionDuration: const Duration(milliseconds: 400),
       pageBuilder: (ctx, _, __) => WinModal(
         praise: _completedPraise,
-        coinsEarned: _coinsEarned,
-        winCoinsDoubled: _winCoinsDoubled,
         isTutorial: _isTutorial,
         nextLevelNumber: _nextLevelNumber,
         solvedGrid: _game.solution,
-        onDoubleCoins: () async {
-          await _watchAdToDoubleWinCoins();
-        },
         onNextLevel: () {
           setState(() {
             _isCompleted = false;
@@ -1227,11 +923,9 @@ class _GameScreenState extends State<GameScreen> {
         child: SaveProgressPromptModal(
           onSaveWithGoogle: () async {
             Navigator.pop(ctx);
-            final coinService = context.read<CoinService>();
             await Future.delayed(const Duration(milliseconds: 800));
             if (mounted) {
               await _prefs.setString('fjalekryq_account_type', 'google');
-              coinService.add(100);
             }
           },
           onDismiss: () => Navigator.pop(ctx),
@@ -1250,12 +944,8 @@ class _GameScreenState extends State<GameScreen> {
   //  Bottom controls (Solve + Hint)
   // ══════════════════════════════════════
 
-  Widget _buildBottomControls(CoinService coinService) {
-    final canAffordHintNow = _isTutorial || coinService.canAfford(hintCost);
-    final canAffordSolveNow = _isTutorial || coinService.canAfford(solveCost);
-
+  Widget _buildBottomControls() {
     final pointSolve = _isTutorial && _tutorialPhase == 3;
-    final pointHint = _isTutorial && _tutorialPhase == 2;
 
     Widget withFinger({required bool show, required Widget child}) {
       return Column(
@@ -1280,46 +970,19 @@ class _GameScreenState extends State<GameScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            // Solve button (green glass) — in tutorial the cost is hidden so
-            // the player isn't nudged to spend coins they don't track yet.
             Expanded(
               child: withFinger(
                 show: pointSolve,
                 child: _controlButton(
                   icon: Icons.lightbulb_outline,
-                  label: _isTutorial ? 'Zgjidh' : 'Zgjidh · $solveCost',
+                  label: 'Zgjidh',
                   enabled: _game.canSolveWord &&
-                      !(_isTutorial && (_tutorialPhase == 1 || _tutorialPhase == 2)),
+                      !(_isTutorial && _tutorialPhase == 1),
                   cooling: _game.solveWordCooldown,
                   cooldownRemaining: _game.solveWordCooldownRemaining,
                   pulsing: _isTutorial && _tutorialPhase == 3,
                   onTap: _onSolveWord,
-                  showWatchBadge: !_isTutorial && !canAffordSolveNow,
                   isSolve: true,
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            // Hint button (yellow glass) — cost hidden during tutorial.
-            Expanded(
-              child: withFinger(
-                show: pointHint,
-                child: _controlButton(
-                  icon: Icons.swap_horiz_rounded,
-                  label: _isTutorial ? 'Ndihmë' : 'Ndihmë · $hintCost',
-                  // Disable when the player can't pay — the watch-ad
-                  // fallback was removed (it didn't reliably fire), so
-                  // the button has no work to do without coins.
-                  enabled: _game.canHint &&
-                      canAffordHintNow &&
-                      !(_isTutorial && (_tutorialPhase == 1 || _tutorialPhase == 3)),
-                  cooling: _game.hintCooldown,
-                  cooldownRemaining: _game.hintCooldownRemaining,
-                  pulsing: _isTutorial && _tutorialPhase == 2,
-                  onTap: _onHint,
-                  // No "Shiko" badge on hint — the ad path is gone.
-                  showWatchBadge: false,
-                  noCoins: !_isTutorial && !canAffordHintNow,
                 ),
               ),
             ),
@@ -1339,18 +1002,14 @@ class _GameScreenState extends State<GameScreen> {
     required VoidCallback onTap,
     bool showWatchBadge = false,
     bool isSolve = false,
-    bool noCoins = false,
   }) {
     final baseColor = isSolve
         ? const Color(0xFF6AAA64)
         : const Color(0xFFC9B458);
 
     final isDisabled = !enabled && !cooling;
-    final effectiveOpacity = noCoins ? 0.55 : 1.0;
 
-    return Opacity(
-      opacity: effectiveOpacity,
-      child: Stack(
+    return Stack(
         clipBehavior: Clip.none,
         children: [
           GestureDetector(
@@ -1394,8 +1053,6 @@ class _GameScreenState extends State<GameScreen> {
                             fontWeight: FontWeight.w900,
                           ),
                         ),
-                        const SizedBox(width: 2),
-                        const CoinIcon(size: 11),
                       ],
                     ),
                   ),

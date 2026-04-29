@@ -2,19 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/services/coin_service.dart';
 import '../../core/services/audio_service.dart';
 import '../../core/services/daily_puzzle_service.dart';
 import '../../shared/constants/theme.dart';
 import '../daily/daily_game_screen.dart';
 import '../settings/settings_sheet.dart';
-import '../shop/daily_reward_sheet.dart';
-import '../shop/shop_screen.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/puzzle_logo.dart';
 import '../game/game_screen.dart';
-import 'daily_offer.dart';
-import 'daily_offer_banner.dart';
 import 'leaderboard_full_screen.dart';
 
 const _levelKey = 'fjalekryq_level';
@@ -32,7 +27,6 @@ class _HomeScreenState extends State<HomeScreen>
   late AnimationController _fadeController;
   late Animation<double> _fadeAnim;
   late Animation<Offset> _slideAnim;
-  late AnimationController _pulseController;
 
   @override
   void initState() {
@@ -53,29 +47,15 @@ class _HomeScreenState extends State<HomeScreen>
       end: Offset.zero,
     ).animate(CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic));
 
-    // Pulse for daily reward
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-
-    // Defer ALL heavy work well after the first frame renders
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _fadeController.forward();
-    });
-    // Delay animations further to let the UI settle. Background music
-    // has been removed from the app — only SFX remain.
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted) return;
-      _pulseController.repeat(reverse: true);
     });
   }
 
   @override
   void dispose() {
     _fadeController.dispose();
-    _pulseController.dispose();
     super.dispose();
   }
 
@@ -113,16 +93,6 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  void _openDailyReward() {
-    HapticFeedback.selectionClick();
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => const DailyRewardSheet(),
-    );
-  }
-
   void _openLeaderboard() {
     HapticFeedback.selectionClick();
     Navigator.push(context, MaterialPageRoute(
@@ -131,24 +101,8 @@ class _HomeScreenState extends State<HomeScreen>
     ));
   }
 
-  void _openShop() {
-    HapticFeedback.selectionClick();
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => const ShopScreen(),
-    ));
-  }
-
-  void _openDailyOffer() {
-    final offer = offerForPrefs(context.read<SharedPreferences>());
-    Navigator.push(context, MaterialPageRoute(
-      builder: (_) => ShopScreen(pendingOffer: offer),
-    ));
-  }
-
   @override
   Widget build(BuildContext context) {
-    final coinService = context.watch<CoinService>();
-    final dailyAvailable = coinService.peekDaily() != null;
     final statusBarH = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -157,7 +111,7 @@ class _HomeScreenState extends State<HomeScreen>
         child: Stack(
           children: [
             // Header pinned at top
-            _buildHeader(dailyAvailable, statusBarH),
+            _buildHeader(statusBarH),
 
             // Main content
             Positioned.fill(
@@ -174,22 +128,6 @@ class _HomeScreenState extends State<HomeScreen>
 
                         // ── Daily + Leaderboard cards (full-width, stacked)
                         _buildCards(),
-
-                        const SizedBox(height: 14),
-
-                        // Daily offer — inline so it never collides with
-                        // the cards above or the logo below.
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: DailyOfferBanner(
-                              offer: offerForPrefs(
-                                  context.read<SharedPreferences>()),
-                              onTap: _openDailyOffer,
-                            ),
-                          ),
-                        ),
 
                         const Spacer(flex: 4),
 
@@ -214,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Widget _buildHeader(bool dailyAvailable, double statusBarHeight) {
+  Widget _buildHeader(double statusBarHeight) {
     return Positioned(
       top: 0,
       left: 0,
@@ -229,21 +167,7 @@ class _HomeScreenState extends State<HomeScreen>
         color: Colors.transparent,
         child: Row(
           children: [
-            // Daily reward — left
-            _DailyRewardButton(
-              onTap: _openDailyReward,
-              available: dailyAvailable,
-              pulseController: _pulseController,
-            ),
             const Spacer(),
-            // Shop — sits immediately left of settings so the right
-            // cluster reads as a tidy pair of utility actions.
-            _HeaderButton(
-              icon: Icons.storefront_rounded,
-              onTap: _openShop,
-            ),
-            const SizedBox(width: 10),
-            // Settings — right edge
             _HeaderButton(
               icon: Icons.settings,
               onTap: _openSettings,
@@ -534,83 +458,6 @@ class _HomeCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// Daily reward button with gold tint + pulsing when available (matching web .daily-reward-btn).
-class _DailyRewardButton extends StatelessWidget {
-  final VoidCallback onTap;
-  final bool available;
-  final AnimationController pulseController;
-
-  const _DailyRewardButton({
-    required this.onTap,
-    required this.available,
-    required this.pulseController,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          AnimatedBuilder(
-            animation: pulseController,
-            builder: (context, child) {
-              return Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: available
-                      ? AppColors.gold.withValues(alpha: 0.2)
-                      : const Color(0xFFF4B400).withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: available
-                        ? AppColors.gold.withValues(alpha: 0.6)
-                        : const Color(0xFFF4B400).withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: available
-                      ? [
-                          BoxShadow(
-                            color: AppColors.gold.withValues(
-                              alpha: 0.15 + pulseController.value * 0.25,
-                            ),
-                            blurRadius: 8 + pulseController.value * 8,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Icon(
-                  Icons.card_giftcard,
-                  color: available
-                      ? AppColors.gold
-                      : const Color(0xFFFFD86B),
-                  size: 20,
-                ),
-              );
-            },
-          ),
-          if (available)
-            Positioned(
-              top: -4,
-              right: -4,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4ADE80),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF0C1F4A), width: 2),
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }

@@ -6,10 +6,6 @@ import '../database/models/daily_puzzle_model.dart';
 import '../models/puzzle.dart';
 import '../models/level_config.dart';
 import 'puzzle_generator.dart';
-import 'coin_service.dart';
-
-/// Cost in coins to recover a broken streak.
-const int streakRecoveryCost = 250;
 
 /// Reserved userId used to store the single global puzzle record per day.
 /// Every real user reads from this record instead of generating their own copy.
@@ -218,20 +214,12 @@ class DailyPuzzleService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Recover a broken streak by spending coins. Returns true on success.
-  ///
-  /// Recovery is only available when the user missed exactly one day
-  /// (yesterday) and the day before yesterday was their last solve.
-  /// The cost is [streakRecoveryCost] coins. On success the streak freeze
-  /// is set to yesterday so the next solve extends the streak normally.
-  Future<bool> recoverStreak(CoinService coinService) async {
+  /// Recover a broken streak (free — coin system removed).
+  Future<bool> recoverStreak() async {
     if (!canRecoverStreak) return false;
-    if (!coinService.canAfford(streakRecoveryCost)) return false;
 
     final yesterday = _todayDate().subtract(const Duration(days: 1));
     final yesterdayStr = _dateString(yesterday);
-
-    if (!coinService.spend(streakRecoveryCost)) return false;
 
     await _streakRepo.setFrozenUntil(_userId, yesterdayStr);
     _frozenUntil = yesterdayStr;

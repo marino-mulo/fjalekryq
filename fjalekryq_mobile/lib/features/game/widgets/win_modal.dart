@@ -197,58 +197,16 @@ class _WinModalState extends State<WinModal>
     );
   }
 
-  // ── Praise + coins row (plain, no banner background) ─────────────────────
-  Widget _buildPraiseRow(int coins) {
-    final hasCoins = coins > 0;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Flexible(
-          child: Text(
-            widget.praise,
-            style: AppFonts.nunito(
-              fontSize: 22,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-            ),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (hasCoins) ...[
-          const SizedBox(width: 14),
-          if (_doubled) ...[
-            Container(
-              margin: const EdgeInsets.only(right: 6),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.greenAccent.withValues(alpha: 0.25),
-                borderRadius: BorderRadius.circular(7),
-                border: Border.all(
-                    color: AppColors.greenAccent.withValues(alpha: 0.5)),
-              ),
-              child: Text(
-                '×2',
-                style: AppFonts.nunito(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: AppColors.greenAccent,
-                ),
-              ),
-            ),
-          ],
-          Text(
-            '+$coins monedha',
-            style: AppFonts.nunito(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: AppColors.gold,
-            ),
-          ),
-          const SizedBox(width: 6),
-          const CoinIcon(size: 20),
-        ],
-      ],
+  // ── Praise row ────────────────────────────────────────────────────────────
+  Widget _buildPraiseRow() {
+    return Text(
+      widget.praise,
+      textAlign: TextAlign.center,
+      style: AppFonts.nunito(
+        fontSize: 22,
+        fontWeight: FontWeight.w900,
+        color: Colors.white,
+      ),
     );
   }
 
@@ -320,79 +278,6 @@ class _WinModalState extends State<WinModal>
     );
   }
 
-  // ── Double-coins banner ───────────────────────────────────────────────────
-  Widget _buildDoubleCoinsBanner() {
-    final loading = _adLoading == _AdLoading.doubleCoins;
-    return GestureDetector(
-      onTap: loading ? null : _watchDoubleCoinsAd,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-        decoration: BoxDecoration(
-          color: AppColors.purpleAccent.withValues(alpha: 0.14),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: AppColors.purpleAccent.withValues(alpha: 0.38)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const AnimatedIconFx(
-              Icons.videocam_rounded,
-              style: IconFxStyle.pulse,
-              color: Color(0xFFC084FC),
-              size: 18,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Dyfisho monedhat · +${widget.coinsEarned * 2} falas',
-                style: AppFonts.nunito(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFFE9D5FF),
-                ),
-              ),
-            ),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.purpleAccent.withValues(alpha: 0.28),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: AppColors.purpleAccent.withValues(alpha: 0.55)),
-              ),
-              child: loading
-                  ? const SizedBox(
-                      width: 14,
-                      height: 14,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Color(0xFFE9D5FF),
-                      ),
-                    )
-                  : Text(
-                      'Shiko · ×2',
-                      style: AppFonts.nunito(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        color: const Color(0xFFE9D5FF),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // ── Save progress row ─────────────────────────────────────────────────────
   Widget _buildSaveProgressRow() {
     return GestureDetector(
@@ -420,7 +305,7 @@ class _WinModalState extends State<WinModal>
             ),
             const SizedBox(width: 8),
             Text(
-              'Ruaj Progresin · +100 monedha',
+              'Ruaj Progresin',
               style: AppFonts.nunito(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,

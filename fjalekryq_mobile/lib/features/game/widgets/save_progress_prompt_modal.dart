@@ -62,28 +62,12 @@ class _SaveProgressPromptModalState extends State<SaveProgressPromptModal> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Ke luajtur 5+ nivele si mysafir. Krijo llogari me Google dhe mos humb progresin. Merr +100 monedha falas!',
+              'Ke luajtur 5+ nivele si mysafir. Krijo llogari me Google dhe mos humb progresin.',
               textAlign: TextAlign.center,
               style: AppFonts.quicksand(
                 fontSize: 13,
                 color: Colors.white.withValues(alpha: 0.55),
               ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CoinIcon(size: 16),
-                const SizedBox(width: 6),
-                Text(
-                  '+100 monedha bonus',
-                  style: AppFonts.nunito(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.gold,
-                  ),
-                ),
-              ],
             ),
             const SizedBox(height: 18),
             GestureDetector(
