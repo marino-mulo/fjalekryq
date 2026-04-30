@@ -41,24 +41,24 @@ class DailyPuzzleService extends ChangeNotifier {
   int get bestStreak => _bestStreak;
   String? get lastSolvedDate => _lastSolvedDate;
 
-  /// True when the user missed exactly one day (yesterday), the day before
-  /// yesterday was the last solved date, and the current streak was > 0 before
-  /// the miss. This is the only window in which recovery is allowed.
+  /// True when the user has a streak they haven't played today and missed at
+  /// least yesterday. Recovery is available until midnight of the current day —
+  /// the UI is responsible for enforcing that deadline via a countdown.
   bool get canRecoverStreak {
     if (_currentStreak <= 0) return false;
     if (_lastSolvedDate == null) return false;
+    if (_isTodaySolved) return false;
 
     final today = _todayDate();
     final yesterday = today.subtract(const Duration(days: 1));
-    final dayBeforeYesterday = today.subtract(const Duration(days: 2));
 
     final lastSolved = _parseDate(_lastSolvedDate!);
     if (lastSolved == null) return false;
 
-    // Last solved must be the day before yesterday (i.e. user missed yesterday).
-    if (!_sameDay(lastSolved, dayBeforeYesterday)) return false;
+    // Last solved must be strictly before yesterday (missed at least one day).
+    if (!lastSolved.isBefore(yesterday)) return false;
 
-    // If we already froze past yesterday, recovery is unnecessary.
+    // Already recovered — frozen date covers yesterday.
     if (_frozenUntil != null) {
       final frozen = _parseDate(_frozenUntil!);
       if (frozen != null && !frozen.isBefore(yesterday)) return false;

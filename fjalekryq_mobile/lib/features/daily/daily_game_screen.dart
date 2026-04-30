@@ -67,6 +67,10 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   bool _streakRecovered = false;
   int _streakRecoveryProgress = 0; // 0, 1, or 2 ads watched
 
+  // Streak recovery countdown (time until midnight)
+  Duration _countdownToMidnight = Duration.zero;
+  Timer? _countdownTimer;
+
   // Fail / continue tracking
   bool _failedToday = false;
   Wordle7Puzzle? _todayPuzzle;
@@ -98,6 +102,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     _userId = context.read<int>();
     _dailyService = context.read<DailyPuzzleService>();
     _streakRecoveryProgress = _loadAdProgress('fjalekryq_streak_recovery');
+    _startMidnightCountdown();
     final gameStateRepo = context.read<GameStateRepository>();
     final progressRepo = context.read<ProgressRepository>();
     _game = GameService(_prefs, gameStateRepo, progressRepo, _userId);
@@ -109,6 +114,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   @override
   void dispose() {
     _saveDebounce?.cancel();
+    _countdownTimer?.cancel();
     _game.removeListener(_onGameChanged);
     _game.dispose();
     super.dispose();
@@ -368,6 +374,28 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     }
   }
 
+  // -- Midnight countdown --
+
+  void _startMidnightCountdown() {
+    _updateCountdown();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) _updateCountdown();
+    });
+  }
+
+  void _updateCountdown() {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    setState(() => _countdownToMidnight = midnight.difference(now));
+  }
+
+  String _formatCountdown(Duration d) {
+    if (d <= Duration.zero) return '0:00';
+    final h = d.inHours;
+    final m = d.inMinutes.remainder(60);
+    return '$h:${m.toString().padLeft(2, '0')}';
+  }
+
   // -- Prefs helpers for ad-progress persistence across app kills --
 
   static String _todayStr() =>
@@ -468,7 +496,9 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                   Expanded(child: _buildAlreadySolvedView())
                 else ...[
                   if (!_isCompleted && !_game.gameLost && !_isLoading &&
-                      !_streakRecovered && _dailyService.canRecoverStreak)
+                      !_streakRecovered &&
+                      _countdownToMidnight > Duration.zero &&
+                      _dailyService.canRecoverStreak)
                     _buildStreakRecoveryBanner(),
 
                   if (!_isCompleted && !_game.gameLost && !_isLoading)
@@ -584,60 +614,117 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   Widget _buildStreakRecoveryBanner() {
     final streak = _dailyService.currentStreak;
     final progress = _streakRecoveryProgress;
+    final countdown = _formatCountdown(_countdownToMidnight);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         decoration: BoxDecoration(
           color: const Color(0xFFFF6B35).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4), width: 1.5),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: const Color(0xFFFF6B35).withValues(alpha: 0.18),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4)),
-              ),
-              child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF6B35), size: 18),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Ruan vargun $streak-ditor!',
-                    style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
-                  ),
-                  Text(
-                    'Humbe dje — shiko 2 reklama për ta ruajtur.',
-                    style: AppFonts.quicksand(
-                      fontSize: 10,
-                      color: const Color(0xFFFF6B35).withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Column(
+            Row(
               children: [
-                ShikoButton(
-                  size: ShikoSize.medium,
-                  label: 'Shiko',
-                  loading: _loadingStreakRecovery,
-                  onTap: _watchAdsForStreakRecovery,
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withValues(alpha: 0.18),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4)),
+                  ),
+                  child: const Icon(Icons.local_fire_department_rounded,
+                      color: Color(0xFFFF6B35), size: 16),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Ruaj vargun $streak-ditor!',
+                        style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
+                      ),
+                      Text(
+                        'Shiko 2 reklama para mesnatës.',
+                        style: AppFonts.quicksand(
+                          fontSize: 10,
+                          color: const Color(0xFFFF6B35).withValues(alpha: 0.85),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Countdown pill
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6B35).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.35)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.timer_outlined,
+                          size: 11, color: Color(0xFFFF6B35)),
+                      const SizedBox(width: 3),
+                      Text(
+                        countdown,
+                        style: AppFonts.nunito(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFFFF6B35),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: ShikoButton(
+                    size: ShikoSize.medium,
+                    label: 'Shiko reklamë',
+                    loading: _loadingStreakRecovery,
+                    onTap: _watchAdsForStreakRecovery,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                // Progress dots
+                Row(
+                  children: List.generate(2, (i) {
+                    final done = progress > i;
+                    return Container(
+                      margin: const EdgeInsets.only(left: 4),
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: done
+                            ? const Color(0xFFFF6B35)
+                            : const Color(0xFFFF6B35).withValues(alpha: 0.2),
+                        border: Border.all(
+                          color: const Color(0xFFFF6B35).withValues(alpha: 0.6),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                const SizedBox(width: 4),
                 Text(
                   '$progress/2',
                   style: AppFonts.nunito(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w900,
                     color: const Color(0xFFFF6B35),
                   ),
