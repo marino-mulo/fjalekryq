@@ -651,7 +651,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                         style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
                       ),
                       Text(
-                        'Shiko 2 reklama para mesnatës.',
+                        'Shiko 2 reklama që të ruash vargun.',
                         style: AppFonts.quicksand(
                           fontSize: 10,
                           color: const Color(0xFFFF6B35).withValues(alpha: 0.85),
