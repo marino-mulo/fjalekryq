@@ -5,10 +5,13 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/database/models/user_model.dart';
 import '../../core/database/repositories/user_repository.dart';
+import '../../core/services/ad_service.dart';
 import '../../core/services/settings_service.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../../shared/widgets/offline_view.dart';
+import '../../shared/widgets/shiko_button.dart';
 import '../game/game_screen.dart';
 import '../../core/services/consent_service.dart';
 import '../legal/delete_data_screen.dart';
@@ -52,6 +55,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
   UserModel? _user;
   bool _editingName = false;
   bool _pickingAvatar = false;
+  bool _loadingRenameAds = false;
   late TextEditingController _nameController;
   String? _nameError;
 
@@ -107,6 +111,41 @@ class _SettingsSheetState extends State<SettingsSheet> {
       _editingName = false;
       _nameError = null;
     });
+  }
+
+  Future<void> _watchAdsForRename() async {
+    final adService = context.read<AdService>();
+    setState(() => _loadingRenameAds = true);
+
+    bool firstWatched = false;
+    await adService.showRewardedAd(
+      adType: AdType.renameUser,
+      onReward: () async { firstWatched = true; },
+      onOffline: () { if (mounted) showOfflineSnack(context); },
+    );
+
+    if (!firstWatched || !mounted) {
+      setState(() => _loadingRenameAds = false);
+      return;
+    }
+
+    bool secondWatched = false;
+    await adService.showRewardedAd(
+      adType: AdType.renameUser,
+      onReward: () async { secondWatched = true; },
+      onOffline: () { if (mounted) showOfflineSnack(context); },
+    );
+
+    if (!mounted) return;
+    setState(() => _loadingRenameAds = false);
+
+    if (secondWatched) {
+      _nameController.text = _user?.username ?? '';
+      setState(() {
+        _editingName = true;
+        _nameError = null;
+      });
+    }
   }
 
   Future<void> _openTutorial() async {
@@ -234,40 +273,14 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                           if (!_editingName) ...[
                             const SizedBox(width: 10),
-                            GestureDetector(
+                            ShikoButton(
+                              size: ShikoSize.medium,
+                              label: 'Ndrysho · ×2',
+                              loading: _loadingRenameAds,
                               onTap: () {
                                 HapticFeedback.selectionClick();
-                                _nameController.text = _user?.username ?? '';
-                                setState(() {
-                                  _editingName = true;
-                                  _nameError = null;
-                                });
+                                _watchAdsForRename();
                               },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.purpleAccent.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(50),
-                                  border: Border.all(
-                                    color: AppColors.purpleAccent.withValues(alpha: 0.5),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      'Ndrysho emrin',
-                                      style: AppFonts.nunito(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
                             ),
                           ],
                         ],

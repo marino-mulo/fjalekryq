@@ -63,6 +63,8 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   // Ad state
   bool _loadingAd = false;
   bool _loadingRestartAd = false;
+  bool _loadingStreakRecovery = false;
+  bool _streakRecovered = false;
 
 
   // Fail / continue tracking
@@ -365,6 +367,37 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     }
   }
 
+  Future<void> _watchAdsForStreakRecovery() async {
+    final adService = context.read<AdService>();
+    setState(() => _loadingStreakRecovery = true);
+
+    bool firstWatched = false;
+    await adService.showRewardedAd(
+      adType: AdType.streakRecovery,
+      onReward: () async { firstWatched = true; },
+      onOffline: () { if (mounted) showOfflineSnack(context); },
+    );
+
+    if (!firstWatched || !mounted) {
+      setState(() => _loadingStreakRecovery = false);
+      return;
+    }
+
+    bool secondWatched = false;
+    await adService.showRewardedAd(
+      adType: AdType.streakRecovery,
+      onReward: () async { secondWatched = true; },
+      onOffline: () { if (mounted) showOfflineSnack(context); },
+    );
+
+    if (!mounted) return;
+    if (secondWatched) {
+      await _dailyService.recoverStreak();
+      setState(() { _streakRecovered = true; });
+    }
+    setState(() => _loadingStreakRecovery = false);
+  }
+
   // ══════════════════════════════════════
   //  BUILD
   // ══════════════════════════════════════
@@ -396,6 +429,10 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                 else if (_alreadySolvedToday)
                   Expanded(child: _buildAlreadySolvedView())
                 else ...[
+                  if (!_isCompleted && !_game.gameLost && !_isLoading &&
+                      !_streakRecovered && _dailyService.canRecoverStreak)
+                    _buildStreakRecoveryBanner(),
+
                   if (!_isCompleted && !_game.gameLost && !_isLoading)
                     _buildInfoRow(),
 
@@ -498,6 +535,65 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
           ],
         ),
         child: child,
+      ),
+    );
+  }
+
+  // ══════════════════════════════════════
+  //  Streak recovery banner
+  // ══════════════════════════════════════
+
+  Widget _buildStreakRecoveryBanner() {
+    final streak = _dailyService.currentStreak;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFF6B35).withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4), width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF6B35).withValues(alpha: 0.18),
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFFF6B35).withValues(alpha: 0.4)),
+              ),
+              child: const Icon(Icons.local_fire_department_rounded, color: Color(0xFFFF6B35), size: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ruan vargun $streak-ditor!',
+                    style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
+                  ),
+                  Text(
+                    'Humbe dje — shiko 2 reklama për ta ruajtur.',
+                    style: AppFonts.quicksand(
+                      fontSize: 10,
+                      color: const Color(0xFFFF6B35).withValues(alpha: 0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            ShikoButton(
+              size: ShikoSize.medium,
+              label: '×2',
+              loading: _loadingStreakRecovery,
+              onTap: _watchAdsForStreakRecovery,
+            ),
+          ],
+        ),
       ),
     );
   }

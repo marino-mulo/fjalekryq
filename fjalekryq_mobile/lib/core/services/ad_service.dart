@@ -23,6 +23,10 @@ class AdType {
   /// Rewarded ad fired on the level-transition cadence. Separate from
   /// [bonusCoins] so it doesn't draw down the shop's daily budget.
   static const String levelBonus = 'level_bonus';
+  /// Used when recovering a missed daily streak (requires 2 watches).
+  static const String streakRecovery = 'streak_recovery';
+  /// Used when changing the username (requires 2 watches).
+  static const String renameUser = 'rename_user';
 }
 
 /// Daily limits per ad type. Types omitted from this map are

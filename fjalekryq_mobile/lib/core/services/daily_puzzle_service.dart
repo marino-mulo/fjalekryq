@@ -40,7 +40,6 @@ class DailyPuzzleService extends ChangeNotifier {
   int get currentStreak => _currentStreak;
   int get bestStreak => _bestStreak;
   String? get lastSolvedDate => _lastSolvedDate;
-  int get recoveryCost => streakRecoveryCost;
 
   /// True when the user missed exactly one day (yesterday), the day before
   /// yesterday was the last solved date, and the current streak was > 0 before
