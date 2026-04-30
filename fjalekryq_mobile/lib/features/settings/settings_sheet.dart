@@ -117,8 +117,11 @@ class _SettingsSheetState extends State<SettingsSheet> {
     }
 
     await userRepo.updateNickname(_user!.id!, name);
+    // Name saved — clear the ad unlock so next rename requires 2 ads again.
+    await _clearRenameProgress();
     setState(() {
       _user!.username = name;
+      _renameProgress = 0;
       _editingName = false;
       _nameError = null;
     });
@@ -138,6 +141,13 @@ class _SettingsSheetState extends State<SettingsSheet> {
   }
 
   Future<void> _watchAdsForRename() async {
+    // Already unlocked (e.g. user cancelled after watching both ads) — reopen directly.
+    if (_renameProgress >= 2) {
+      _nameController.text = _user?.username ?? '';
+      setState(() { _editingName = true; _nameError = null; });
+      return;
+    }
+
     final adService = context.read<AdService>();
     setState(() => _loadingRenameAds = true);
 
@@ -167,6 +177,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
       onReward: () async {
         watched2 = true;
         _renameProgress = 2;
+        // Save progress but don't clear — unlock persists until name is saved.
+        await _saveRenameProgress(2);
         if (mounted) setState(() {});
       },
       onOffline: () { if (mounted) showOfflineSnack(context); },
@@ -176,13 +188,8 @@ class _SettingsSheetState extends State<SettingsSheet> {
     setState(() => _loadingRenameAds = false);
 
     if (watched2) {
-      await _clearRenameProgress();
-      _renameProgress = 0;
       _nameController.text = _user?.username ?? '';
-      setState(() {
-        _editingName = true;
-        _nameError = null;
-      });
+      setState(() { _editingName = true; _nameError = null; });
     }
   }
 
@@ -311,28 +318,77 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                           if (!_editingName) ...[
                             const SizedBox(width: 10),
-                            Column(
-                              children: [
-                                ShikoButton(
-                                  size: ShikoSize.medium,
-                                  label: 'Ndrysho',
-                                  loading: _loadingRenameAds,
-                                  onTap: () {
-                                    HapticFeedback.selectionClick();
-                                    _watchAdsForRename();
-                                  },
-                                ),
-                                const SizedBox(height: 3),
-                                Text(
-                                  '$_renameProgress/2',
-                                  style: AppFonts.nunito(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    color: AppColors.purpleAccent,
-                                  ),
-                                ),
-                              ],
-                            ),
+                            _loadingRenameAds
+                                ? Column(
+                                    children: [
+                                      ShikoButton(
+                                        size: ShikoSize.medium,
+                                        label: 'Ndrysho',
+                                        loading: true,
+                                        onTap: null,
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        '$_renameProgress/2',
+                                        style: AppFonts.nunito(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w900,
+                                          color: AppColors.purpleAccent,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : _renameProgress >= 2
+                                    ? GestureDetector(
+                                        onTap: () {
+                                          HapticFeedback.selectionClick();
+                                          _watchAdsForRename();
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.purpleAccent.withValues(alpha: 0.18),
+                                            borderRadius: BorderRadius.circular(50),
+                                            border: Border.all(
+                                              color: AppColors.purpleAccent.withValues(alpha: 0.5),
+                                              width: 1.5,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                'Ndrysho',
+                                                style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    : Column(
+                                        children: [
+                                          ShikoButton(
+                                            size: ShikoSize.medium,
+                                            label: 'Ndrysho',
+                                            loading: false,
+                                            onTap: () {
+                                              HapticFeedback.selectionClick();
+                                              _watchAdsForRename();
+                                            },
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            '$_renameProgress/2',
+                                            style: AppFonts.nunito(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppColors.purpleAccent,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                           ],
                         ],
                       ),
