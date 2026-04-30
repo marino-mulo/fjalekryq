@@ -643,21 +643,9 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Ruaj vargun $streak-ditor!',
-                        style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
-                      ),
-                      Text(
-                        'Shiko 2 reklama që të ruash vargun.',
-                        style: AppFonts.quicksand(
-                          fontSize: 10,
-                          color: const Color(0xFFFF6B35).withValues(alpha: 0.85),
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    'Shiko 2 reklama që të ruash vargun $streak-ditor.',
+                    style: AppFonts.nunito(fontSize: 12, fontWeight: FontWeight.w900),
                   ),
                 ),
                 const SizedBox(width: 8),
