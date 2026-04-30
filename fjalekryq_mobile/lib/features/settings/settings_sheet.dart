@@ -15,6 +15,7 @@ import '../../shared/widgets/shiko_button.dart';
 import '../game/game_screen.dart';
 import '../../core/services/consent_service.dart';
 import '../legal/delete_data_screen.dart';
+import '../legal/remove_ads_screen.dart';
 import '../legal/privacy_policy_screen.dart';
 import '../legal/terms_of_service_screen.dart';
 import 'about_screen.dart';
@@ -499,6 +500,20 @@ class _SettingsSheetState extends State<SettingsSheet> {
                             context,
                             MaterialPageRoute(
                               builder: (_) => const DeleteDataScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      _buildLegalRow(
+                        icon: Icons.block_rounded,
+                        label: 'Hiqni reklamat · \$3.99',
+                        onTap: () {
+                          HapticFeedback.selectionClick();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const RemoveAdsScreen(),
                             ),
                           );
                         },

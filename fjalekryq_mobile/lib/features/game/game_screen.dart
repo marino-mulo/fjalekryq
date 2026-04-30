@@ -18,6 +18,8 @@ import '../../shared/widgets/app_loading_view.dart';
 import '../../shared/widgets/app_top_bar.dart';
 import '../../shared/widgets/offline_view.dart';
 import '../tutorial/tutorial_finger.dart';
+import '../settings/settings_sheet.dart';
+import '../../shared/widgets/shiko_button.dart';
 import 'widgets/game_board.dart';
 import 'widgets/win_modal.dart';
 import 'widgets/fail_modal.dart';
@@ -716,8 +718,32 @@ class _GameScreenState extends State<GameScreen> {
   Widget _buildHeader() {
     final levelLabel = _isTutorial
         ? 'SI TË LUASH'
-        : 'NIVELI \${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}';
-    return AppTopBar(title: levelLabel);
+        : 'NIVELI ${_prefs.getInt(_playingLevelKey) ?? _prefs.getInt(_levelKey) ?? 1}';
+    return AppTopBar(
+      title: levelLabel,
+      trailing: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SettingsSheet()),
+          );
+        },
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Icon(Icons.settings, color: Colors.white.withValues(alpha: 0.8), size: 20),
+        ),
+      ),
+    );
   }
 
   // ══════════════════════════════════════
@@ -760,6 +786,7 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
         ],
+      ),
     );
   }
 
@@ -973,14 +1000,15 @@ class _GameScreenState extends State<GameScreen> {
               child: withFinger(
                 show: pointSolve,
                 child: _controlButton(
-                  icon: Icons.lightbulb_outline,
-                  label: 'Zgjidh',
+                  icon: Icons.swap_horiz,
+                  label: 'Zgjidh një fjalë',
                   enabled: _game.canSolveWord &&
                       !(_isTutorial && _tutorialPhase == 1),
                   cooling: _game.solveWordCooldown,
                   cooldownRemaining: _game.solveWordCooldownRemaining,
                   pulsing: _isTutorial && _tutorialPhase == 3,
                   onTap: _onSolveWord,
+                  showWatchBadge: !_isTutorial,
                   isSolve: true,
                 ),
               ),
@@ -999,6 +1027,7 @@ class _GameScreenState extends State<GameScreen> {
     required int cooldownRemaining,
     required bool pulsing,
     required VoidCallback onTap,
+    bool showWatchBadge = false,
     bool isSolve = false,
   }) {
     final baseColor = isSolve
@@ -1085,8 +1114,14 @@ class _GameScreenState extends State<GameScreen> {
             ),
           ),
 
+          // Watch-ad badge (glass pill, top-right corner)
+          if (showWatchBadge)
+            Positioned(
+              top: -7,
+              right: -5,
+              child: ShikoButton(size: ShikoSize.small),
+            ),
         ],
-      ),
     );
   }
 }

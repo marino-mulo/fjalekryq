@@ -238,7 +238,7 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
   bool _publisherSplashDone = false;
   bool _loadingMinElapsed = false;
 
-  static const _publisherSplashDuration = Duration(milliseconds: 1800);
+  static const _publisherSplashDuration = Duration(milliseconds: 4000);
   static const _loadingMinDuration = Duration(milliseconds: 900);
 
   @override
@@ -254,6 +254,19 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
         if (mounted) setState(() => _loadingMinElapsed = true);
       });
     });
+  }
+
+  Widget _buildHome(_AppServices? s) {
+    if (!_publisherSplashDone) {
+      return const LojraLogjikeSplash(key: ValueKey('publisher'));
+    }
+    if (s == null || !_loadingMinElapsed) {
+      return const AppLoadingView(key: ValueKey('loading'));
+    }
+    final onboarded = s.prefs.getBool(_onboardingDoneKey) ?? false;
+    return onboarded
+        ? const HomeScreen(key: ValueKey('home'))
+        : const OnboardingScreen(key: ValueKey('onboard'));
   }
 
   @override
@@ -276,13 +289,12 @@ class _FjalekryqAppState extends State<FjalekryqApp> {
       builder: s != null
           ? (_, child) => MultiProvider(providers: s.providers, child: child!)
           : null,
-      home: !_publisherSplashDone
-          ? const LojraLogjikeSplash()
-          : (s == null || !_loadingMinElapsed)
-              ? const AppLoadingView()
-              : (s.prefs.getBool(_onboardingDoneKey) ?? false)
-                  ? const HomeScreen()
-                  : const OnboardingScreen(),
+      home: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 600),
+        transitionBuilder: (child, animation) =>
+            FadeTransition(opacity: animation, child: child),
+        child: _buildHome(s),
+      ),
     );
   }
 }

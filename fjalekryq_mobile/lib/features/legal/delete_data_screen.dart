@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
@@ -11,6 +9,7 @@ import '../../core/database/database_helper.dart';
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../onboarding/onboarding_screen.dart';
 
 /// Account & data deletion screen.
 ///
@@ -64,43 +63,13 @@ class _DeleteDataScreenState extends State<DeleteDataScreen> {
       debugPrint('Data deletion: failed to clear prefs: $e');
     }
 
-    // The app is now in an undefined state — every service is holding
-    // stale references to the deleted DB. The cleanest path is to ask
-    // the user to relaunch. SystemNavigator.pop() exits gracefully on
-    // Android; on iOS Apple disallows programmatic exit, so we just
-    // show a "please relaunch" message.
     if (!mounted) return;
     setState(() => _deleting = false);
 
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A2D5A),
-        title: Text('Të dhënat u fshinë',
-            style: AppFonts.nunito(
-                fontWeight: FontWeight.w800, color: Colors.white)),
-        content: Text(
-          Platform.isIOS
-              ? 'Të gjitha të dhënat tuaja u fshinë. Ju lutemi mbylleni dhe rihapni aplikacionin.'
-              : 'Të gjitha të dhënat tuaja u fshinë. Aplikacioni do të mbyllet.',
-          style: AppFonts.quicksand(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              if (Platform.isAndroid) {
-                SystemNavigator.pop();
-              } else {
-                Navigator.of(context).popUntil((r) => r.isFirst);
-              }
-            },
-            child: Text('Në rregull',
-                style: AppFonts.nunito(
-                    color: AppColors.gold, fontWeight: FontWeight.w800)),
-          ),
-        ],
-      ),
+    HapticFeedback.mediumImpact();
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const OnboardingScreen()),
+      (_) => false,
     );
   }
 

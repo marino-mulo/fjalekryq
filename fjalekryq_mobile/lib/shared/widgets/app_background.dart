@@ -81,15 +81,15 @@ class AppBackground extends StatelessWidget {
           ),
         ),
 
-        // 3a. Top-left decorative solved puzzle, tilted -70° (diagonal).
+        // 3a. Top-left decorative solved puzzle, tilted -80° (diagonal).
         if (showCornerPuzzles)
           const Positioned(
-            top: 80,
+            top: 10,
             left: -110,
             child: IgnorePointer(
               child: _CornerPuzzle(
                 grid: _topLeftGrid,
-                rotationDegrees: -70,
+                rotationDegrees: -50,
                 opacity: 0.07,
               ),
             ),
@@ -104,7 +104,7 @@ class AppBackground extends StatelessWidget {
             child: IgnorePointer(
               child: _CornerPuzzle(
                 grid: _bottomRightGrid,
-                rotationDegrees: -70,
+                rotationDegrees: -50,
                 opacity: 0.07,
               ),
             ),

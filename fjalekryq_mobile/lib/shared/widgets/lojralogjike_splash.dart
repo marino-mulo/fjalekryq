@@ -44,67 +44,68 @@ class _LojraLogjikeSplashState extends State<LojraLogjikeSplash>
       backgroundColor: Colors.transparent,
       body: AppBackground(
         showCornerPuzzles: false,
-        child: Center(
-          child: FadeTransition(
-            opacity: _fade,
-            child: ScaleTransition(
-              scale: _scale,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Studio monogram — interlocked "LL" in gold, distinct
-                  // from the purple Fjalekryq shield so the two brands
-                  // never get confused.
-                  const _LLMonogram(size: 110),
-                  const SizedBox(height: 28),
-
-                  // Wordmark.
-                  Text(
-                    'LojraLogjike',
-                    style: AppFonts.nunito(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.gold,
-                      letterSpacing: 1.1,
-                    ).copyWith(
-                      shadows: [
-                        Shadow(
-                          color: AppColors.gold.withValues(alpha: 0.45),
-                          blurRadius: 22,
+        child: FadeTransition(
+          opacity: _fade,
+          child: ScaleTransition(
+            scale: _scale,
+            child: Stack(
+              children: [
+                // Logo at exact screen center — same position as AppLoadingView's PuzzleLogo.
+                Center(
+                  child: _LLMonogram(size: 120),
+                ),
+                // Text anchored below center, independent of logo position.
+                Align(
+                  alignment: const Alignment(0, 0.45),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'LojraLogjike',
+                        style: AppFonts.nunito(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.gold,
+                          letterSpacing: 1.1,
+                        ).copyWith(
+                          shadows: [
+                            Shadow(
+                              color: AppColors.gold.withValues(alpha: 0.45),
+                              blurRadius: 22,
+                            ),
+                            Shadow(
+                              color: Colors.black.withValues(alpha: 0.45),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                        Shadow(
-                          color: Colors.black.withValues(alpha: 0.45),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.18),
+                          ),
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Tagline.
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.18),
+                        child: Text(
+                          'Mendo · Luaj · Fito',
+                          style: AppFonts.quicksand(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white.withValues(alpha: 0.82),
+                            letterSpacing: 3,
+                          ),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      'Mendo · Luaj · Fito',
-                      style: AppFonts.quicksand(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white.withValues(alpha: 0.82),
-                        letterSpacing: 3,
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

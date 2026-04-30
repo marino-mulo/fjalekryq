@@ -1,22 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../shared/constants/theme.dart';
 import '../../shared/widgets/app_background.dart';
 import '../../shared/widgets/app_top_bar.dart';
+import '../../shared/widgets/puzzle_logo.dart';
 
-/// "About Game" page — shows the app name, version, and a support
-/// address. Apple and Google both expect a clearly discoverable
-/// support contact for a published app; this page satisfies that.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
-  // Keep in sync with the version field in pubspec.yaml. Hard-coded
-  // intentionally so this screen has zero runtime dependencies — the
-  // package_info_plus plugin can replace this later if we need
-  // auto-sync.
   static const String _appVersion = '1.0.0';
-  static const String _supportEmail = 'support@fjalekryq.com';
+
+  static const String _playStoreUrl =
+      'https://play.google.com/store/apps/developer?id=LojraLogjike';
+  static const String _appStoreUrl =
+      'https://apps.apple.com/developer/lojralogjike';
+  static const String _websiteUrl = 'https://lojralogjike.al';
+
+  Future<void> _openUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _openMoreGames(BuildContext context) async {
+    HapticFeedback.selectionClick();
+    final isAndroid = Theme.of(context).platform == TargetPlatform.android;
+    await _openUrl(isAndroid ? _playStoreUrl : _appStoreUrl);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,23 +47,7 @@ class AboutScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       const SizedBox(height: 16),
-                      Container(
-                        width: 88,
-                        height: 88,
-                        decoration: BoxDecoration(
-                          color: AppColors.gold.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(
-                            color: AppColors.gold.withValues(alpha: 0.45),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.extension_rounded,
-                          color: AppColors.gold,
-                          size: 44,
-                        ),
-                      ),
+                      const PuzzleLogo(size: 88),
                       const SizedBox(height: 18),
                       Text(
                         'Fjalëkryq',
@@ -68,32 +65,20 @@ class AboutScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 28),
-                      _infoRow(
-                        label: 'Mbështetje',
-                        value: _supportEmail,
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          Clipboard.setData(
-                              const ClipboardData(text: _supportEmail));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Adresa u kopjua',
-                                style: AppFonts.quicksand(fontSize: 13),
-                              ),
-                              duration: const Duration(seconds: 2),
-                            ),
-                          );
-                        },
+                      _linkRow(
+                        icon: Icons.apps_rounded,
+                        label: 'Lojëra të tjera nga LojraLogjike',
+                        onTap: () => _openMoreGames(context),
                       ),
                       const SizedBox(height: 10),
-                      _infoRow(
-                        label: 'Zhvilluar nga',
-                        value: 'Fjalëkryq Team',
+                      _linkRow(
+                        icon: Icons.language_rounded,
+                        label: 'Vizitoni lojralogjike.al',
+                        onTap: () => _openUrl(_websiteUrl),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       Text(
-                        '© ${DateTime.now().year} Fjalëkryq',
+                        '© 2026 LojraLogjike',
                         style: AppFonts.quicksand(
                           fontSize: 11,
                           color: Colors.white.withValues(alpha: 0.35),
@@ -110,10 +95,10 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Widget _infoRow({
+  Widget _linkRow({
+    required IconData icon,
     required String label,
-    required String value,
-    VoidCallback? onTap,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -127,36 +112,23 @@ class AboutScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
+            Icon(icon, color: AppColors.gold, size: 20),
+            const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: AppFonts.quicksand(
-                      fontSize: 11,
-                      color: Colors.white.withValues(alpha: 0.45),
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: AppFonts.nunito(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
-                ],
+              child: Text(
+                label,
+                style: AppFonts.nunito(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
               ),
             ),
-            if (onTap != null)
-              Icon(
-                Icons.copy_rounded,
-                color: Colors.white.withValues(alpha: 0.4),
-                size: 16,
-              ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 14,
+            ),
           ],
         ),
       ),

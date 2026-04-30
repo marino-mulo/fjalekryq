@@ -10,7 +10,7 @@ class AppLoadingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: PuzzleLogo(size: 88, animated: true),
+      child: PuzzleLogo(size: 120, animated: true),
     );
   }
 }
