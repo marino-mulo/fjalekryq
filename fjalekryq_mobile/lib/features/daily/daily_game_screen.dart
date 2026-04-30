@@ -65,7 +65,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
   bool _loadingRestartAd = false;
   bool _loadingStreakRecovery = false;
   bool _streakRecovered = false;
-
+  int _streakRecoveryProgress = 0; // 0, 1, or 2 ads watched
 
   // Fail / continue tracking
   bool _failedToday = false;
@@ -97,6 +97,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     _audio = context.read<AudioService>();
     _userId = context.read<int>();
     _dailyService = context.read<DailyPuzzleService>();
+    _streakRecoveryProgress = _loadAdProgress('fjalekryq_streak_recovery');
     final gameStateRepo = context.read<GameStateRepository>();
     final progressRepo = context.read<ProgressRepository>();
     _game = GameService(_prefs, gameStateRepo, progressRepo, _userId);
@@ -367,32 +368,69 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
     }
   }
 
+  // -- Prefs helpers for ad-progress persistence across app kills --
+
+  static String _todayStr() =>
+      DateTime.now().toIso8601String().substring(0, 10);
+
+  int _loadAdProgress(String key) {
+    final savedDate = _prefs.getString('${key}_date') ?? '';
+    if (savedDate != _todayStr()) return 0;
+    return _prefs.getInt('${key}_count') ?? 0;
+  }
+
+  Future<void> _saveAdProgress(String key, int count) async {
+    await _prefs.setString('${key}_date', _todayStr());
+    await _prefs.setInt('${key}_count', count);
+  }
+
+  Future<void> _clearAdProgress(String key) async {
+    await _prefs.remove('${key}_date');
+    await _prefs.remove('${key}_count');
+  }
+
+  // -- Streak recovery: watch 2 ads, resumable across app kills --
+
   Future<void> _watchAdsForStreakRecovery() async {
     final adService = context.read<AdService>();
     setState(() => _loadingStreakRecovery = true);
 
-    bool firstWatched = false;
-    await adService.showRewardedAd(
-      adType: AdType.streakRecovery,
-      onReward: () async { firstWatched = true; },
-      onOffline: () { if (mounted) showOfflineSnack(context); },
-    );
-
-    if (!firstWatched || !mounted) {
-      setState(() => _loadingStreakRecovery = false);
-      return;
+    // Ad 1: skip if already watched this session (app was killed after ad 1)
+    if (_streakRecoveryProgress < 1) {
+      bool watched = false;
+      await adService.showRewardedAd(
+        adType: AdType.streakRecovery,
+        onReward: () async {
+          watched = true;
+          _streakRecoveryProgress = 1;
+          await _saveAdProgress('fjalekryq_streak_recovery', 1);
+          if (mounted) setState(() {});
+        },
+        onOffline: () { if (mounted) showOfflineSnack(context); },
+      );
+      if (!watched || !mounted) {
+        setState(() => _loadingStreakRecovery = false);
+        return;
+      }
     }
 
-    bool secondWatched = false;
+    // Ad 2: shown immediately after ad 1 completes (or if ad 1 was already done)
+    bool watched2 = false;
     await adService.showRewardedAd(
       adType: AdType.streakRecovery,
-      onReward: () async { secondWatched = true; },
+      onReward: () async {
+        watched2 = true;
+        _streakRecoveryProgress = 2;
+        await _saveAdProgress('fjalekryq_streak_recovery', 2);
+        if (mounted) setState(() {});
+      },
       onOffline: () { if (mounted) showOfflineSnack(context); },
     );
 
     if (!mounted) return;
-    if (secondWatched) {
+    if (watched2) {
       await _dailyService.recoverStreak();
+      await _clearAdProgress('fjalekryq_streak_recovery');
       setState(() { _streakRecovered = true; });
     }
     setState(() => _loadingStreakRecovery = false);
@@ -545,6 +583,7 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
 
   Widget _buildStreakRecoveryBanner() {
     final streak = _dailyService.currentStreak;
+    final progress = _streakRecoveryProgress;
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       child: Container(
@@ -586,11 +625,24 @@ class _DailyGameScreenState extends State<DailyGameScreen> {
               ),
             ),
             const SizedBox(width: 8),
-            ShikoButton(
-              size: ShikoSize.medium,
-              label: '×2',
-              loading: _loadingStreakRecovery,
-              onTap: _watchAdsForStreakRecovery,
+            Column(
+              children: [
+                ShikoButton(
+                  size: ShikoSize.medium,
+                  label: 'Shiko',
+                  loading: _loadingStreakRecovery,
+                  onTap: _watchAdsForStreakRecovery,
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '$progress/2',
+                  style: AppFonts.nunito(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFFFF6B35),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

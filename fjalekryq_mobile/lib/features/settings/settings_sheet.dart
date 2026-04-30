@@ -56,6 +56,7 @@ class _SettingsSheetState extends State<SettingsSheet> {
   bool _editingName = false;
   bool _pickingAvatar = false;
   bool _loadingRenameAds = false;
+  int _renameProgress = 0; // 0 or 1 ads watched so far
   late TextEditingController _nameController;
   String? _nameError;
 
@@ -64,6 +65,16 @@ class _SettingsSheetState extends State<SettingsSheet> {
     super.initState();
     _nameController = TextEditingController();
     _loadUser();
+    _loadRenameProgress();
+  }
+
+  void _loadRenameProgress() {
+    final prefs = context.read<SharedPreferences>();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final savedDate = prefs.getString('fjalekryq_rename_ads_date') ?? '';
+    if (savedDate == today) {
+      _renameProgress = prefs.getInt('fjalekryq_rename_ads_count') ?? 0;
+    }
   }
 
   @override
@@ -113,33 +124,60 @@ class _SettingsSheetState extends State<SettingsSheet> {
     });
   }
 
+  Future<void> _saveRenameProgress(int count) async {
+    final prefs = context.read<SharedPreferences>();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    await prefs.setString('fjalekryq_rename_ads_date', today);
+    await prefs.setInt('fjalekryq_rename_ads_count', count);
+  }
+
+  Future<void> _clearRenameProgress() async {
+    final prefs = context.read<SharedPreferences>();
+    await prefs.remove('fjalekryq_rename_ads_date');
+    await prefs.remove('fjalekryq_rename_ads_count');
+  }
+
   Future<void> _watchAdsForRename() async {
     final adService = context.read<AdService>();
     setState(() => _loadingRenameAds = true);
 
-    bool firstWatched = false;
-    await adService.showRewardedAd(
-      adType: AdType.renameUser,
-      onReward: () async { firstWatched = true; },
-      onOffline: () { if (mounted) showOfflineSnack(context); },
-    );
-
-    if (!firstWatched || !mounted) {
-      setState(() => _loadingRenameAds = false);
-      return;
+    // Ad 1: skip if already watched (app was killed after ad 1)
+    if (_renameProgress < 1) {
+      bool watched = false;
+      await adService.showRewardedAd(
+        adType: AdType.renameUser,
+        onReward: () async {
+          watched = true;
+          _renameProgress = 1;
+          await _saveRenameProgress(1);
+          if (mounted) setState(() {});
+        },
+        onOffline: () { if (mounted) showOfflineSnack(context); },
+      );
+      if (!watched || !mounted) {
+        setState(() => _loadingRenameAds = false);
+        return;
+      }
     }
 
-    bool secondWatched = false;
+    // Ad 2: shown immediately after ad 1 (no user tap needed)
+    bool watched2 = false;
     await adService.showRewardedAd(
       adType: AdType.renameUser,
-      onReward: () async { secondWatched = true; },
+      onReward: () async {
+        watched2 = true;
+        _renameProgress = 2;
+        if (mounted) setState(() {});
+      },
       onOffline: () { if (mounted) showOfflineSnack(context); },
     );
 
     if (!mounted) return;
     setState(() => _loadingRenameAds = false);
 
-    if (secondWatched) {
+    if (watched2) {
+      await _clearRenameProgress();
+      _renameProgress = 0;
       _nameController.text = _user?.username ?? '';
       setState(() {
         _editingName = true;
@@ -273,14 +311,27 @@ class _SettingsSheetState extends State<SettingsSheet> {
                           ),
                           if (!_editingName) ...[
                             const SizedBox(width: 10),
-                            ShikoButton(
-                              size: ShikoSize.medium,
-                              label: 'Ndrysho · ×2',
-                              loading: _loadingRenameAds,
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                _watchAdsForRename();
-                              },
+                            Column(
+                              children: [
+                                ShikoButton(
+                                  size: ShikoSize.medium,
+                                  label: 'Ndrysho',
+                                  loading: _loadingRenameAds,
+                                  onTap: () {
+                                    HapticFeedback.selectionClick();
+                                    _watchAdsForRename();
+                                  },
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  '$_renameProgress/2',
+                                  style: AppFonts.nunito(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    color: AppColors.purpleAccent,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ],
